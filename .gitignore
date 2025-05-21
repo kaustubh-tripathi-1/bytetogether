@@ -13,6 +13,7 @@ dist-ssr
 *.local
 code-editor-planning.md
 .env
+bytetogether.code-workspace
 
 # Editor directories and files
 .vscode/*
