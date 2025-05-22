@@ -38,7 +38,7 @@ class AuthService {
             this.#account = new Account(this.#client);
         } catch (error) {
             throw new AuthError(
-                `Failed to initialize Appwrite client - ${error}`,
+                `Failed to initialize Appwrite client - ${error.message}`,
                 1000,
                 'initialization_failed'
             );
