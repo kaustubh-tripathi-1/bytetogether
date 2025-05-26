@@ -271,8 +271,8 @@ const authSlice = createSlice({
          * @param {Object|null} action.payload - The user's data.
          */
         setUser: (state, action) => {
-            state.user = action.payload.user;
-            state.authStatus = action.payload.authStatus || false;
+            state.user = action.payload;
+            state.authStatus = action.payload !== null;
         },
         /**
          * Sets the auth status synchronously.
@@ -401,7 +401,7 @@ const authSlice = createSlice({
             .addCase(deleteSession.fulfilled, (state) => {
                 state.isLoading = false;
                 state.authStatus = false;
-                state.userData = null;
+                state.user = null;
             })
             .addCase(deleteSession.rejected, (state, action) => {
                 state.isLoading = false;
