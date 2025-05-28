@@ -6,7 +6,7 @@ import { fetchCurrentUser } from './store/slices/authSlice';
 import {
     Layout,
     //   Home,
-    //   Login,
+    Login,
     //   Signup,
     //   About,
     //   Contact,
@@ -82,41 +82,41 @@ const router = createBrowserRouter([
             { path: '*', element: <NotFound /> }, */
         ],
     },
-    /* {
+    {
         path: 'login',
         element: <Login />,
         errorElement: <ErrorBoundary />,
     },
-    {
-        path: 'signup',
-        element: <Signup />,
-        errorElement: <ErrorBoundary />,
-    },
-    {
-        path: 'forgot-password',
-        element: <ForgotPassword />,
-        errorElement: <ErrorBoundary />,
-    },
-    {
-        path: 'reset-password',
-        element: <ResetPassword />,
-        errorElement: <ErrorBoundary />,
-    },
-    {
-        path: 'verify-email',
-        element: <VerifyEmail />,
-        errorElement: <ErrorBoundary />,
-    },
-    {
-        path: 'email-sent',
-        element: <EmailSent />,
-        errorElement: <ErrorBoundary />,
-    },
-    {
-        path: 'resend-verification-email',
-        element: <ResendVerificationEmail />,
-        errorElement: <ErrorBoundary />,
-    }, */
+    // {
+    //     path: 'signup',
+    //     element: <Signup />,
+    //     errorElement: <ErrorBoundary />,
+    // },
+    // {
+    //     path: 'forgot-password',
+    //     element: <ForgotPassword />,
+    //     errorElement: <ErrorBoundary />,
+    // },
+    // {
+    //     path: 'reset-password',
+    //     element: <ResetPassword />,
+    //     errorElement: <ErrorBoundary />,
+    // },
+    // {
+    //     path: 'verify-email',
+    //     element: <VerifyEmail />,
+    //     errorElement: <ErrorBoundary />,
+    // },
+    // {
+    //     path: 'email-sent',
+    //     element: <EmailSent />,
+    //     errorElement: <ErrorBoundary />,
+    // },
+    // {
+    //     path: 'resend-verification-email',
+    //     element: <ResendVerificationEmail />,
+    //     errorElement: <ErrorBoundary />,
+    // },
 ]);
 
 /**
