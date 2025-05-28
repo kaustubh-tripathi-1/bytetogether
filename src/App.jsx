@@ -12,7 +12,7 @@ import {
     //   Contact,
     ProtectedRoute,
     //   NotFound,
-    ErrorBoundary,
+    ErrorBoundaryInRoutes,
     //   UserProfile,
     //   EditProfile,
     //   ForgotPassword,
@@ -33,7 +33,7 @@ const router = createBrowserRouter([
     {
         path: '/',
         element: <Layout />,
-        errorElement: <ErrorBoundary />, // Root error fallback
+        errorElement: <ErrorBoundaryInRoutes />, // Root error fallback
         children: [
             /* { path: '', index: true, element: <Home /> },
             { path: 'about', element: <About /> },
@@ -85,37 +85,37 @@ const router = createBrowserRouter([
     {
         path: 'login',
         element: <Login />,
-        errorElement: <ErrorBoundary />,
+        errorElement: <ErrorBoundaryInRoutes />,
     },
     // {
     //     path: 'signup',
     //     element: <Signup />,
-    //     errorElement: <ErrorBoundary />,
+    //     errorElement: <ErrorBoundaryInRoutes />,
     // },
     // {
     //     path: 'forgot-password',
     //     element: <ForgotPassword />,
-    //     errorElement: <ErrorBoundary />,
+    //     errorElement: <ErrorBoundaryInRoutes />,
     // },
     // {
     //     path: 'reset-password',
     //     element: <ResetPassword />,
-    //     errorElement: <ErrorBoundary />,
+    //     errorElement: <ErrorBoundaryInRoutes />,
     // },
     // {
     //     path: 'verify-email',
     //     element: <VerifyEmail />,
-    //     errorElement: <ErrorBoundary />,
+    //     errorElement: <ErrorBoundaryInRoutes />,
     // },
     // {
     //     path: 'email-sent',
     //     element: <EmailSent />,
-    //     errorElement: <ErrorBoundary />,
+    //     errorElement: <ErrorBoundaryInRoutes />,
     // },
     // {
     //     path: 'resend-verification-email',
     //     element: <ResendVerificationEmail />,
-    //     errorElement: <ErrorBoundary />,
+    //     errorElement: <ErrorBoundaryInRoutes />,
     // },
 ]);
 
