@@ -1,7 +1,7 @@
-export default function OpenEye() {
+export default function OpenEye({ className = `` }) {
     return (
         <svg
-            className="h-5 w-5"
+            className={`${className}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
