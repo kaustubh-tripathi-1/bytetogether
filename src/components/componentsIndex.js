@@ -5,3 +5,5 @@ export { default as Layout } from './layout/Layout.jsx';
 export { default as Login } from './login/Login.jsx';
 export { default as CloseEye } from './svg/CloseEye.jsx';
 export { default as OpenEye } from './svg/OpenEye.jsx';
+export { default as Spinner } from './svg/Spinner.jsx';
+export { default as NotFound } from './not-found/NotFound.jsx';
