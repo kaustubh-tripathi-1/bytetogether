@@ -3,17 +3,19 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 
 import authReducer from './slices/authSlice';
+import uiReducer from './slices/uiSlice';
 
 // Persist config
 const persistConfig = {
     key: 'root',
     storage,
-    whitelist: ['auth'], // Only persist the auth slice for now
+    whitelist: ['auth', 'ui'], // Only persist the auth slice for now
 };
 
 // Combined reducers
 const rootReducer = {
     auth: persistReducer(persistConfig, authReducer),
+    ui: persistReducer(persistConfig, uiReducer),
 };
 
 // Redux Store config
