@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 
 import { loginUser, setError } from '../../store/slices/authSlice';
 // import { addNotification } from '../store/slices/uiSlice';
-import { CloseEye, OpenEye } from '../componentsIndex';
+import { CloseEye, OpenEye, Spinner } from '../componentsIndex';
 
 /**
  * Renders the login page with a form for user authentication.
@@ -30,7 +30,7 @@ export default function Login() {
             await dispatch(loginUser(data)).unwrap();
 
             // Redirect to the last path (if stored) or projects page
-            const lastPath = sessionStorage.getItem('lastPath') || '/projects';
+            const lastPath = sessionStorage.getItem('lastPath') || '/';
             navigate(lastPath);
         } catch (error) {
             dispatch(setError(error || 'Login failed'));
@@ -42,26 +42,27 @@ export default function Login() {
     };
 
     return (
-        <motion.div
+        <motion.main
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="flex min-h-screen items-center justify-center bg-gradient-to-tr from-black to-indigo-900 p-4"
+            className="flex min-h-screen items-center justify-center bg-gradient-to-tr from-blue-400 via-indigo-300 to-teal-400 p-4 dark:from-black dark:via-sky-900 dark:to-indigo-900"
         >
-            <div className="w-full max-w-md rounded-lg border border-white/20 bg-white/10 p-8 shadow-lg backdrop-blur-md">
-                <h2 className="mb-6 text-center text-3xl font-bold text-white">
+            <section className="w-full max-w-md rounded-lg border border-gray-300 p-8 shadow-xl backdrop-blur-xl dark:border-white/30 dark:bg-white/10 dark:backdrop-blur-md">
+                <h2 className="mb-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
                     Login
                 </h2>
 
                 {/* Error from Redux */}
-                {error && (
-                    /* error !== 'User (role: guests) missing scope (account)' && */ <div
-                        className="mb-4 rounded bg-red-900/20 p-3 text-center text-red-300"
-                        role="alert"
-                    >
-                        {error}
-                    </div>
-                )}
+                {error &&
+                    error !== 'User (role: guests) missing scope (account)' && (
+                        <div
+                            className="mb-4 rounded-md bg-red-400/50 p-3 text-center text-red-700 dark:bg-red-900/25 dark:text-red-400"
+                            role="alert"
+                        >
+                            {error}
+                        </div>
+                    )}
 
                 <form
                     onSubmit={handleSubmit(loginOnSubmit)}
@@ -71,9 +72,12 @@ export default function Login() {
                     <div>
                         <label
                             htmlFor="email"
-                            className="block text-sm font-medium text-gray-200"
+                            className="block text-sm font-medium text-gray-800 dark:text-gray-200"
                         >
-                            Email <sup className="text-red-400">*</sup>
+                            Email{' '}
+                            <sup className="text-red-500 dark:text-red-400">
+                                *
+                            </sup>
                         </label>
                         <input
                             id="email"
@@ -85,8 +89,11 @@ export default function Login() {
                                     message: 'Invalid email format',
                                 },
                             })}
-                            className="mt-1 w-full rounded-md bg-white/20 p-3 text-white placeholder-gray-300 transition-opacity duration-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-                            placeholder="Enter your email"
+                            className={`mt-1 w-full ${
+                                errors.email
+                                    ? 'border-2 border-red-400'
+                                    : 'focus:ring-2 focus:ring-blue-500 dark:focus:ring-sky-500'
+                            } rounded-md bg-gray-200 p-3 text-gray-900 placeholder-gray-500 shadow-md transition-[box-shadow] duration-300 focus:outline-none dark:bg-white/20 dark:text-white`}
                             disabled={isLoading}
                             autoComplete="email"
                             aria-invalid={errors.email ? 'true' : 'false'}
@@ -97,7 +104,7 @@ export default function Login() {
                         {errors.email && (
                             <p
                                 id="email-error"
-                                className="mt-1 text-sm text-red-300"
+                                className="mt-1 text-sm text-red-600 dark:text-red-400"
                                 role="alert"
                             >
                                 {errors.email.message}
@@ -109,9 +116,12 @@ export default function Login() {
                     <div>
                         <label
                             htmlFor="password"
-                            className="block text-sm font-medium text-gray-200"
+                            className="block text-sm font-medium text-gray-800 dark:text-gray-200"
                         >
-                            Password <sup className="text-red-400">*</sup>
+                            Password{' '}
+                            <sup className="text-red-500 dark:text-red-400">
+                                *
+                            </sup>
                         </label>
                         <div className="relative">
                             <input
@@ -122,11 +132,19 @@ export default function Login() {
                                     minLength: {
                                         value: 8,
                                         message:
-                                            'Password must be at least 8 characters',
+                                            'Password must be at least 8 characters and must contain at least 1 uppercase, 1 digit and 1 special character',
+                                    },
+                                    pattern: {
+                                        value: /^(?=.*[A-Z])(?=.*[a-z])(?=.*[\d])(?!.*[ ])(?=.*[!@#$%^&*_-|]).{8,}$/,
+                                        message:
+                                            'Password must contain at least 1 uppercase, 1 digit and 1 special character',
                                     },
                                 })}
-                                className="mt-1 w-full rounded-md bg-white/20 p-3 text-white placeholder-gray-300 transition-opacity duration-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-                                placeholder="Enter your password"
+                                className={`mt-1 w-full ${
+                                    errors.password
+                                        ? 'border-2 border-red-400'
+                                        : 'focus:ring-2 focus:ring-blue-500 dark:focus:ring-sky-500'
+                                } rounded-md bg-gray-200 p-3 text-gray-900 shadow-md transition-[box-shadow] duration-300 focus:outline-none dark:bg-white/20 dark:text-white`}
                                 disabled={isLoading}
                                 autoComplete="current-password"
                                 aria-invalid={
@@ -141,20 +159,24 @@ export default function Login() {
                             <button
                                 type="button"
                                 onClick={togglePasswordVisibility}
-                                className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-gray-100 hover:text-gray-300 focus:text-gray-300 focus:outline-none"
+                                className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-gray-600 hover:text-gray-800 focus:text-gray-800 focus:outline-none dark:text-gray-100 dark:hover:text-gray-400 dark:focus:text-gray-400"
                                 aria-label={
                                     showPassword
                                         ? 'Hide password'
                                         : 'Show password'
                                 }
                             >
-                                {showPassword ? <CloseEye /> : <OpenEye />}
+                                {showPassword ? (
+                                    <CloseEye className="h-5 w-5" />
+                                ) : (
+                                    <OpenEye className="h-5 w-5" />
+                                )}
                             </button>
                         </div>
                         {errors.password && (
                             <p
                                 id="password-error"
-                                className="mt-1 text-sm text-red-300"
+                                className="mt-1 text-sm text-red-600 dark:text-red-400"
                                 role="alert"
                             >
                                 {errors.password.message}
@@ -166,7 +188,7 @@ export default function Login() {
                     <div className="text-right">
                         <Link
                             to="/forgot-password"
-                            className="focus:text- text-sm text-indigo-200 hover:underline focus:outline-none"
+                            className="text-sm text-blue-900 hover:text-blue-700 hover:underline focus:underline focus:outline-none dark:text-sky-300 dark:hover:text-teal-400 dark:focus:text-teal-400"
                         >
                             Forgot Password?
                         </Link>
@@ -174,23 +196,36 @@ export default function Login() {
 
                     {/* Submit Button */}
                     <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{
+                            scale: errors.email || errors.password ? 1 : 1.05,
+                        }}
+                        whileFocus={{
+                            scale: errors.email || errors.password ? 1 : 1.05,
+                        }}
+                        whileTap={{
+                            scale: errors.email || errors.password ? 1 : 0.95,
+                        }}
                         type="submit"
-                        disabled={isLoading}
-                        className="w-full cursor-pointer rounded-md bg-indigo-600 py-3 font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-400 focus:outline-none disabled:opacity-50"
+                        disabled={isLoading || errors.email || errors.password}
+                        className={`w-full rounded-md py-3 font-semibold text-white duration-200 ${errors.email || errors.password ? 'bg-blue-400 dark:bg-sky-400' : 'cursor-pointer bg-blue-500 hover:bg-blue-600 focus:bg-blue-600 dark:bg-sky-500 dark:hover:bg-sky-600'} focus:ring-2 focus:ring-blue-600 focus:outline-none disabled:opacity-70 dark:focus:bg-sky-600 dark:focus:ring-sky-400`}
                     >
-                        {isLoading ? 'Logging in...' : 'Login'}
+                        {isLoading ? (
+                            <div className="flex items-center justify-center">
+                                Logging in <Spinner size="1" className="ml-2" />
+                            </div>
+                        ) : (
+                            'Login'
+                        )}
                     </motion.button>
                 </form>
 
                 {/* Signup Link and Cookie Notice */}
-                <div className="mt-6 text-center text-sm text-gray-200">
+                <footer className="mt-6 text-center text-sm text-gray-700 dark:text-gray-200">
                     <p>
                         Don’t have an account?{' '}
                         <Link
                             to="/signup"
-                            className="text-gray-500 hover:underline"
+                            className="text-blue-900 hover:text-blue-700 hover:underline focus:text-blue-700 focus:underline focus:outline-none dark:text-sky-300 dark:hover:text-sky-400 dark:focus:text-sky-400"
                         >
                             Sign up
                         </Link>
@@ -200,8 +235,8 @@ export default function Login() {
                         ensure you have enabled third-party cookies in your
                         browser settings.
                     </p>
-                </div>
-            </div>
-        </motion.div>
+                </footer>
+            </section>
+        </motion.main>
     );
 }
