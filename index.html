@@ -5,6 +5,53 @@
         <link rel="icon" type="image/svg+xml" href="/" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>ByteTogether</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                min-height: 100vh;
+                height: 100%;
+            }
+
+            /* Default styles to prevent FOUC */
+            html[data-theme='light'] {
+                background: linear-gradient(
+                    to top right,
+                    #69a7f3,
+                    #adb8e4,
+                    #7effe3
+                );
+                background-repeat: no-repeat;
+                background-size: cover;
+                background-attachment: fixed;
+            }
+            html[data-theme='dark'] {
+                background: linear-gradient(
+                    to top right,
+                    #000000,
+                    #0c4a6e,
+                    #312e81
+                );
+                background-repeat: no-repeat;
+                background-size: cover;
+                background-attachment: fixed;
+            }
+            /* Default to minimal background for most routes */
+            /* bg-gray-100 */
+            /* html[data-theme='light'] {
+                background: #f3f4f6;
+            } */
+            /* bg-gray-900 */
+            /* html[data-theme='dark'] {
+                background: #111827;
+            } */
+        </style>
+        <script defer>
+            // Apply theme from localStorage before React renders
+            const theme = localStorage.getItem('theme') || 'dark'; // Default to 'dark'
+            document.documentElement.setAttribute('data-theme', theme);
+        </script>
     </head>
     <body>
         <div id="root"></div>
