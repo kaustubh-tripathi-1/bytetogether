@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import { useEffect } from 'react';
-import { useDispatch /* , useSelector */ } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { fetchCurrentUser } from './store/slices/authSlice';
 import {
@@ -11,7 +11,7 @@ import {
     //   About,
     //   Contact,
     ProtectedRoute,
-    //   NotFound,
+    NotFound,
     ErrorBoundaryInRoutes,
     //   UserProfile,
     //   EditProfile,
@@ -78,8 +78,8 @@ const router = createBrowserRouter([
                     </ProtectedRoute>
                 ),
             },
-            { path: 'search', element: <SearchResults /> },
-            { path: '*', element: <NotFound /> }, */
+            { path: 'search', element: <SearchResults /> },*/
+            { path: '*', element: <NotFound /> },
         ],
     },
     {
@@ -125,7 +125,7 @@ const router = createBrowserRouter([
  */
 export default function App() {
     const dispatch = useDispatch();
-    // const { theme } = useSelector((state) => state.ui);
+    const { theme } = useSelector((state) => state.ui);
 
     // Perform background auth validation on mount
     useEffect(() => {
@@ -135,10 +135,10 @@ export default function App() {
     }, [dispatch]);
 
     // Apply theme using data-theme attribute
-    /* useEffect(() => {
+    useEffect(() => {
         const html = document.documentElement;
         html.setAttribute('data-theme', theme);
-    }, [theme]); */
+    }, [theme]);
 
     return <RouterProvider router={router} />;
 }
