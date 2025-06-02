@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router'; // Updated to react-router-dom
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,7 +14,7 @@ import { CloseEye, OpenEye, Spinner } from '../componentsIndex';
 export default function Signup() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { isLoading, error } = useSelector((state) => state.auth);
+    const { authStatus, isLoading, error } = useSelector((state) => state.auth);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -27,14 +27,21 @@ export default function Signup() {
 
     const password = watch('password'); // Watch password for confirm password validation
 
-    const signupOnSubmit = async (data) => {
+    useEffect(() => {
+        dispatch(setError(null)); // Clear errors on mount
+        if (authStatus) {
+            navigate(`/`);
+        }
+    }, [authStatus, navigate, dispatch]);
+
+    async function signupOnSubmit(data) {
         try {
             await dispatch(signupUser(data)).unwrap();
             navigate('/email-sent?type=email-verification');
         } catch (error) {
             dispatch(setError(error || 'Signup failed'));
         }
-    };
+    }
 
     const togglePasswordVisibility = () => {
         setShowPassword((prev) => !prev);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,8 +15,7 @@ import { CloseEye, OpenEye, Spinner } from '../componentsIndex';
 export default function Login() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { isLoading, error } = useSelector((state) => state.auth);
-    // const { theme } = useSelector((state) => state.ui);
+    const { authStatus, isLoading, error } = useSelector((state) => state.auth);
     const [showPassword, setShowPassword] = useState(false);
 
     const {
@@ -25,7 +24,14 @@ export default function Login() {
         formState: { errors },
     } = useForm({ mode: 'onChange' }); // Real-time validation
 
-    const loginOnSubmit = async (data) => {
+    useEffect(() => {
+        dispatch(setError(null)); // Clear errors on mount
+        if (authStatus) {
+            navigate(`/`);
+        }
+    }, [authStatus, navigate, dispatch]);
+
+    async function loginOnSubmit(data) {
         try {
             await dispatch(loginUser(data)).unwrap();
 
@@ -35,7 +41,7 @@ export default function Login() {
         } catch (error) {
             dispatch(setError(error || 'Login failed'));
         }
-    };
+    }
 
     const togglePasswordVisibility = () => {
         setShowPassword((prev) => !prev);
