@@ -6,4 +6,8 @@ export { default as Login } from './login/Login.jsx';
 export { default as CloseEye } from './svg/CloseEye.jsx';
 export { default as OpenEye } from './svg/OpenEye.jsx';
 export { default as Spinner } from './svg/Spinner.jsx';
+export { default as CheckMark } from './svg/CheckMark.jsx';
 export { default as NotFound } from './not-found/NotFound.jsx';
+export { default as Signup } from './signup/Signup.jsx';
+export { default as EmailSent } from './email-sent/EmailSent.jsx';
+export { default as ResendVerificationEmail } from './resend-verification-email/ResendVerificationEmail.jsx';
