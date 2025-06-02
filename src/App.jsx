@@ -7,7 +7,7 @@ import {
     Layout,
     //   Home,
     Login,
-    //   Signup,
+    Signup,
     //   About,
     //   Contact,
     ProtectedRoute,
@@ -18,8 +18,8 @@ import {
     //   ForgotPassword,
     //   ResetPassword,
     //   VerifyEmail,
-    //   EmailSent,
-    //   ResendVerificationEmail,
+    EmailSent,
+    ResendVerificationEmail,
     //   SearchResults,
     //   ProjectList,
     //   ProjectEditor,
@@ -87,11 +87,11 @@ const router = createBrowserRouter([
         element: <Login />,
         errorElement: <ErrorBoundaryInRoutes />,
     },
-    // {
-    //     path: 'signup',
-    //     element: <Signup />,
-    //     errorElement: <ErrorBoundaryInRoutes />,
-    // },
+    {
+        path: 'signup',
+        element: <Signup />,
+        errorElement: <ErrorBoundaryInRoutes />,
+    },
     // {
     //     path: 'forgot-password',
     //     element: <ForgotPassword />,
@@ -107,16 +107,16 @@ const router = createBrowserRouter([
     //     element: <VerifyEmail />,
     //     errorElement: <ErrorBoundaryInRoutes />,
     // },
-    // {
-    //     path: 'email-sent',
-    //     element: <EmailSent />,
-    //     errorElement: <ErrorBoundaryInRoutes />,
-    // },
-    // {
-    //     path: 'resend-verification-email',
-    //     element: <ResendVerificationEmail />,
-    //     errorElement: <ErrorBoundaryInRoutes />,
-    // },
+    {
+        path: 'email-sent',
+        element: <EmailSent />,
+        errorElement: <ErrorBoundaryInRoutes />,
+    },
+    {
+        path: 'resend-verification-email',
+        element: <ResendVerificationEmail />,
+        errorElement: <ErrorBoundaryInRoutes />,
+    },
 ]);
 
 /**
