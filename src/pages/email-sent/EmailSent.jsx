@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router';
 import { motion } from 'framer-motion';
 
-import { CheckMark, Spinner } from '../componentsIndex';
+import { CheckMark, Spinner } from '../../components/componentsIndex';
 
 /**
  * Component displayed after signup or password reset to inform user that an email has been sent.

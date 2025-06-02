@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 
 import { signupUser, setError } from '../../store/slices/authSlice';
-import { CloseEye, OpenEye, Spinner } from '../componentsIndex';
+import { CloseEye, OpenEye, Spinner } from '../../components/componentsIndex';
 
 /**
  * Renders the signup page with a form for user registration.

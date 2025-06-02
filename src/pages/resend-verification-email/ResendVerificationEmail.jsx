@@ -1,18 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, Link } from 'react-router';
 import { motion } from 'framer-motion';
 
-import { loginUser, setError } from '../../store/slices/authSlice';
-// import { addNotification } from '../store/slices/uiSlice';
-import { CloseEye, OpenEye, Spinner } from '../componentsIndex';
+import {
+    createTempSession,
+    deleteSession,
+    requestEmailVerification,
+    setError,
+} from '../../store/slices/authSlice';
+import { CloseEye, OpenEye, Spinner } from '../../components/componentsIndex';
 
 /**
- * Renders the login page with a form for user authentication.
- * @returns {JSX.Element} The login page component.
+ * Component for resending email verification link.
+ * @returns {JSX.Element} Resend verification UI.
  */
-export default function Login() {
+export default function ResendVerificationEmail() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { authStatus, isLoading, error } = useSelector((state) => state.auth);
@@ -22,7 +26,7 @@ export default function Login() {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm({ mode: 'onChange' }); // Real-time validation
+    } = useForm({ mode: 'onChange' });
 
     useEffect(() => {
         dispatch(setError(null)); // Clear errors on mount
@@ -31,17 +35,22 @@ export default function Login() {
         }
     }, [authStatus, navigate, dispatch]);
 
-    async function loginOnSubmit(data) {
+    const resendOnSubmit = async (data) => {
         try {
-            await dispatch(loginUser(data)).unwrap();
-
-            // Redirect to the last path (if stored) or projects page
-            const lastPath = sessionStorage.getItem('lastPath') || '/';
-            navigate(lastPath);
+            // Create a temporary session to request email verification
+            await dispatch(
+                createTempSession({
+                    email: data.email,
+                    password: data.password,
+                })
+            ).unwrap();
+            await dispatch(requestEmailVerification()).unwrap();
+            await dispatch(deleteSession()).unwrap();
+            navigate('/email-sent?type=email-verification');
         } catch (error) {
-            dispatch(setError(error || 'Login failed'));
+            dispatch(setError(error || 'Failed to resend verification email'));
         }
-    }
+    };
 
     const togglePasswordVisibility = () => {
         setShowPassword((prev) => !prev);
@@ -56,22 +65,15 @@ export default function Login() {
         >
             <section className="w-full max-w-md rounded-lg border border-gray-300 p-8 shadow-xl backdrop-blur-xl dark:border-white/30 dark:bg-white/10 dark:backdrop-blur-md">
                 <h2 className="mb-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
-                    Login
+                    Resend Verification Email
                 </h2>
-
-                {/* Error from Redux */}
-                {error &&
-                    error !== 'User (role: guests) missing scope (account)' && (
-                        <div
-                            className="mb-4 rounded-md bg-red-400/50 p-3 text-center text-red-700 dark:bg-red-900/25 dark:text-red-400"
-                            role="alert"
-                        >
-                            {error}
-                        </div>
-                    )}
+                <p className="mb-6 text-center text-sm text-gray-700 dark:text-gray-200">
+                    Enter the email and password you used during signup to
+                    resend the verification email.
+                </p>
 
                 <form
-                    onSubmit={handleSubmit(loginOnSubmit)}
+                    onSubmit={handleSubmit(resendOnSubmit)}
                     className="space-y-6"
                 >
                     {/* Email Field */}
@@ -138,12 +140,12 @@ export default function Login() {
                                     minLength: {
                                         value: 8,
                                         message:
-                                            'Password must be at least 8 characters and must contain at least 1 uppercase, 1 digit and 1 special character',
+                                            'Password must be at least 8 characters and must contain at least 1 uppercase, 1 digit, and 1 special character',
                                     },
                                     pattern: {
                                         value: /^(?=.*[A-Z])(?=.*[a-z])(?=.*[\d])(?!.*[ ])(?=.*[!@#$%^&*_-|]).{8,}$/,
                                         message:
-                                            'Password must contain at least 1 uppercase, 1 digit and 1 special character',
+                                            'Password must contain at least 1 uppercase, 1 digit, and 1 special character',
                                     },
                                 })}
                                 className={`mt-1 w-full ${
@@ -190,15 +192,17 @@ export default function Login() {
                         )}
                     </div>
 
-                    {/* Forgot Password Link */}
-                    <div className="text-right">
-                        <Link
-                            to="/forgot-password"
-                            className="text-sm text-blue-900 hover:text-blue-700 hover:underline focus:underline focus:outline-none dark:text-sky-300 dark:hover:text-teal-400 dark:focus:text-teal-400"
-                        >
-                            Forgot Password?
-                        </Link>
-                    </div>
+                    {/* Error from Redux */}
+                    {error &&
+                        error !==
+                            'User (role: guests) missing scope (account)' && (
+                            <div
+                                className="mb-4 rounded-md bg-red-400/50 p-3 text-center text-red-700 dark:bg-red-900/25 dark:text-red-400"
+                                role="alert"
+                            >
+                                {error}
+                            </div>
+                        )}
 
                     {/* Submit Button */}
                     <motion.button
@@ -213,33 +217,42 @@ export default function Login() {
                         }}
                         type="submit"
                         disabled={isLoading || errors.email || errors.password}
-                        className={`w-full rounded-md py-3 font-semibold text-white duration-200 ${errors.email || errors.password ? 'bg-blue-400 dark:bg-sky-400' : 'cursor-pointer bg-blue-500 hover:bg-blue-600 focus:bg-blue-600 dark:bg-sky-500 dark:hover:bg-sky-600'} focus:ring-2 focus:ring-blue-600 focus:outline-none disabled:opacity-70 dark:focus:bg-sky-600 dark:focus:ring-sky-400`}
+                        className={`w-full rounded-md py-3 font-semibold text-white duration-200 ${
+                            errors.email || errors.password
+                                ? 'bg-blue-400 dark:bg-sky-400'
+                                : 'cursor-pointer bg-blue-500 hover:bg-blue-600 focus:bg-blue-600 dark:bg-sky-500 dark:hover:bg-sky-600'
+                        } focus:ring-2 focus:ring-blue-600 focus:outline-none disabled:opacity-70 dark:focus:bg-sky-600 dark:focus:ring-sky-400`}
+                        aria-label="Resend verification email"
                     >
                         {isLoading ? (
                             <div className="flex items-center justify-center">
-                                Logging in <Spinner size="1" className="ml-2" />
+                                Sending Email <Spinner className="ml-2" />
                             </div>
                         ) : (
-                            'Login'
+                            'Resend Verification Email'
                         )}
                     </motion.button>
                 </form>
 
-                {/* Signup Link and Cookie Notice */}
+                {/* Login and Signup Links */}
                 <footer className="mt-6 text-center text-sm text-gray-700 dark:text-gray-200">
                     <p>
-                        Don’t have an account?{' '}
+                        Already verified?{' '}
                         <Link
-                            to="/signup"
-                            className="text-blue-900 hover:text-blue-700 hover:underline focus:text-blue-700 focus:underline focus:outline-none dark:text-sky-300 dark:hover:text-sky-400 dark:focus:text-sky-400"
+                            to="/login"
+                            className="text-blue-900 hover:text-blue-700 hover:underline focus:underline dark:text-sky-300 dark:hover:text-teal-400 dark:focus:text-teal-400"
                         >
-                            Sign up
+                            Log in
                         </Link>
                     </p>
                     <p className="mt-2">
-                        We use third-party cookies for authentication. Please
-                        ensure you have enabled third-party cookies in your
-                        browser settings.
+                        Need to create an account?{' '}
+                        <Link
+                            to="/signup"
+                            className="text-blue-900 hover:text-blue-700 hover:underline focus:underline dark:text-sky-300 dark:hover:text-teal-400 dark:focus:text-teal-400"
+                        >
+                            Sign up
+                        </Link>
                     </p>
                 </footer>
             </section>

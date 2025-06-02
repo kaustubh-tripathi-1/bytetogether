@@ -1,22 +1,18 @@
 import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, Link } from 'react-router';
 import { motion } from 'framer-motion';
 
-import {
-    createTempSession,
-    deleteSession,
-    requestEmailVerification,
-    setError,
-} from '../../store/slices/authSlice';
-import { CloseEye, OpenEye, Spinner } from '../componentsIndex';
+import { loginUser, setError } from '../../store/slices/authSlice';
+// import { addNotification } from '../store/slices/uiSlice';
+import { CloseEye, OpenEye, Spinner } from '../../components/componentsIndex';
 
 /**
- * Component for resending email verification link.
- * @returns {JSX.Element} Resend verification UI.
+ * Renders the login page with a form for user authentication.
+ * @returns {JSX.Element} The login page component.
  */
-export default function ResendVerificationEmail() {
+export default function Login() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { authStatus, isLoading, error } = useSelector((state) => state.auth);
@@ -26,7 +22,7 @@ export default function ResendVerificationEmail() {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm({ mode: 'onChange' });
+    } = useForm({ mode: 'onChange' }); // Real-time validation
 
     useEffect(() => {
         dispatch(setError(null)); // Clear errors on mount
@@ -35,22 +31,17 @@ export default function ResendVerificationEmail() {
         }
     }, [authStatus, navigate, dispatch]);
 
-    const resendOnSubmit = async (data) => {
+    async function loginOnSubmit(data) {
         try {
-            // Create a temporary session to request email verification
-            await dispatch(
-                createTempSession({
-                    email: data.email,
-                    password: data.password,
-                })
-            ).unwrap();
-            await dispatch(requestEmailVerification()).unwrap();
-            await dispatch(deleteSession()).unwrap();
-            navigate('/email-sent?type=email-verification');
+            await dispatch(loginUser(data)).unwrap();
+
+            // Redirect to the last path (if stored) or projects page
+            const lastPath = sessionStorage.getItem('lastPath') || '/';
+            navigate(lastPath);
         } catch (error) {
-            dispatch(setError(error || 'Failed to resend verification email'));
+            dispatch(setError(error || 'Login failed'));
         }
-    };
+    }
 
     const togglePasswordVisibility = () => {
         setShowPassword((prev) => !prev);
@@ -65,15 +56,22 @@ export default function ResendVerificationEmail() {
         >
             <section className="w-full max-w-md rounded-lg border border-gray-300 p-8 shadow-xl backdrop-blur-xl dark:border-white/30 dark:bg-white/10 dark:backdrop-blur-md">
                 <h2 className="mb-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
-                    Resend Verification Email
+                    Login
                 </h2>
-                <p className="mb-6 text-center text-sm text-gray-700 dark:text-gray-200">
-                    Enter the email and password you used during signup to
-                    resend the verification email.
-                </p>
+
+                {/* Error from Redux */}
+                {error &&
+                    error !== 'User (role: guests) missing scope (account)' && (
+                        <div
+                            className="mb-4 rounded-md bg-red-400/50 p-3 text-center text-red-700 dark:bg-red-900/25 dark:text-red-400"
+                            role="alert"
+                        >
+                            {error}
+                        </div>
+                    )}
 
                 <form
-                    onSubmit={handleSubmit(resendOnSubmit)}
+                    onSubmit={handleSubmit(loginOnSubmit)}
                     className="space-y-6"
                 >
                     {/* Email Field */}
@@ -140,12 +138,12 @@ export default function ResendVerificationEmail() {
                                     minLength: {
                                         value: 8,
                                         message:
-                                            'Password must be at least 8 characters and must contain at least 1 uppercase, 1 digit, and 1 special character',
+                                            'Password must be at least 8 characters and must contain at least 1 uppercase, 1 digit and 1 special character',
                                     },
                                     pattern: {
                                         value: /^(?=.*[A-Z])(?=.*[a-z])(?=.*[\d])(?!.*[ ])(?=.*[!@#$%^&*_-|]).{8,}$/,
                                         message:
-                                            'Password must contain at least 1 uppercase, 1 digit, and 1 special character',
+                                            'Password must contain at least 1 uppercase, 1 digit and 1 special character',
                                     },
                                 })}
                                 className={`mt-1 w-full ${
@@ -192,17 +190,15 @@ export default function ResendVerificationEmail() {
                         )}
                     </div>
 
-                    {/* Error from Redux */}
-                    {error &&
-                        error !==
-                            'User (role: guests) missing scope (account)' && (
-                            <div
-                                className="mb-4 rounded-md bg-red-400/50 p-3 text-center text-red-700 dark:bg-red-900/25 dark:text-red-400"
-                                role="alert"
-                            >
-                                {error}
-                            </div>
-                        )}
+                    {/* Forgot Password Link */}
+                    <div className="text-right">
+                        <Link
+                            to="/forgot-password"
+                            className="text-sm text-blue-900 hover:text-blue-700 hover:underline focus:underline focus:outline-none dark:text-sky-300 dark:hover:text-teal-400 dark:focus:text-teal-400"
+                        >
+                            Forgot Password?
+                        </Link>
+                    </div>
 
                     {/* Submit Button */}
                     <motion.button
@@ -217,42 +213,33 @@ export default function ResendVerificationEmail() {
                         }}
                         type="submit"
                         disabled={isLoading || errors.email || errors.password}
-                        className={`w-full rounded-md py-3 font-semibold text-white duration-200 ${
-                            errors.email || errors.password
-                                ? 'bg-blue-400 dark:bg-sky-400'
-                                : 'cursor-pointer bg-blue-500 hover:bg-blue-600 focus:bg-blue-600 dark:bg-sky-500 dark:hover:bg-sky-600'
-                        } focus:ring-2 focus:ring-blue-600 focus:outline-none disabled:opacity-70 dark:focus:bg-sky-600 dark:focus:ring-sky-400`}
-                        aria-label="Resend verification email"
+                        className={`w-full rounded-md py-3 font-semibold text-white duration-200 ${errors.email || errors.password ? 'bg-blue-400 dark:bg-sky-400' : 'cursor-pointer bg-blue-500 hover:bg-blue-600 focus:bg-blue-600 dark:bg-sky-500 dark:hover:bg-sky-600'} focus:ring-2 focus:ring-blue-600 focus:outline-none disabled:opacity-70 dark:focus:bg-sky-600 dark:focus:ring-sky-400`}
                     >
                         {isLoading ? (
                             <div className="flex items-center justify-center">
-                                Sending Email <Spinner className="ml-2" />
+                                Logging in <Spinner size="1" className="ml-2" />
                             </div>
                         ) : (
-                            'Resend Verification Email'
+                            'Login'
                         )}
                     </motion.button>
                 </form>
 
-                {/* Login and Signup Links */}
+                {/* Signup Link and Cookie Notice */}
                 <footer className="mt-6 text-center text-sm text-gray-700 dark:text-gray-200">
                     <p>
-                        Already verified?{' '}
-                        <Link
-                            to="/login"
-                            className="text-blue-900 hover:text-blue-700 hover:underline focus:underline dark:text-sky-300 dark:hover:text-teal-400 dark:focus:text-teal-400"
-                        >
-                            Log in
-                        </Link>
-                    </p>
-                    <p className="mt-2">
-                        Need to create an account?{' '}
+                        Don’t have an account?{' '}
                         <Link
                             to="/signup"
-                            className="text-blue-900 hover:text-blue-700 hover:underline focus:underline dark:text-sky-300 dark:hover:text-teal-400 dark:focus:text-teal-400"
+                            className="text-blue-900 hover:text-blue-700 hover:underline focus:text-blue-700 focus:underline focus:outline-none dark:text-sky-300 dark:hover:text-sky-400 dark:focus:text-sky-400"
                         >
                             Sign up
                         </Link>
+                    </p>
+                    <p className="mt-2">
+                        We use third-party cookies for authentication. Please
+                        ensure you have enabled third-party cookies in your
+                        browser settings.
                     </p>
                 </footer>
             </section>
