@@ -72,6 +72,17 @@ export default function ResendVerificationEmail() {
                     resend the verification email.
                 </p>
 
+                {/* Error from Redux */}
+                {error &&
+                    error !== 'User (role: guests) missing scope (account)' && (
+                        <div
+                            className="mb-4 rounded-md bg-red-400/50 p-3 text-center text-red-700 dark:bg-red-900/25 dark:text-red-400"
+                            role="alert"
+                        >
+                            {error}
+                        </div>
+                    )}
+
                 <form
                     onSubmit={handleSubmit(resendOnSubmit)}
                     className="space-y-6"
@@ -191,18 +202,6 @@ export default function ResendVerificationEmail() {
                             </p>
                         )}
                     </div>
-
-                    {/* Error from Redux */}
-                    {error &&
-                        error !==
-                            'User (role: guests) missing scope (account)' && (
-                            <div
-                                className="mb-4 rounded-md bg-red-400/50 p-3 text-center text-red-700 dark:bg-red-900/25 dark:text-red-400"
-                                role="alert"
-                            >
-                                {error}
-                            </div>
-                        )}
 
                     {/* Submit Button */}
                     <motion.button

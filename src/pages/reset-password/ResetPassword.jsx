@@ -30,6 +30,7 @@ export default function ResetPassword() {
     const password = watch('password');
 
     useEffect(() => {
+        dispatch(setError(null));
         if (!searchParams.get('userId') || !searchParams.get('secret')) {
             dispatch(
                 setError('Invalid or missing password reset link parameters')
@@ -72,6 +73,17 @@ export default function ResetPassword() {
                 <h2 className="mb-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
                     Reset Password
                 </h2>
+
+                {/* Error from Redux */}
+                {error &&
+                    error !== 'User (role: guests) missing scope (account)' && (
+                        <div
+                            className="mb-4 rounded-md bg-red-400/50 p-3 text-center text-red-700 dark:bg-red-900/25 dark:text-red-400"
+                            role="alert"
+                        >
+                            {error}
+                        </div>
+                    )}
 
                 {success ? (
                     <motion.div
@@ -247,18 +259,6 @@ export default function ResetPassword() {
                                 </p>
                             )}
                         </div>
-
-                        {/* Error from Redux */}
-                        {error &&
-                            error !==
-                                'User (role: guests) missing scope (account)' && (
-                                <div
-                                    className="mb-4 rounded-md bg-red-400/50 p-3 text-center text-red-700 dark:bg-red-900/25 dark:text-red-400"
-                                    role="alert"
-                                >
-                                    {error}
-                                </div>
-                            )}
 
                         {/* Submit Button */}
                         <motion.button
