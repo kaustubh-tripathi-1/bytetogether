@@ -8,7 +8,7 @@ import {
     requestEmailVerification,
     setError,
 } from '../../store/slices/authSlice';
-import { Spinner } from '../../components/componentsIndex';
+import { AuthLayout, Spinner } from '../../components/componentsIndex';
 
 /**
  * Component for requesting a password reset email.
@@ -39,12 +39,7 @@ export default function ForgotPassword() {
     }
 
     return (
-        <motion.main
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="flex min-h-screen items-center justify-center bg-gradient-to-tr from-blue-400 via-indigo-300 to-teal-400 p-4 dark:from-black dark:via-sky-900 dark:to-indigo-900"
-        >
+        <AuthLayout>
             <section className="w-full max-w-md rounded-lg border border-gray-300 p-8 shadow-xl backdrop-blur-xl dark:border-white/30 dark:bg-white/10 dark:backdrop-blur-md">
                 <h2 className="mb-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
                     Forgot Password
@@ -154,6 +149,6 @@ export default function ForgotPassword() {
                     </Link>
                 </motion.p>
             </section>
-        </motion.main>
+        </AuthLayout>
     );
 }

@@ -2,7 +2,11 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router';
 import { motion } from 'framer-motion';
 
-import { CheckMark, Spinner } from '../../components/componentsIndex';
+import {
+    AuthLayout,
+    CheckMark,
+    Spinner,
+} from '../../components/componentsIndex';
 
 /**
  * Component displayed after signup or password reset to inform user that an email has been sent.
@@ -45,12 +49,7 @@ export default function EmailSent() {
     };
 
     return (
-        <motion.main
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="flex min-h-screen items-center justify-center bg-gradient-to-tr from-blue-400 via-indigo-300 to-teal-400 p-4 dark:from-black dark:via-sky-900 dark:to-indigo-900"
-        >
+        <AuthLayout>
             <section className="w-full max-w-md rounded-lg border border-gray-300 p-8 text-center shadow-xl backdrop-blur-xl dark:border-white/30 dark:bg-white/10 dark:backdrop-blur-md">
                 <motion.div
                     variants={containerVariants}
@@ -129,6 +128,6 @@ export default function EmailSent() {
                     </Link>
                 </motion.div>
             </section>
-        </motion.main>
+        </AuthLayout>
     );
 }
