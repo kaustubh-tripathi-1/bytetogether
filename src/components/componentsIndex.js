@@ -11,3 +11,6 @@ export { default as NotFound } from '../pages/not-found/NotFound.jsx';
 export { default as Signup } from '../pages/signup/Signup.jsx';
 export { default as EmailSent } from '../pages/email-sent/EmailSent.jsx';
 export { default as ResendVerificationEmail } from '../pages/resend-verification-email/ResendVerificationEmail.jsx';
+export { default as VerifyEmail } from '../pages/verify-email/VerifyEmail.jsx';
+export { default as ForgotPassword } from '../pages/forgot-password/ForgotPassword.jsx';
+export { default as ResetPassword } from '../pages/reset-password/ResetPassword.jsx';
