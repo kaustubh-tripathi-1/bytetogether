@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router';
@@ -23,6 +24,10 @@ export default function ForgotPassword() {
         handleSubmit,
         formState: { errors },
     } = useForm({ mode: 'onChange' });
+
+    useEffect(() => {
+        dispatch(setError(null)); // Clear redux auth errors on mount
+    }, [dispatch]);
 
     async function requestPasswordResetOnSubmit(data) {
         try {
