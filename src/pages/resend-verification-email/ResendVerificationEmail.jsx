@@ -35,7 +35,7 @@ export default function ResendVerificationEmail() {
         }
     }, [authStatus, navigate, dispatch]);
 
-    const resendOnSubmit = async (data) => {
+    async function resendOnSubmit(data) {
         try {
             // Create a temporary session to request email verification
             await dispatch(
@@ -50,11 +50,11 @@ export default function ResendVerificationEmail() {
         } catch (error) {
             dispatch(setError(error || 'Failed to resend verification email'));
         }
-    };
+    }
 
-    const togglePasswordVisibility = () => {
+    function togglePasswordVisibility() {
         setShowPassword((prev) => !prev);
-    };
+    }
 
     return (
         <motion.main
@@ -235,7 +235,12 @@ export default function ResendVerificationEmail() {
                 </form>
 
                 {/* Login and Signup Links */}
-                <footer className="mt-6 text-center text-sm text-gray-700 dark:text-gray-200">
+                <motion.footer
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                    className="mt-6 text-center text-sm text-gray-700 dark:text-gray-200"
+                >
                     <p>
                         Already verified?{' '}
                         <Link
@@ -254,7 +259,7 @@ export default function ResendVerificationEmail() {
                             Sign up
                         </Link>
                     </p>
-                </footer>
+                </motion.footer>
             </section>
         </motion.main>
     );

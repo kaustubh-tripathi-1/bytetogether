@@ -43,9 +43,9 @@ export default function Login() {
         }
     }
 
-    const togglePasswordVisibility = () => {
+    function togglePasswordVisibility() {
         setShowPassword((prev) => !prev);
-    };
+    }
 
     return (
         <motion.main
@@ -226,7 +226,12 @@ export default function Login() {
                 </form>
 
                 {/* Signup Link and Cookie Notice */}
-                <footer className="mt-6 text-center text-sm text-gray-700 dark:text-gray-200">
+                <motion.footer
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                    className="mt-6 text-center text-sm text-gray-700 dark:text-gray-200"
+                >
                     <p>
                         Don’t have an account?{' '}
                         <Link
@@ -241,7 +246,7 @@ export default function Login() {
                         ensure you have enabled third-party cookies in your
                         browser settings.
                     </p>
-                </footer>
+                </motion.footer>
             </section>
         </motion.main>
     );

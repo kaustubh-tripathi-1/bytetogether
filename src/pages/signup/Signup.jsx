@@ -43,13 +43,13 @@ export default function Signup() {
         }
     }
 
-    const togglePasswordVisibility = () => {
+    function togglePasswordVisibility() {
         setShowPassword((prev) => !prev);
-    };
+    }
 
-    const toggleConfirmPasswordVisibility = () => {
+    function toggleConfirmPasswordVisibility() {
         setShowConfirmPassword((prev) => !prev);
-    };
+    }
 
     return (
         <motion.main
@@ -435,7 +435,12 @@ export default function Signup() {
                 </form>
 
                 {/* Login Link and Cookie Notice */}
-                <footer className="mt-6 text-center text-sm text-gray-700 dark:text-gray-200">
+                <motion.footer
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                    className="mt-6 text-center text-sm text-gray-700 dark:text-gray-200"
+                >
                     <p>
                         Already have an account?{' '}
                         <Link
@@ -459,7 +464,7 @@ export default function Signup() {
                         ensure you have enabled third-party cookies in your
                         browser settings.
                     </p>
-                </footer>
+                </motion.footer>
             </section>
         </motion.main>
     );
