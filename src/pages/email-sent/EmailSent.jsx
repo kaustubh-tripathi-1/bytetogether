@@ -15,7 +15,7 @@ export default function EmailSent() {
     const emailType = queryParams.get('type') || 'email-verification'; // Fallback
 
     useEffect(() => {
-        // Auto-redirect to login after 20 seconds
+        // Auto-redirect to login after 10 seconds
         const timer = setTimeout(() => {
             navigate('/login');
         }, 10000);
