@@ -7,7 +7,7 @@ import {
     Layout,
     //   Home,
     Login,
-    //   Signup,
+    Signup,
     //   About,
     //   Contact,
     ProtectedRoute,
@@ -15,11 +15,11 @@ import {
     ErrorBoundaryInRoutes,
     //   UserProfile,
     //   EditProfile,
-    //   ForgotPassword,
-    //   ResetPassword,
-    //   VerifyEmail,
-    //   EmailSent,
-    //   ResendVerificationEmail,
+    ForgotPassword,
+    ResetPassword,
+    VerifyEmail,
+    EmailSent,
+    ResendVerificationEmail,
     //   SearchResults,
     //   ProjectList,
     //   ProjectEditor,
@@ -87,36 +87,36 @@ const router = createBrowserRouter([
         element: <Login />,
         errorElement: <ErrorBoundaryInRoutes />,
     },
-    // {
-    //     path: 'signup',
-    //     element: <Signup />,
-    //     errorElement: <ErrorBoundaryInRoutes />,
-    // },
-    // {
-    //     path: 'forgot-password',
-    //     element: <ForgotPassword />,
-    //     errorElement: <ErrorBoundaryInRoutes />,
-    // },
-    // {
-    //     path: 'reset-password',
-    //     element: <ResetPassword />,
-    //     errorElement: <ErrorBoundaryInRoutes />,
-    // },
-    // {
-    //     path: 'verify-email',
-    //     element: <VerifyEmail />,
-    //     errorElement: <ErrorBoundaryInRoutes />,
-    // },
-    // {
-    //     path: 'email-sent',
-    //     element: <EmailSent />,
-    //     errorElement: <ErrorBoundaryInRoutes />,
-    // },
-    // {
-    //     path: 'resend-verification-email',
-    //     element: <ResendVerificationEmail />,
-    //     errorElement: <ErrorBoundaryInRoutes />,
-    // },
+    {
+        path: 'signup',
+        element: <Signup />,
+        errorElement: <ErrorBoundaryInRoutes />,
+    },
+    {
+        path: 'forgot-password',
+        element: <ForgotPassword />,
+        errorElement: <ErrorBoundaryInRoutes />,
+    },
+    {
+        path: 'reset-password',
+        element: <ResetPassword />,
+        errorElement: <ErrorBoundaryInRoutes />,
+    },
+    {
+        path: 'verify-email',
+        element: <VerifyEmail />,
+        errorElement: <ErrorBoundaryInRoutes />,
+    },
+    {
+        path: 'email-sent',
+        element: <EmailSent />,
+        errorElement: <ErrorBoundaryInRoutes />,
+    },
+    {
+        path: 'resend-verification-email',
+        element: <ResendVerificationEmail />,
+        errorElement: <ErrorBoundaryInRoutes />,
+    },
 ]);
 
 /**

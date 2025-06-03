@@ -11,7 +11,7 @@ export default function NotFound() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="flex min-h-screen w-full flex-col items-center justify-center bg-white text-red-600 dark:bg-gray-800 dark:text-red-400"
+            className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-tr from-blue-400 via-indigo-300 to-teal-400 p-4 text-red-600 dark:bg-gray-800 dark:from-black dark:via-sky-900 dark:to-indigo-900 dark:text-red-400"
         >
             <img
                 src={image404}
@@ -33,7 +33,7 @@ export default function NotFound() {
             </p>
             <Link
                 to="/"
-                className="mt-4 cursor-pointer text-2xl text-blue-500 transition-colors duration-200 hover:text-blue-700 hover:underline focus:text-blue-700 focus:underline focus:outline-none dark:text-blue-500"
+                className="mt-4 cursor-pointer text-2xl text-blue-700 transition-colors duration-200 hover:text-blue-800 hover:underline focus:text-blue-800 focus:underline focus:outline-none dark:text-blue-500"
             >
                 Return to Home Page
             </Link>
