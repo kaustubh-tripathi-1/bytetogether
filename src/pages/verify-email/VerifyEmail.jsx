@@ -36,7 +36,10 @@ export default function VerifyEmail() {
         async function verifyEmail() {
             try {
                 await dispatch(
-                    completeEmailVerification(userId, secret)
+                    completeEmailVerification({
+                        userId: userId,
+                        secret: secret,
+                    })
                 ).unwrap();
                 setSuccess(true);
                 setVerified(true);
@@ -64,10 +67,8 @@ export default function VerifyEmail() {
 
                 <div aria-live="polite">
                     {isLoading ? (
-                        <div className="flex items-center justify-center">
-                            <p className="text-gray-700 dark:text-gray-200">
-                                Verifying your email
-                            </p>
+                        <div className="flex items-center justify-center text-gray-700 dark:text-gray-200">
+                            <p>Verifying your email</p>
                             <Spinner
                                 className="ml-2"
                                 aria-label="Loading spinner for email verification"
@@ -117,7 +118,7 @@ export default function VerifyEmail() {
                                     onClick={() =>
                                         navigate('/resend-verification-email')
                                     }
-                                    className="rounded-md bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:bg-blue-600 focus:bg-blue-600 focus:ring-2 focus:ring-blue-600 focus:outline-none dark:bg-sky-500 dark:hover:bg-sky-600 dark:focus:bg-sky-600 dark:focus:ring-sky-400"
+                                    className="cursor-pointer rounded-md bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:bg-blue-600 focus:bg-blue-600 focus:ring-2 focus:ring-blue-600 focus:outline-none dark:bg-sky-500 dark:hover:bg-sky-600 dark:focus:bg-sky-600 dark:focus:ring-sky-400"
                                     aria-label="Resend verification email"
                                 >
                                     Resend Verification Email
