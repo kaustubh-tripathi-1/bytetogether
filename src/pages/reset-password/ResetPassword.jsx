@@ -50,7 +50,11 @@ export default function ResetPassword() {
 
         try {
             await dispatch(
-                completePasswordReset(userId, secret, data.password)
+                completePasswordReset({
+                    userId,
+                    secret,
+                    newPassword: data.password,
+                })
             ).unwrap();
             setSuccess(true);
             setTimeout(() => navigate('/login'), 5000);
