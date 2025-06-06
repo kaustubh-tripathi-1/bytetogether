@@ -4,10 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router';
 import { motion } from 'framer-motion';
 
-import {
-    requestEmailVerification,
-    setError,
-} from '../../store/slices/authSlice';
+import { requestPasswordReset, setError } from '../../store/slices/authSlice';
 import { AuthLayout, Spinner } from '../../components/componentsIndex';
 
 /**
@@ -31,7 +28,7 @@ export default function ForgotPassword() {
 
     async function requestPasswordResetOnSubmit(data) {
         try {
-            await dispatch(requestEmailVerification(data.email)).unwrap();
+            await dispatch(requestPasswordReset(data.email)).unwrap();
             navigate('/email-sent?type=password-reset');
         } catch (error) {
             dispatch(setError(error || 'Failed to send reset email'));
