@@ -8,6 +8,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import importPlugin from 'eslint-plugin-import';
 import prettier from 'eslint-config-prettier';
+import vitest from 'eslint-plugin-vitest';
 
 export default [
     { ignores: ['dist', 'vite.config.js', 'vitest.config.js'] },
@@ -15,7 +16,10 @@ export default [
         files: ['**/*.{js,jsx}'],
         languageOptions: {
             ecmaVersion: 2022,
-            globals: globals.browser,
+            globals: {
+                ...globals.browser,
+                ...globals.node,
+            },
             parserOptions: {
                 ecmaVersion: 2022,
                 ecmaFeatures: { jsx: true },
@@ -28,6 +32,7 @@ export default [
             'react-refresh': reactRefresh,
             'jsx-a11y': jsxA11y,
             import: importPlugin,
+            vitest,
         },
         rules: {
             ...js.configs.recommended.rules,
@@ -52,6 +57,20 @@ export default [
         settings: {
             react: { version: 'detect' }, // Auto-detect React version
             imports: { ignore: ['node_modules'] },
+        },
+    },
+    // Add an overrides section for test files
+    {
+        files: ['**/*.{test,spec}.{js,jsx}'],
+        languageOptions: {
+            globals: {
+                ...globals.vitest, // Add Vitest globals
+            },
+        },
+        rules: {
+            ...vitest.configs.recommended.rules, // Extend Vitest recommended rules
+            'vitest/no-focused-tests': 'error', // Prevent focused tests (e.g., it.only)
+            'vitest/no-disabled-tests': 'warn', // Warn on skipped tests (e.g., it.skip)
         },
     },
 ];
