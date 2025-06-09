@@ -105,7 +105,7 @@ export default function ResetPassword() {
                                 Redirecting to login
                             </p>
                             <Spinner
-                                className="ml-2"
+                                className="ml-2 text-gray-900 dark:text-gray-200"
                                 aria-label="Loading spinner for redirect"
                             />
                         </div>
