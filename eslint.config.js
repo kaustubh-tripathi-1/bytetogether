@@ -41,7 +41,13 @@ export default [
             ...jsxA11y.configs.recommended.rules,
             ...importPlugin.configs.recommended.rules,
             ...prettier.rules, // Disables conflicting formatting rules
-            'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+            'no-unused-vars': [
+                'error',
+                {
+                    varsIgnorePattern: '^([A-Z].*|_[a-zA-Z0-9].*)',
+                    argsIgnorePattern: '^_',
+                },
+            ],
             'react-refresh/only-export-components': [
                 'warn',
                 { allowConstantExport: true },
