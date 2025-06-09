@@ -17,13 +17,14 @@ import {
  * @returns {JSX.Element} Password reset form.
  */
 export default function ResetPassword() {
-    const { isLoading, error } = useSelector((state) => state.auth);
+    const { isLoading, error: thunkError } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [success, setSuccess] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [localError, setLocalError] = useState(null);
 
     const {
         register,
@@ -37,9 +38,7 @@ export default function ResetPassword() {
     useEffect(() => {
         dispatch(setError(null));
         if (!searchParams.get('userId') || !searchParams.get('secret')) {
-            dispatch(
-                setError('Invalid or missing password reset link parameters')
-            );
+            setLocalError('Invalid or missing password reset link parameters');
             setTimeout(() => navigate('/login'), 4000);
         }
     }, [searchParams, dispatch, navigate]);
@@ -78,14 +77,25 @@ export default function ResetPassword() {
                     Reset Password
                 </h2>
 
+                {/* Local Error for Missing Query Params */}
+                {localError && (
+                    <div
+                        className="mb-4 rounded-md bg-red-400/50 p-3 text-center text-red-700 dark:bg-red-900/25 dark:text-red-400"
+                        role="alert"
+                    >
+                        {localError}
+                    </div>
+                )}
+
                 {/* Error from Redux */}
-                {error &&
-                    error !== 'User (role: guests) missing scope (account)' && (
+                {thunkError &&
+                    thunkError !==
+                        'User (role: guests) missing scope (account)' && (
                         <div
                             className="mb-4 rounded-md bg-red-400/50 p-3 text-center text-red-700 dark:bg-red-900/25 dark:text-red-400"
                             role="alert"
                         >
-                            {error}
+                            {thunkError}
                         </div>
                     )}
 
