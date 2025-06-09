@@ -20,15 +20,14 @@ export default function VerifyEmail() {
     const [searchParams] = useSearchParams();
     const [success, setSuccess] = useState(false);
     const [verified, setVerified] = useState(false);
+    const [localError, setLocalError] = useState(null);
 
     useEffect(() => {
         const userId = searchParams.get('userId');
         const secret = searchParams.get('secret');
 
         if (!userId || !secret) {
-            dispatch(
-                setError('Invalid or missing verification link parameters')
-            );
+            setLocalError('Invalid or missing verification link parameters');
             setTimeout(() => navigate('/login'), 4000);
             return;
         }
@@ -64,6 +63,17 @@ export default function VerifyEmail() {
                 <h2 className="mb-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
                     Email Verification
                 </h2>
+
+                {localError && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="mb-4 rounded-md bg-red-400/50 p-3 text-red-700 dark:bg-red-900/25 dark:text-red-400"
+                    >
+                        <p>{localError}</p>
+                    </motion.div>
+                )}
 
                 <div aria-live="polite">
                     {isLoading ? (
@@ -104,7 +114,7 @@ export default function VerifyEmail() {
                                 transition={{ duration: 0.5 }}
                                 className="flex flex-col items-center justify-center"
                             >
-                                <p className="mb-4 text-red-600 dark:text-red-400">
+                                <p className="mb-4 rounded-md bg-red-400/50 p-3 text-red-700 dark:bg-red-900/25 dark:text-red-400">
                                     {error}
                                 </p>
                                 <p className="mb-4 text-gray-700 dark:text-gray-200">
