@@ -8,8 +8,8 @@ const appwriteConfig = {
     appwriteUsernamesCollectionID: String(
         import.meta.env.VITE_APPWRITE_USERNAMES_COLLECTION_ID
     ),
-    appwriteCodeSnippetsCollectionID: String(
-        import.meta.env.VITE_APPWRITE_CODE_SNIPPETS_COLLECTION_ID
+    appwriteFilesCollectionID: String(
+        import.meta.env.VITE_APPWRITE_FILES_COLLECTION_ID
     ),
     appwriteChatMessagesCollectionID: String(
         import.meta.env.VITE_APPWRITE_CHAT_MESSAGES_COLLECTION_ID
