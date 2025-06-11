@@ -8,7 +8,6 @@ import { createSlice } from '@reduxjs/toolkit';
  * Initial state for the editor slice.
  * @typedef {Object} EditorState
  * @property {Object|null} activeProject - The currently active project (ID and metadata).
- * @property {Array} files - List of files in the project.
  * @property {Array} collaborators - List of collaborators (for real-time sync).
  * @property {string} codeContent - Content of the currently selected file.
  * @property {Object} settings - Editor settings (e.g., font size, word wrap).
@@ -17,7 +16,6 @@ import { createSlice } from '@reduxjs/toolkit';
  */
 const initialState = {
     activeProject: null,
-    files: [],
     collaborators: [],
     codeContent: '',
     settings: {
@@ -49,32 +47,6 @@ const editorSlice = createSlice({
          */
         setActiveProject(state, action) {
             state.activeProject = action.payload;
-        },
-        /**
-         * Sets the list of files for the project.
-         * @param {EditorState} state - Current state.
-         * @param {Object} action - Action with payload containing array of files.
-         */
-        setFiles(state, action) {
-            state.files = action.payload;
-        },
-        /**
-         * Add a file to the list of files for the project.
-         * @param {EditorState} state - Current state.
-         * @param {Object} action - Action with payload containing the file.
-         */
-        addFile(state, action) {
-            state.files.push(action.payload);
-        },
-        /**
-         * Delete a file from the list of files for the project.
-         * @param {EditorState} state - Current state.
-         * @param {Object} action - Action with payload containing the file id.
-         */
-        deleteFile(state, action) {
-            state.files = state.files.filter(
-                (file) => file.$id !== action.payload
-            );
         },
         /**
          * Sets the list of collaborators.
@@ -121,9 +93,6 @@ const editorSlice = createSlice({
 
 export const {
     setActiveProject,
-    setFiles,
-    addFile,
-    deleteFile,
     setCollaborators,
     setCodeContent,
     setEditorSettings,
