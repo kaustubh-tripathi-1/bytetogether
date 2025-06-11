@@ -19,3 +19,7 @@ export { default as ResendVerificationEmail } from '../pages/resend-verification
 export { default as VerifyEmail } from '../pages/verify-email/VerifyEmail.jsx';
 export { default as ForgotPassword } from '../pages/forgot-password/ForgotPassword.jsx';
 export { default as ResetPassword } from '../pages/reset-password/ResetPassword.jsx';
+// Editor Components
+export { default as CodeEditor } from './code-editor/CodeEditor.jsx';
+export { default as EditorLayout } from './editor-layout/EditorLayout.jsx';
+export { default as ProjectEditor } from '../pages/project-editor/ProjectEditor.jsx';
