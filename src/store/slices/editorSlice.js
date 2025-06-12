@@ -21,6 +21,7 @@ const initialState = {
     settings: {
         fontSize: 14,
         wordWrap: 'on',
+        tabSize: 4,
         minimap: {
             enabled: true,
             autohide: true,
