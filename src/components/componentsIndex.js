@@ -23,3 +23,7 @@ export { default as ResetPassword } from '../pages/reset-password/ResetPassword.
 export { default as CodeEditor } from './code-editor/CodeEditor.jsx';
 export { default as EditorLayout } from './editor-layout/EditorLayout.jsx';
 export { default as ProjectEditor } from '../pages/project-editor/ProjectEditor.jsx';
+export { default as NewProject } from '../pages/new-project/NewProject.jsx';
+export { default as LanguageSelector } from './language-selector/LanguageSelector.jsx';
+export { default as InputPanel } from './input-panel/InputPanel.jsx';
+export { default as OutputPanel } from './output-panel/OutputPanel.jsx';
