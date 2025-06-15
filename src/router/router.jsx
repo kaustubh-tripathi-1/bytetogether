@@ -17,11 +17,10 @@ import {
     VerifyEmail,
     EmailSent,
     ResendVerificationEmail,
-    CodeEditor,
     //   SearchResults,
     //   ProjectList,
     //   ProjectEditor,
-    //   NewProject
+    NewProject,
 } from '../components/componentsIndex.js';
 
 /**
@@ -44,14 +43,14 @@ export const router = createBrowserRouter([
             //         </ProtectedRoute>
             //     ),
             // },
-            // {
-            //     path: 'project/new',
-            //     element: (
-            //         <ProtectedRoute>
-            //             <NewProject />
-            //         </ProtectedRoute>
-            //     ),
-            // },
+            {
+                path: 'project/new',
+                element: (
+                    // <ProtectedRoute>
+                    <NewProject />
+                    // </ProtectedRoute>
+                ),
+            },
             // {
             //     path: 'project/:projectId',
             //     element: (
@@ -60,10 +59,6 @@ export const router = createBrowserRouter([
             //         </ProtectedRoute>
             //     ),
             // },
-            {
-                path: 'ide',
-                element: <CodeEditor />,
-            },
             // {
             //     path: 'profile/:userId',
             //     element: (
