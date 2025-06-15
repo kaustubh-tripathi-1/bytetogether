@@ -7,7 +7,7 @@
         { "token": "string", "foreground": "#41a303" },
         { "token": "number", "foreground": "#D19A66" },
         { "token": "identifier", "foreground": "#343434" },
-        { "token": "function", "foreground": "#61AFEF", "fontStyle": "bold" },
+        { "token": "function", "foreground": "#61AFEF" },
         { "token": "operator", "foreground": "#4ca3ad" },
         { "token": "type", "foreground": "#6b0bbf" }
     ],
