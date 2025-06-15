@@ -16,7 +16,7 @@ export default function Layout() {
     return (
         <div className="flex min-h-screen flex-col">
             {/* <Header /> */}
-            <main className="flex-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-200">
+            <main className="flex-1 bg-gray-200 text-gray-900 dark:bg-gray-800 dark:text-gray-200">
                 <Outlet />
             </main>
             {/* <Footer /> */}
