@@ -48,9 +48,7 @@
             } */
         </style>
         <script defer>
-            // Apply theme from localStorage before React renders
-            const theme = localStorage.getItem('theme') || 'dark'; // Default to 'dark'
-            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.setAttribute('data-theme', 'dark');
         </script>
     </head>
     <body>
