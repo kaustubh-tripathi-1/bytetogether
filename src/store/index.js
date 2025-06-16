@@ -32,7 +32,13 @@ const uiPersistConfig = {
 const editorPersistConfig = {
     key: 'editor',
     storage,
-    whitelist: ['activeProject', 'codeContent', 'settings'], // Persist only these states
+    whitelist: [
+        'activeProject',
+        'codeContent',
+        'language',
+        'selectedFile',
+        'settings',
+    ], // Persist only these states
 };
 
 /**
