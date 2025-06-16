@@ -6,35 +6,42 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { setCodeContent } from '../../store/slices/editorSlice';
+import {
+    setCodeContent,
+    setLanguage,
+    setSelectedFile,
+} from '../../store/slices/editorSlice';
 import {
     CodeEditor,
     InputPanel,
     LanguageSelector,
     OutputPanel,
 } from '../componentsIndex.js';
-// import OutputPanel from './OutputPanel';
 
-export default function EditorLayout({ _isNewProject }) {
+export default function EditorLayout({
+    projectId: _projectId,
+    isNewProject: _isNewProject,
+}) {
     const dispatch = useDispatch();
     const { files } = useSelector((state) => state.files);
-    const { codeContent } = useSelector((state) => state.editor);
-    const [selectedFile, setSelectedFile] = useState('');
-    const [language, setLanguage] = useState('javascript');
+    const { codeContent, selectedFile, language } = useSelector(
+        (state) => state.editor
+    );
     const [output, setOutput] = useState('');
     const [input, setInput] = useState('');
-    const editorRef = useRef(null);
-    const containerRef = useRef(null);
     const [editorWidth, setEditorWidth] = useState(66.67); // 2/3 of screen
     const [outputHeight, setOutputHeight] = useState(50); // 50% of right panel
+    const [isResizing, setIsResizing] = useState(false);
+    const editorRef = useRef(null);
+    const containerRef = useRef(null);
     const isDraggingHorizontal = useRef(false);
     const isDraggingVertical = useRef(false);
 
     // Set initial file and language
     useEffect(() => {
         if (files.length > 0 && !selectedFile) {
-            setSelectedFile(files[0].$id);
-            setLanguage(getLanguageFromFileName(files[0].name));
+            dispatch(setSelectedFile(files[0].$id));
+            dispatch(setLanguage(getLanguageFromFileName(files[0].name)));
             dispatch(setCodeContent(files[0].content));
         }
     }, [dispatch, files, selectedFile]);
@@ -65,12 +72,14 @@ export default function EditorLayout({ _isNewProject }) {
             html: 'html',
             css: 'css',
         };
+
         return languageMap[extension] || 'plaintext';
     }
 
     function handleFileChange(event) {
         const fileId = event.target.value;
-        setSelectedFile(fileId);
+        dispatch(setSelectedFile(fileId));
+
         const file = files.find((f) => f.$id === fileId);
         if (file) {
             setLanguage(getLanguageFromFileName(file.name));
@@ -79,10 +88,10 @@ export default function EditorLayout({ _isNewProject }) {
     }
 
     function handleLanguageChange(newLanguage) {
-        setLanguage(newLanguage);
+        dispatch(setLanguage(newLanguage));
     }
 
-    function handleEditorChange(value) {
+    function handleEditorContentChange(value) {
         dispatch(setCodeContent(value));
     }
 
@@ -107,6 +116,7 @@ export default function EditorLayout({ _isNewProject }) {
     // Horizontal resize (CodeEditor vs Right Panel)
     function handleHorizontalMouseDown() {
         isDraggingHorizontal.current = true;
+        setIsResizing(true);
     }
 
     function handleHorizontalMouseMove(event) {
@@ -120,11 +130,13 @@ export default function EditorLayout({ _isNewProject }) {
 
     function handleHorizontalMouseUp() {
         isDraggingHorizontal.current = false;
+        setIsResizing(false);
     }
 
     // Vertical resize (OutputPanel vs InputPanel)
     function handleVerticalMouseDown() {
         isDraggingVertical.current = true;
+        setIsResizing(true);
     }
 
     function handleVerticalMouseMove(e) {
@@ -139,19 +151,23 @@ export default function EditorLayout({ _isNewProject }) {
 
     function handleVerticalMouseUp() {
         isDraggingVertical.current = false;
+        setIsResizing(false);
     }
 
     return (
-        <main className="flex h-screen flex-col md:flex-row" ref={containerRef}>
+        <section
+            className={`flex min-h-screen flex-col md:flex-row ${isResizing ? 'select-none' : ''}`}
+            ref={containerRef}
+        >
             <section
-                className="p-4 md:w-2/3"
+                className="w-full p-4 md:w-2/3 md:min-w-112"
                 style={{ width: `${editorWidth}%` }}
             >
                 <div className="flex gap-4 p-2">
                     <select
                         value={selectedFile}
                         onChange={handleFileChange}
-                        className="w-full rounded border p-1.5 focus:outline-none md:w-1/3"
+                        className="w-full min-w-25 rounded border p-1.5 focus:outline-none md:w-1/3"
                         aria-label="Select file to edit"
                     >
                         <option value="" disabled className="">
@@ -185,20 +201,20 @@ export default function EditorLayout({ _isNewProject }) {
                 <CodeEditor
                     language={language}
                     codeContent={codeContent}
-                    onChange={handleEditorChange}
+                    onChange={handleEditorContentChange}
                     onMount={handleEditorDidMount}
                 />
             </section>
 
             {/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */}
             <div
-                className="w-1 cursor-ew-resize bg-gray-500"
+                className="hidden w-1 cursor-ew-resize bg-gray-500 md:block"
                 onMouseDown={handleHorizontalMouseDown}
                 role="separator"
                 aria-label="Resize Code Editor and Panels"
             ></div>
-            <div
-                className="flex flex-col"
+            <section
+                className="flex w-full md:min-w-64 md:flex-col"
                 style={{ width: `${100 - editorWidth}%` }}
             >
                 <div style={{ height: `${outputHeight}%` }}>
@@ -213,7 +229,7 @@ export default function EditorLayout({ _isNewProject }) {
                 <div style={{ height: `${100 - outputHeight}%` }}>
                     <OutputPanel output={output} />
                 </div>
-            </div>
-        </main>
+            </section>
+        </section>
     );
 }
