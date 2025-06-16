@@ -30,6 +30,8 @@ const initialState = {
         },
         stickyScroll: { enabled: false },
     },
+    selectedFile: '',
+    language: 'javascript',
     isLoading: false,
     error: null,
 };
@@ -74,6 +76,22 @@ const editorSlice = createSlice({
             state.settings = { ...state.settings, ...action.payload };
         },
         /**
+         * Sets the the selected file.
+         * @param {EditorState} state - Current state.
+         * @param {Object} action - Action with payload containing selected file name.
+         */
+        setSelectedFile: (state, action) => {
+            state.selectedFile = action.payload;
+        },
+        /**
+         * Sets the programming language
+         * @param {EditorState} state - Current state.
+         * @param {Object} action - Action with payload containing language name
+         */
+        setLanguage: (state, action) => {
+            state.language = action.payload;
+        },
+        /**
          * Sets the loading state.
          * @param {EditorState} state - Current state.
          * @param {Object} action - Action with payload containing boolean.
@@ -96,6 +114,8 @@ export const {
     setActiveProject,
     setCollaborators,
     setCodeContent,
+    setLanguage,
+    setSelectedFile,
     setEditorSettings,
     setIsLoading,
     setError,
