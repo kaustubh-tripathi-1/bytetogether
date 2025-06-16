@@ -7,7 +7,6 @@ import { useSelector } from 'react-redux';
 import MonacoEditor from '@monaco-editor/react';
 
 import { Spinner } from '../componentsIndex';
-// import { setTheme } from '../../store/slices/uiSlice';
 
 import nightOwlTheme from './themes/night-owl.json';
 import vsLight from './themes/custom-light.json';
@@ -25,6 +24,53 @@ export default function CodeEditor({
     function handleEditorWillMount(monaco) {
         monaco.editor.defineTheme('night-owl', nightOwlTheme);
         monaco.editor.defineTheme('vs-light', vsLight);
+
+        // Ensure TypeScript compiler options are set for IntelliSense
+        monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+            target: monaco.languages.typescript.ScriptTarget.ESNext,
+            allowNonTsExtensions: true,
+            moduleResolution:
+                monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+            module: monaco.languages.typescript.ModuleKind.ESNext,
+            noEmit: true,
+            typeRoots: ['node_modules/@types'],
+        });
+
+        // Basic completion provider for Python, C++, C, Java
+        const languagesToEnhance = ['python', 'cpp', 'c', 'java'];
+        languagesToEnhance.forEach((lang) => {
+            monaco.languages.registerCompletionItemProvider(lang, {
+                provideCompletionItems: () => {
+                    const suggestions = [
+                        {
+                            label: 'if',
+                            kind: monaco.languages.CompletionItemKind.Keyword,
+                            insertText:
+                                lang === 'python'
+                                    ? 'if ${1:condition}:\n    $0'
+                                    : 'if (${1:condition}) {\n    $0\n}',
+                            insertTextRules:
+                                monaco.languages.CompletionItemInsertTextRule
+                                    .InsertAsSnippet,
+                            documentation: 'If statement',
+                        },
+                        {
+                            label: 'for',
+                            kind: monaco.languages.CompletionItemKind.Keyword,
+                            insertText:
+                                lang === 'python'
+                                    ? 'for ${1:item} in ${2:iterable}:\n    $0'
+                                    : 'for (${1:init}; ${2:condition}; ${3:update}) {\n    $0\n}',
+                            insertTextRules:
+                                monaco.languages.CompletionItemInsertTextRule
+                                    .InsertAsSnippet,
+                            documentation: 'For loop',
+                        },
+                    ];
+                    return { suggestions };
+                },
+            });
+        });
     }
 
     return (
