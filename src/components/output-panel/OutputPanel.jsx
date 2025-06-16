@@ -5,9 +5,8 @@
  */
 export default function OutputPanel({ output }) {
     return (
-        <div
+        <section
             className="h-full overflow-auto rounded bg-gray-800 p-4 text-white"
-            role="region"
             aria-label="Output panel"
         >
             <h3 className="mb-2 text-lg font-semibold">Output</h3>
@@ -18,6 +17,6 @@ export default function OutputPanel({ output }) {
             >
                 {output || 'Run your code to see the output here.'}
             </pre>
-        </div>
+        </section>
     );
 }
