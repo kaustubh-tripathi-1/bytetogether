@@ -14,12 +14,12 @@ export default function Layout() {
     usePersistPath();
 
     return (
-        <div className="flex min-h-screen flex-col">
+        <main className="flex min-h-screen flex-col">
             {/* <Header /> */}
-            <main className="flex-1 bg-gray-200 text-gray-900 dark:bg-gray-800 dark:text-gray-200">
+            <section className="flex-1 text-gray-900 dark:text-gray-200">
                 <Outlet />
-            </main>
+            </section>
             {/* <Footer /> */}
-        </div>
+        </main>
     );
 }
