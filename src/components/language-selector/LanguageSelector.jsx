@@ -10,7 +10,6 @@ const languages = [
     { value: 'java', label: 'Java' },
     { value: 'html', label: 'HTML' },
     { value: 'css', label: 'CSS' },
-    { value: 'plaintext', label: 'Plain Text' },
 ];
 
 /**
@@ -53,7 +52,7 @@ export default function LanguageSelector({
             <button
                 onClick={() => setIsOpen((isOpen) => !isOpen)}
                 onKeyDown={handleKeyDown}
-                className="flex min-w-30 items-center justify-center rounded border border-gray-300 bg-gray-800 px-3 py-2 text-sm font-medium text-white hover:bg-gray-700 focus:bg-gray-700 focus:outline-1 focus:outline-offset-2 focus:outline-gray-400"
+                className="flex min-w-30 cursor-pointer items-center justify-center rounded border border-gray-400/90 bg-gray-300 px-3 py-2 text-sm font-medium text-gray-800 focus:outline-1 focus:outline-offset-2 focus:outline-gray-400 dark:bg-[#222233] dark:text-white dark:hover:bg-[#1A1B26] dark:focus:bg-[#1A1B26]"
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
                 aria-label="Select programming language"
@@ -79,11 +78,11 @@ export default function LanguageSelector({
             <AnimatePresence>
                 {isOpen && (
                     <motion.ul
-                        initial={{ opacity: 0, y: -10 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute z-10 mt-1 w-6/6 rounded border border-gray-300 bg-gray-800 shadow-lg"
+                        transition={{ duration: 0.3 }}
+                        className="absolute z-10 mt-1 w-6/6 rounded border border-gray-400 bg-gray-300 shadow-lg dark:border-gray-300 dark:bg-[#222233]"
                         role="listbox"
                         aria-label="Programming languages"
                     >
@@ -100,7 +99,7 @@ export default function LanguageSelector({
                                         setIsOpen(false);
                                     }
                                 }}
-                                className={`cursor-pointer px-3 py-2 text-sm text-white hover:bg-gray-700 focus:bg-gray-700 focus:outline-none ${selectedLanguage === language.value ? 'bg-gray-700' : ''}`}
+                                className={`cursor-pointer px-3 py-2 text-sm focus:outline-1 focus:-outline-offset-1 focus:outline-gray-800 dark:hover:bg-[#1A1B26] dark:focus:outline-white ${selectedLanguage === language.value ? 'bg-gray-400 dark:bg-[#1A1B26]' : ''}`}
                                 role="option"
                                 aria-selected={
                                     selectedLanguage === language.value
