@@ -30,7 +30,7 @@ export default function EditorLayout({
     const [output, setOutput] = useState('');
     const [input, setInput] = useState('');
     const [editorWidth, setEditorWidth] = useState(66.67); // 2/3 of screen
-    const [outputHeight, setOutputHeight] = useState(50); // 50% of right panel
+    const [inputHeight, setInputHeight] = useState(50); // 50% of right panel
     const [isResizing, setIsResizing] = useState(false);
     const editorRef = useRef(null);
     const containerRef = useRef(null);
@@ -59,6 +59,20 @@ export default function EditorLayout({
             window.removeEventListener('mouseup', handleVerticalMouseUp);
         };
     }, []);
+
+    // Update container styles dynamically
+    useEffect(() => {
+        if (containerRef.current) {
+            containerRef.current.style.setProperty(
+                '--editor-width',
+                `${editorWidth}%`
+            );
+            containerRef.current.style.setProperty(
+                '--input-height',
+                `${inputHeight}%`
+            );
+        }
+    }, [editorWidth, inputHeight]);
 
     function getLanguageFromFileName(fileName) {
         const extension = fileName.split('.').pop().toLowerCase();
@@ -105,6 +119,7 @@ export default function EditorLayout({
 
     function handleEditorDidMount(editor) {
         editorRef.current = editor;
+        editor.focus();
     }
 
     // Placeholder for running code (to be implemented in Phase 5)
@@ -115,6 +130,7 @@ export default function EditorLayout({
 
     // Horizontal resize (CodeEditor vs Right Panel)
     function handleHorizontalMouseDown() {
+        if (window.innerWidth < 768) return; // Disable resizing on mobile
         isDraggingHorizontal.current = true;
         setIsResizing(true);
     }
@@ -135,6 +151,7 @@ export default function EditorLayout({
 
     // Vertical resize (OutputPanel vs InputPanel)
     function handleVerticalMouseDown() {
+        if (window.innerWidth < 768) return; // Disable resizing on mobile
         isDraggingVertical.current = true;
         setIsResizing(true);
     }
@@ -145,7 +162,7 @@ export default function EditorLayout({
             const newY =
                 e.clientY - containerRef.current.getBoundingClientRect().top;
             const newHeight = (newY / containerHeight) * 100;
-            setOutputHeight(Math.max(20, Math.min(80, newHeight))); // Min 20%, Max 80%
+            setInputHeight(Math.max(20, Math.min(80, newHeight))); // Min 20%, Max 80%
         }
     }
 
@@ -156,25 +173,31 @@ export default function EditorLayout({
 
     return (
         <section
-            className={`flex min-h-screen flex-col md:flex-row ${isResizing ? 'select-none' : ''}`}
+            className={`editor-layout-container flex h-full flex-col bg-gray-50 text-gray-800 md:flex-row dark:bg-[#222233] dark:text-gray-200 ${isResizing ? 'select-none' : ''} `}
             ref={containerRef}
         >
-            <section
-                className="w-full p-4 md:w-2/3 md:min-w-112"
-                style={{ width: `${editorWidth}%` }}
-            >
-                <div className="flex gap-4 p-2">
+            {/* Editor Section */}
+            <section className="w-full p-4 md:w-[var(--editor-width)] md:min-w-112">
+                <div className="flex justify-between pb-4">
                     <select
                         value={selectedFile}
                         onChange={handleFileChange}
-                        className="w-full min-w-25 rounded border p-1.5 focus:outline-none md:w-1/3"
+                        className="w-full min-w-25 rounded border border-gray-300 bg-gray-100 p-1.5 text-gray-800 focus:outline-none md:w-1/3 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                         aria-label="Select file to edit"
                     >
-                        <option value="" disabled className="">
+                        <option
+                            value=""
+                            disabled
+                            className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                        >
                             Select a file
                         </option>
                         {files.map((file) => (
-                            <option key={file.$id} value={file.$id}>
+                            <option
+                                key={file.$id}
+                                value={file.$id}
+                                className=""
+                            >
                                 {file.name}
                             </option>
                         ))}
@@ -206,29 +229,29 @@ export default function EditorLayout({
                 />
             </section>
 
+            {/* Horizontal Resizer */}
             {/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */}
             <div
-                className="hidden w-1 cursor-ew-resize bg-gray-500 md:block"
+                className="hidden w-1 cursor-ew-resize bg-gray-500 hover:bg-blue-600 active:bg-blue-600 md:block"
                 onMouseDown={handleHorizontalMouseDown}
                 role="separator"
                 aria-label="Resize Code Editor and Panels"
             ></div>
-            <section
-                className="flex w-full md:min-w-64 md:flex-col"
-                style={{ width: `${100 - editorWidth}%` }}
-            >
-                <div style={{ height: `${outputHeight}%` }}>
+
+            {/* Input/Output Section */}
+            <section className="flex w-full flex-col md:w-[calc(100%-var(--editor-width))] md:min-w-64 md:flex-1">
+                <section className="min-h-28 md:h-[var(--input-height)]">
                     <InputPanel input={input} onInputChange={setInput} />
-                </div>
+                </section>
                 <div
-                    className="h-1 cursor-ns-resize bg-gray-500"
+                    className="hidden h-1 cursor-ns-resize bg-gray-500 hover:bg-blue-600 active:bg-blue-600 md:block"
                     onMouseDown={handleVerticalMouseDown}
                     role="separator"
                     aria-label="Resize Output and Input Panels"
                 ></div>
-                <div style={{ height: `${100 - outputHeight}%` }}>
+                <section className="min-h-42 flex-1 md:h-[calc(100%-var(--input-height))]">
                     <OutputPanel output={output} />
-                </div>
+                </section>
             </section>
         </section>
     );
