@@ -12,6 +12,7 @@
         { "token": "type", "foreground": "#6b0bbf" }
     ],
     "colors": {
+        "editor.background": "#FBFCFD",
         "editorCursor.foreground": "#528BFF"
     }
 }
