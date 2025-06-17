@@ -14,7 +14,10 @@ import {
     setFiles,
     setIsLoading as setFilesLoading,
 } from '../../store/slices/filesSlice';
-import { setActiveProject } from '../../store/slices/editorSlice';
+import {
+    setActiveProject,
+    setCollaborators,
+} from '../../store/slices/editorSlice';
 
 export default function ProjectEditor() {
     const { projectId } = useParams();
@@ -56,11 +59,13 @@ export default function ProjectEditor() {
         if (project) {
             dispatch(
                 setActiveProject({
+                    $id: project.$id,
                     name: project.name,
                     ownerId: project.ownerId,
                     collaborators: project.collaborators,
                 })
             );
+            dispatch(setCollaborators(project.collaborators));
         }
     }, [dispatch, project]);
 
