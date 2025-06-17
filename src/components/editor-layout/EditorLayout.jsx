@@ -173,7 +173,7 @@ export default function EditorLayout({
 
     return (
         <section
-            className={`editor-layout-container flex h-full flex-col bg-gray-50 text-gray-800 md:flex-row dark:bg-[#222233] dark:text-gray-200 ${isResizing ? 'select-none' : ''} `}
+            className={`editor-layout-container flex h-full flex-col bg-white text-gray-800 md:flex-row dark:bg-[#222233] dark:text-gray-200 ${isResizing ? 'select-none' : ''} `}
             ref={containerRef}
         >
             {/* Editor Section */}
@@ -232,7 +232,7 @@ export default function EditorLayout({
             {/* Horizontal Resizer */}
             {/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */}
             <div
-                className="hidden w-1 cursor-ew-resize bg-gray-500 hover:bg-blue-600 active:bg-blue-600 md:block"
+                className="hidden w-1 cursor-ew-resize bg-gray-300 hover:bg-blue-600 active:bg-blue-600 md:block dark:bg-gray-500"
                 onMouseDown={handleHorizontalMouseDown}
                 role="separator"
                 aria-label="Resize Code Editor and Panels"
@@ -240,11 +240,11 @@ export default function EditorLayout({
 
             {/* Input/Output Section */}
             <section className="flex w-full flex-col md:w-[calc(100%-var(--editor-width))] md:min-w-64 md:flex-1">
-                <section className="min-h-28 md:h-[var(--input-height)]">
+                <section className="min-h-40 md:h-[var(--input-height)]">
                     <InputPanel input={input} onInputChange={setInput} />
                 </section>
                 <div
-                    className="hidden h-1 cursor-ns-resize bg-gray-500 hover:bg-blue-600 active:bg-blue-600 md:block"
+                    className="hidden h-1 cursor-ns-resize bg-gray-300 hover:bg-blue-600 active:bg-blue-600 md:block dark:bg-gray-500"
                     onMouseDown={handleVerticalMouseDown}
                     role="separator"
                     aria-label="Resize Output and Input Panels"
