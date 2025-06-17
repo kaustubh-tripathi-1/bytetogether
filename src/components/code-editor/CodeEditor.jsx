@@ -74,9 +74,12 @@ export default function CodeEditor({
     }
 
     return (
-        <section className="flex h-full flex-col" aria-label="Code editor">
+        <section
+            className="flex h-5/6 flex-col text-gray-800 dark:text-gray-200"
+            aria-label="Code editor"
+        >
             <MonacoEditor
-                height="80vh"
+                height="91vh"
                 width="100%"
                 language={language}
                 value={codeContent}
@@ -94,7 +97,7 @@ export default function CodeEditor({
                     accessibilitySupport: 'auto',
                     lineNumbers: 'on',
                     formatOnPaste: true,
-                    scrollBeyondLastLine: true,
+                    scrollBeyondLastLine: false,
                     automaticLayout: true,
                     cursorBlinking: 'smooth',
                     cursorSmoothCaretAnimation: 'on',
