@@ -36,8 +36,7 @@
             }
             /* bg-gray-900 */
             html[data-theme='dark'] {
-                background: #111827;
-                /* background: #1e2939; */
+                background: #222233;
             }
 
             noscript > p {
@@ -48,7 +47,9 @@
             }
         </style>
         <script defer>
-            document.documentElement.setAttribute('data-theme', 'dark');
+            // Apply theme from localStorage before React renders
+            const theme = localStorage.getItem('theme') || 'dark'; // Default to 'dark'
+            document.documentElement.setAttribute('data-theme', theme);
         </script>
     </head>
     <body>
