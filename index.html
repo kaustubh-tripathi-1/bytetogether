@@ -6,16 +6,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>ByteTogether</title>
         <style>
-            html,
-            body {
-                margin: 0;
-                padding: 0;
-                min-height: 100vh;
-                height: 100%;
-            }
-
             /* Default styles to prevent FOUC */
-            html[data-theme='light'] {
+            /* html[data-theme='light'] {
                 background: linear-gradient(
                     to top right,
                     #69a7f3,
@@ -36,22 +28,33 @@
                 background-repeat: no-repeat;
                 background-size: cover;
                 background-attachment: fixed;
-            }
-            /* Default to minimal background for most routes */
+            } */
+            /* Default to minimal background for most routes styles to prevent FOUC */
             /* bg-gray-100 */
-            /* html[data-theme='light'] {
-                background: #f3f4f6;
-            } */
+            html[data-theme='light'] {
+                background: #e5e7eb;
+            }
             /* bg-gray-900 */
-            /* html[data-theme='dark'] {
+            html[data-theme='dark'] {
                 background: #111827;
-            } */
+                /* background: #1e2939; */
+            }
+
+            noscript > p {
+                font-size: x-large;
+                text-align: center;
+                margin: 0;
+                padding-top: 30%;
+            }
         </style>
         <script defer>
             document.documentElement.setAttribute('data-theme', 'dark');
         </script>
     </head>
     <body>
+        <noscript>
+            <p>You need to enable JavaScript to run this app.</p>
+        </noscript>
         <div id="root"></div>
         <script type="module" src="/src/main.jsx"></script>
     </body>
