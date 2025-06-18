@@ -39,6 +39,7 @@ const editorPersistConfig = {
         'selectedFile',
         'settings',
     ], // Persist only these states
+    throttle: 1000, // Delay storage updates by 1 second
 };
 
 /**
