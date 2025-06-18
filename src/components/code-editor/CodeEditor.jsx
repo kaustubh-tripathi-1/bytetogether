@@ -1,8 +1,3 @@
-/**
- * CodeEditor component for rendering Monaco Editor with file selection.
- * @param {string} projectId - The ID of the active project.
- * @returns {JSX.Element} The Monaco Editor with file selector.
- */
 import { useSelector } from 'react-redux';
 import MonacoEditor from '@monaco-editor/react';
 
@@ -11,6 +6,11 @@ import { Spinner } from '../componentsIndex';
 import nightOwlTheme from './themes/night-owl.json';
 import vsLight from './themes/custom-light.json';
 
+/**
+ * CodeEditor component for rendering Monaco Editor with file selection.
+ * @param {string} projectId - The ID of the active project.
+ * @returns {JSX.Element} The Monaco Editor with file selector.
+ */
 export default function CodeEditor({
     language,
     codeContent,
@@ -107,6 +107,9 @@ export default function CodeEditor({
                     stickyScroll: { enabled: false },
                     smoothScrolling: true,
                     hover: { delay: 500 },
+                    scrollbar: {
+                        alwaysConsumeMouseWheel: false,
+                    },
                 }}
             />
         </section>
