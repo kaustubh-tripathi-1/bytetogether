@@ -1,16 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const languages = [
-    { value: 'javascript', label: 'JavaScript' },
-    { value: 'typescript', label: 'TypeScript' },
-    { value: 'python', label: 'Python' },
-    { value: 'cpp', label: 'C++' },
-    { value: 'c', label: 'C' },
-    { value: 'java', label: 'Java' },
-    { value: 'html', label: 'HTML' },
-    { value: 'css', label: 'CSS' },
-];
+import { languageMap } from '../../conf/languages';
 
 /**
  * LanguageSelector component for selecting programming languages with animation.
@@ -69,8 +60,9 @@ export default function LanguageSelector({
                 aria-expanded={isOpen}
                 aria-label="Select programming language"
             >
-                {languages.find((lang) => lang.value === selectedLanguage)
-                    ?.label || 'Select Language'}
+                {Object.values(languageMap).find(
+                    (lang) => lang.value === selectedLanguage
+                )?.label || 'Select Language'}
                 <svg
                     className={`ml-2 h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                     xmlns="http://www.w3.org/2000/svg"
@@ -98,7 +90,7 @@ export default function LanguageSelector({
                         role="listbox"
                         aria-label="Programming languages"
                     >
-                        {languages.map((language) => (
+                        {Object.values(languageMap).map((language) => (
                             <li
                                 key={language.value}
                                 onClick={() => {

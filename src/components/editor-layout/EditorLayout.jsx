@@ -12,6 +12,7 @@ import {
     LanguageSelector,
     OutputPanel,
 } from '../componentsIndex.js';
+import { languageMap } from '../../conf/languages';
 
 /**
  * Layout component for the editor interface.
@@ -78,18 +79,7 @@ export default function EditorLayout({
 
     function getLanguageFromFileName(fileName) {
         const extension = fileName.split('.').pop().toLowerCase();
-        const languageMap = {
-            js: 'javascript',
-            ts: 'typescript',
-            py: 'python',
-            cpp: 'cpp',
-            c: 'c',
-            java: 'java',
-            html: 'html',
-            css: 'css',
-        };
-
-        return languageMap[extension] || 'plaintext';
+        return languageMap[extension]?.value || 'plaintext';
     }
 
     function handleFileChange(event) {
