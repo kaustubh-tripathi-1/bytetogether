@@ -12,7 +12,7 @@ import {
     LanguageSelector,
     OutputPanel,
 } from '../componentsIndex.js';
-import { languageMap } from '../../conf/languages';
+import { languageMap, defaultsSnippets } from '../../conf/languages';
 
 /**
  * Layout component for the editor interface.
@@ -93,8 +93,40 @@ export default function EditorLayout({
         }
     }
 
+    /**
+     * Retrieves default code template for a given language.
+     * @param {string} language - The programming language.
+     * @returns {string} Default code template or empty string if not found.
+     */
+    function getDefaultCodeForLanguage(language) {
+        return defaultsSnippets[language] || '';
+    }
+
+    /**
+     * Handles language change by updating the editor state and loading appropriate code.
+     * @param {string} newLanguage - The newly selected language.
+     */
     function handleLanguageChange(newLanguage) {
         dispatch(setLanguage(newLanguage));
+
+        const file = files.find((f) => f.$id === selectedFile);
+        if (!file) {
+            // No file selected, load default code
+            const defaultCode = getDefaultCodeForLanguage(newLanguage);
+            dispatch(setCodeContent(defaultCode));
+            return;
+        }
+
+        // If file exists, check if saved code matches the new language
+        const savedLanguage = getLanguageFromFileName(file.name);
+        if (savedLanguage !== newLanguage) {
+            // Load default code for the new language
+            const defaultCode = getDefaultCodeForLanguage(newLanguage);
+            dispatch(setCodeContent(defaultCode));
+            return;
+        }
+
+        dispatch(setCodeContent(file.content || ''));
     }
 
     function handleEditorContentChange(value) {
