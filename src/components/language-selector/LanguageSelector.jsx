@@ -35,22 +35,34 @@ export default function LanguageSelector({
                 setIsOpen(false);
             }
         }
-        document.addEventListener('mousedown', handleClickOutside);
+
+        // Attach to a parent container (e.g., EditorLayout) instead of document for better performance
+        const parentContainer = dropdownRef.current?.closest(
+            '.editor-layout-container'
+        );
+        parentContainer?.addEventListener('mousedown', handleClickOutside);
         return () =>
-            document.removeEventListener('mousedown', handleClickOutside);
+            parentContainer?.removeEventListener(
+                'mousedown',
+                handleClickOutside
+            );
     }, []);
 
     // Handle keyboard navigation
-    const handleKeyDown = (event) => {
+    function handleKeyDown(event) {
         if (event.key === 'Escape') {
             setIsOpen(false);
         }
-    };
+    }
+
+    function toggleLanguageSelector() {
+        setIsOpen((isOpen) => !isOpen);
+    }
 
     return (
         <div className="relative inline-block text-left" ref={dropdownRef}>
             <button
-                onClick={() => setIsOpen((isOpen) => !isOpen)}
+                onClick={toggleLanguageSelector}
                 onKeyDown={handleKeyDown}
                 className="flex min-w-30 cursor-pointer items-center justify-center rounded border border-gray-400/90 bg-gray-300 px-3 py-2 text-sm font-medium text-gray-800 focus:outline-1 focus:outline-offset-2 focus:outline-gray-400 dark:bg-[#222233] dark:text-white dark:hover:bg-[#1A1B26] dark:focus:bg-[#1A1B26]"
                 aria-haspopup="listbox"
