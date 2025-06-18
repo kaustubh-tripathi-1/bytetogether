@@ -1,8 +1,3 @@
-/**
- * Layout component for the editor interface.
- * @param {boolean} isNewProject - Whether the project is new.
- * @returns {JSX.Element} The editor layout with CodeEditor, InputPanel and OutputPanel.
- */
 import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -18,6 +13,13 @@ import {
     OutputPanel,
 } from '../componentsIndex.js';
 
+/**
+ * Layout component for the editor interface.
+ * @param {object} props - Props for the component.
+ * @param {string} props.projectId - Project ID of an existing project.
+ * @param {boolean} props.isNewProject - Whether the project is new.
+ * @returns {JSX.Element} The editor layout with CodeEditor, InputPanel and OutputPanel.
+ */
 export default function EditorLayout({
     projectId: _projectId,
     isNewProject: _isNewProject,
