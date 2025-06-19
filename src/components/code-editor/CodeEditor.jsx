@@ -1,6 +1,7 @@
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import MonacoEditor from '@monaco-editor/react';
 
+import { setCodeContent } from '../../store/slices/editorSlice';
 import { Spinner } from '../componentsIndex';
 
 import nightOwlTheme from './themes/night-owl.json';
@@ -11,14 +12,11 @@ import vsLight from './themes/custom-light.json';
  * @param {string} projectId - The ID of the active project.
  * @returns {JSX.Element} The Monaco Editor with file selector.
  */
-export default function CodeEditor({
-    language,
-    codeContent,
-    onChange,
-    onMount,
-}) {
+export default function CodeEditor({ language, codeContent, ref: editorRef }) {
+    const dispatch = useDispatch();
     const { settings } = useSelector((state) => state.editor);
     const { theme } = useSelector((state) => state.ui);
+    const { collaborators } = useSelector((state) => state.editor);
 
     // Defines custom themes and compiler options before the editor mounts.
     function handleEditorWillMount(monaco) {
@@ -73,6 +71,31 @@ export default function CodeEditor({
         });
     }
 
+    function handleEditorContentChange(value) {
+        dispatch(setCodeContent(value));
+    }
+
+    // Handles editor mount and sets up multi-cursor decorations for collaborators.
+    function handleEditorDidMount(editor, monaco) {
+        editorRef.current = editor;
+
+        // Placeholder for collaborator cursors (Will implement with Yjs in Phase 5)
+        if (collaborators.length > 0) {
+            const decorations = collaborators.map((_collaborator) => ({
+                range: new monaco.Range(1, 1, 1, 1), // Placeholder range (update with real positions)
+                options: {
+                    className: 'collaborator-cursor',
+                    stickiness:
+                        monaco.editor.TrackedRangeStickiness
+                            .NeverGrowsWhenTyping,
+                },
+            }));
+            editor.deltaDecorations([], decorations); // Apply decorations
+        }
+
+        editor.focus();
+    }
+
     return (
         <section
             className="flex h-[calc(100%-4rem)] flex-col text-gray-800 dark:text-gray-200"
@@ -83,10 +106,10 @@ export default function CodeEditor({
                 width="100%"
                 language={language}
                 value={codeContent}
-                onChange={onChange}
+                onChange={handleEditorContentChange}
                 theme={theme === 'dark' ? 'night-owl' : 'vs-light'}
                 beforeMount={handleEditorWillMount}
-                onMount={onMount}
+                onMount={handleEditorDidMount}
                 loading={<Spinner size="4" />}
                 options={{
                     fontSize: settings.fontSize,
