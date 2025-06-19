@@ -6,6 +6,7 @@ import {
     setLanguage,
     setSelectedFile,
 } from '../../store/slices/editorSlice';
+import { saveFileToDb } from '../../store/slices/filesSlice.js';
 import {
     CodeEditor,
     InputPanel,
@@ -21,10 +22,7 @@ import { languageMap, defaultsSnippets } from '../../conf/languages';
  * @param {boolean} props.isNewProject - Whether the project is new.
  * @returns {JSX.Element} The editor layout with CodeEditor, InputPanel and OutputPanel.
  */
-export default function EditorLayout({
-    projectId: _projectId,
-    isNewProject: _isNewProject,
-}) {
+export default function EditorLayout({ projectId, isNewProject }) {
     const dispatch = useDispatch();
     const { files } = useSelector((state) => state.files);
     const { codeContent, selectedFile, language } = useSelector(
@@ -43,8 +41,13 @@ export default function EditorLayout({
     // Set initial file and language
     useEffect(() => {
         if (files.length > 0 && !selectedFile) {
-            dispatch(setSelectedFile(files[0].$id));
-            dispatch(setLanguage(getLanguageFromFileName(files[0].name)));
+            dispatch(
+                setSelectedFile({
+                    $id: files[0].$id,
+                    fileName: files[0].fileName,
+                })
+            );
+            dispatch(setLanguage(getLanguageFromFileName(files[0].fileName)));
             dispatch(setCodeContent(files[0].content));
         }
     }, [dispatch, files, selectedFile]);
@@ -88,7 +91,7 @@ export default function EditorLayout({
 
         const file = files.find((f) => f.$id === fileId);
         if (file) {
-            setLanguage(getLanguageFromFileName(file.name));
+            setLanguage(getLanguageFromFileName(file.fileName));
             dispatch(setCodeContent(file.content));
         }
     }
@@ -109,7 +112,7 @@ export default function EditorLayout({
     function handleLanguageChange(newLanguage) {
         dispatch(setLanguage(newLanguage));
 
-        const file = files.find((f) => f.$id === selectedFile);
+        const file = files.find((f) => f.$id === selectedFile.$id);
         if (!file) {
             // No file selected, load default code
             const defaultCode = getDefaultCodeForLanguage(newLanguage);
@@ -129,21 +132,12 @@ export default function EditorLayout({
         dispatch(setCodeContent(file.content || ''));
     }
 
-    function handleEditorContentChange(value) {
-        dispatch(setCodeContent(value));
-    }
-
     function handleFormatCode() {
         editorRef.current?.trigger(
             'format',
             'editor.action.formatDocument',
             {}
         );
-    }
-
-    function handleEditorDidMount(editor) {
-        editorRef.current = editor;
-        editor.focus();
     }
 
     // Placeholder for running code (to be implemented in Phase 5)
@@ -195,6 +189,21 @@ export default function EditorLayout({
         setIsResizing(false);
     }
 
+    // Saves the current file content and metadata to Appwrite.
+    function _handleSaveToDb() {
+        dispatch(
+            saveFileToDb({
+                projectId,
+                fileName:
+                    files.find((f) => f.$id === selectedFile.$id)?.name ||
+                    'untitled',
+                language,
+                content: codeContent,
+                isNewProject,
+            })
+        );
+    }
+
     return (
         <section
             className={`editor-layout-container flex h-full flex-col bg-white text-gray-800 md:flex-row dark:bg-[#222233] dark:text-gray-200 ${isResizing ? 'select-none' : ''} `}
@@ -222,7 +231,7 @@ export default function EditorLayout({
                                 value={file.$id}
                                 className=""
                             >
-                                {file.name}
+                                {file.fileName}
                             </option>
                         ))}
                     </select>
@@ -248,8 +257,7 @@ export default function EditorLayout({
                 <CodeEditor
                     language={language}
                     codeContent={codeContent}
-                    onChange={handleEditorContentChange}
-                    onMount={handleEditorDidMount}
+                    ref={editorRef}
                 />
             </section>
 
