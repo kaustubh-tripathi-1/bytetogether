@@ -30,7 +30,7 @@ const initialState = {
         },
         stickyScroll: { enabled: false },
     },
-    selectedFile: '',
+    selectedFile: null,
     language: 'javascript',
     isLoading: false,
     error: null,
