@@ -6,23 +6,39 @@ import { Spinner } from '../componentsIndex';
 
 import nightOwlTheme from './themes/night-owl.json';
 import vsLight from './themes/custom-light.json';
+import './CodeEditor.css';
 
 /**
  * CodeEditor component for rendering Monaco Editor with file selection.
- * @param {string} projectId - The ID of the active project.
- * @returns {JSX.Element} The Monaco Editor with file selector.
+ * @param {Object} props - The props object for CodeEditor component
+ * @param {string} props.language - The programming language for the editor.
+ * @param {string} props.codeContent - The current code content to display.
+ * @param {React.RefObject} editorRef - The react ref for monaco editor.
+ * @returns {JSX.Element} The Monaco Editor.
  */
 export default function CodeEditor({ language, codeContent, ref: editorRef }) {
     const dispatch = useDispatch();
     const { settings } = useSelector((state) => state.editor);
     const { theme } = useSelector((state) => state.ui);
-    const { collaborators } = useSelector((state) => state.editor);
+    const { collaborators } = useSelector((state) => state.editor); // { id, username, position: { line, column } }
 
-    // Defines custom themes and compiler options before the editor mounts.
+    // Distinct cursor colors for each collaborator
+    const cursorColors = [
+        '#ff0000',
+        '#00ff00',
+        '#0000ff',
+        '#ff00ff',
+        '#00ffff',
+    ];
+
+    /**
+     * Defines custom themes and compiler options before the editor mounts.
+     * @param {Monaco} monaco - Monaco instance
+     */
     function handleEditorWillMount(monaco) {
         monaco.editor.defineTheme('night-owl', nightOwlTheme);
         monaco.editor.defineTheme('vs-light', vsLight);
-
+        console.log(monaco);
         // Ensure TypeScript compiler options are set for IntelliSense
         monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
             target: monaco.languages.typescript.ScriptTarget.ESNext,
@@ -78,22 +94,55 @@ export default function CodeEditor({ language, codeContent, ref: editorRef }) {
     // Handles editor mount and sets up multi-cursor decorations for collaborators.
     function handleEditorDidMount(editor, monaco) {
         editorRef.current = editor;
+        editor.focus();
+
+        console.log(editor, monaco);
 
         // Placeholder for collaborator cursors (Will implement with Yjs in Phase 5)
         if (collaborators.length > 0) {
-            const decorations = collaborators.map((_collaborator) => ({
-                range: new monaco.Range(1, 1, 1, 1), // Placeholder range (update with real positions)
-                options: {
-                    className: 'collaborator-cursor',
-                    stickiness:
-                        monaco.editor.TrackedRangeStickiness
-                            .NeverGrowsWhenTyping,
-                },
-            }));
-            editor.deltaDecorations([], decorations); // Apply decorations
-        }
+            let color;
+            const decorations = collaborators.map((collaborator, index) => {
+                color = cursorColors[index % cursorColors.length];
+                return {
+                    range: new monaco.Range(
+                        collaborator.position.line || 1,
+                        collaborator.position.column || 1,
+                        collaborator.position.line || 1,
+                        collaborator.position.column || 1
+                    ),
+                    options: {
+                        className: `collaborator-cursor collaborator-cursor-${index}`,
+                        stickiness:
+                            monaco.editor.TrackedRangeStickiness
+                                .NeverGrowsWhenTyping,
+                    },
+                };
+            });
+            editor.deltaDecorations([], decorations);
 
-        editor.focus();
+            // Add username tooltips
+            collaborators.forEach((collaborator, index) => {
+                const domNode = editor.getDomNode();
+                const cursorElement = document.createElement('div');
+                cursorElement.className = `collaborator-tooltip collaborator-tooltip-${index}`;
+                cursorElement.textContent = collaborator.username;
+                cursorElement.style.position = 'absolute';
+                cursorElement.style.backgroundColor = color;
+                cursorElement.style.color = '#fff';
+                cursorElement.style.padding = '2px 4px';
+                cursorElement.style.borderRadius = '3px';
+                cursorElement.style.zIndex = '1000';
+                domNode.appendChild(cursorElement);
+
+                // Update tooltip position (placeholder logic, refine with Yjs)
+                const _position = editor.getPosition();
+                const pixelPosition = editor
+                    .getDomNode()
+                    .getBoundingClientRect();
+                cursorElement.style.left = `${pixelPosition.left + 10}px`; // Offset from editor edge
+                cursorElement.style.top = `${pixelPosition.top - 20}px`; // Above cursor
+            });
+        }
     }
 
     return (
