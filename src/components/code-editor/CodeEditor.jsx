@@ -38,7 +38,7 @@ export default function CodeEditor({ language, codeContent, ref: editorRef }) {
     function handleEditorWillMount(monaco) {
         monaco.editor.defineTheme('night-owl', nightOwlTheme);
         monaco.editor.defineTheme('vs-light', vsLight);
-        console.log(monaco);
+
         // Ensure TypeScript compiler options are set for IntelliSense
         monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
             target: monaco.languages.typescript.ScriptTarget.ESNext,
@@ -95,8 +95,6 @@ export default function CodeEditor({ language, codeContent, ref: editorRef }) {
     function handleEditorDidMount(editor, monaco) {
         editorRef.current = editor;
         editor.focus();
-
-        console.log(editor, monaco);
 
         // Placeholder for collaborator cursors (Will implement with Yjs in Phase 5)
         if (collaborators.length > 0) {
