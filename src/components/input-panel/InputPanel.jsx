@@ -7,7 +7,7 @@
 export default function InputPanel({ input, onInputChange }) {
     return (
         <div
-            className="flex h-full flex-col gap-1 p-4 text-gray-800 dark:bg-[#222233] dark:text-gray-200"
+            className="flex h-full max-h-full flex-col gap-1 p-4 text-gray-800 dark:bg-[#222233] dark:text-gray-200"
             role="region"
             aria-label="Input panel"
         >

@@ -84,6 +84,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
         }
     }, [editorWidth, inputHeight]);
 
+    //TODO Fetch project files - Use Tanstack query for fetching this
     useEffect(() => {
         if (projectId && !isNewProject) {
             dispatch(getFilesByProject(projectId));
@@ -226,12 +227,16 @@ export default function EditorLayout({ projectId, isNewProject }) {
 
     return (
         <section
-            className={`editor-layout-container flex h-full flex-col bg-white text-gray-800 md:flex-row dark:bg-[#222233] dark:text-gray-200 ${isResizing ? 'select-none' : ''} `}
+            className={`editor-layout-container flex h-dvh flex-col bg-white text-gray-800 md:flex-row dark:bg-[#222233] dark:text-gray-200 ${isResizing ? 'select-none' : ''} `}
             ref={containerRef}
         >
             {/* Editor Section */}
             <section className="w-full p-4 md:w-[var(--editor-width)] md:min-w-112">
-                <div className="flex justify-between pb-4">
+                <div
+                    className="flex justify-between pb-4"
+                    role="toolbar"
+                    aria-label="Editor toolbar"
+                >
                     <select
                         value={selectedFile}
                         onChange={handleFileChange}
@@ -292,7 +297,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
 
             {/* Input/Output Section */}
             <section className="flex w-full flex-col md:w-[calc(100%-var(--editor-width))] md:min-w-64 md:flex-1">
-                <section className="min-h-40 md:h-[var(--input-height)]">
+                <section className="max-h-full min-h-40 md:h-[var(--input-height)]">
                     <InputPanel input={input} onInputChange={setInput} />
                 </section>
                 <div
@@ -301,7 +306,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                     role="separator"
                     aria-label="Resize Output and Input Panels"
                 ></div>
-                <section className="min-h-42 flex-1 md:h-[calc(100%-var(--input-height))]">
+                <section className="max-h-full min-h-42 flex-1 md:h-[calc(100%-var(--input-height))]">
                     <OutputPanel output={output} />
                 </section>
             </section>

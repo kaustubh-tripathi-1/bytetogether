@@ -6,13 +6,13 @@
 export default function OutputPanel({ output }) {
     return (
         <div
-            className="flex h-full flex-col overflow-auto p-4 dark:bg-[#222233]"
+            className="flex h-full max-h-full flex-col overflow-auto p-4 dark:bg-[#222233]"
             role="region"
             aria-label="Output panel"
         >
             <h3 className="mb-2 text-lg font-semibold">Output</h3>
             <pre
-                className="flex-1 break-words whitespace-pre-wrap"
+                className="max-h-full flex-1 break-words whitespace-pre-wrap"
                 aria-live="polite"
                 aria-label="Code execution output"
             >
