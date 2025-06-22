@@ -12,7 +12,7 @@ export default function NewProject() {
         const defaultFile = [
             {
                 $id: 'default',
-                name: 'index.js',
+                fileName: 'index.js',
                 content: 'console.log("Hello world");',
             },
         ];
