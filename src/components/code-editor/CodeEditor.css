@@ -1,0 +1,40 @@
+/* Collaborators Cursors */
+.collaborator-cursor {
+    position: absolute;
+    border-left: 2px solid #ff0000;
+    height: 1em;
+    margin-left: -1px;
+}
+
+.collaborator-cursor-0 {
+    border-left: 2px solid #ff0000;
+}
+.collaborator-cursor-1 {
+    border-left: 2px solid #00ff00;
+}
+.collaborator-cursor-2 {
+    border-left: 2px solid #0000ff;
+}
+.collaborator-cursor-3 {
+    border-left: 2px solid #ff00ff;
+}
+.collaborator-cursor-4 {
+    border-left: 2px solid #00ffff;
+}
+
+/* Collaborators Cursors Tooltip */
+.collaborator-tooltip-0 {
+    background-color: #ff0000;
+}
+.collaborator-tooltip-1 {
+    background-color: #00ff00;
+}
+.collaborator-tooltip-2 {
+    background-color: #0000ff;
+}
+.collaborator-tooltip-3 {
+    background-color: #ff00ff;
+}
+.collaborator-tooltip-4 {
+    background-color: #00ffff;
+}
