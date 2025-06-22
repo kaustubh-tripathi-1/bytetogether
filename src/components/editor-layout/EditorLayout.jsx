@@ -6,7 +6,11 @@ import {
     setLanguage,
     setSelectedFile,
 } from '../../store/slices/editorSlice';
-import { saveFileToDb } from '../../store/slices/filesSlice.js';
+import {
+    getFilesByProject,
+    saveAllFilesForNewProject,
+    updateAllFilesForExistingProject,
+} from '../../store/slices/filesSlice.js';
 import {
     CodeEditor,
     InputPanel,
@@ -79,6 +83,12 @@ export default function EditorLayout({ projectId, isNewProject }) {
             );
         }
     }, [editorWidth, inputHeight]);
+
+    useEffect(() => {
+        if (projectId && !isNewProject) {
+            dispatch(getFilesByProject(projectId));
+        }
+    }, [projectId, isNewProject, dispatch]);
 
     function getLanguageFromFileName(fileName) {
         const extension = fileName.split('.').pop().toLowerCase();
@@ -190,18 +200,28 @@ export default function EditorLayout({ projectId, isNewProject }) {
     }
 
     // Saves the current file content and metadata to Appwrite.
-    function _handleSaveToDb() {
-        dispatch(
-            saveFileToDb({
-                projectId,
-                fileName:
-                    files.find((f) => f.$id === selectedFile.$id)?.name ||
-                    'untitled',
-                language,
-                content: codeContent,
-                isNewProject,
-            })
-        );
+    function _handleSaveAllFiles() {
+        const filesToSave = files.map((file) => ({
+            $id: file.$id,
+            name: file.name,
+            language: getLanguageFromFileName(file.name),
+            content: file.content || '',
+        }));
+
+        if (isNewProject) {
+            dispatch(
+                saveAllFilesForNewProject({
+                    projectName: 'default',
+                    files: filesToSave.filter((file) => !file.$id), // Only new files
+                })
+            );
+        } else {
+            dispatch(
+                updateAllFilesForExistingProject(
+                    filesToSave.filter((file) => file.$id) // Only existing files
+                )
+            );
+        }
     }
 
     return (
