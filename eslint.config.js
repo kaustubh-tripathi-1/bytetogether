@@ -8,7 +8,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import importPlugin from 'eslint-plugin-import';
 import prettier from 'eslint-config-prettier';
-import vitest from 'eslint-plugin-vitest';
+import vitest from '@vitest/eslint-plugin';
 
 export default [
     { ignores: ['dist', 'vite.config.js', 'vitest.config.js'] },
