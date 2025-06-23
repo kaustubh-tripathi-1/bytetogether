@@ -202,7 +202,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
     }
 
     // Saves the current file content and metadata to Appwrite.
-    function _handleSaveAllFiles() {
+    function handleSaveAllFiles() {
         const filesToSave = files.map((file) => ({
             $id: file.$id,
             name: file.fileName,
@@ -264,7 +264,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         handleRunCode={handleRunCode}
                         handleFormatCode={handleFormatCode}
                         handleLanguageChange={handleLanguageChange}
-                        handleSaveAllFiles={_handleSaveAllFiles}
+                        handleSaveAllFiles={handleSaveAllFiles}
                     />
                 </div>
                 <CodeEditor
