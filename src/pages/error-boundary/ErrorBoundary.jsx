@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { Component } from 'react';
 
 // Classic Class based Error Boundary for errors outside routes i.e. App.
@@ -17,12 +18,17 @@ export default class ErrorBoundary extends Component {
     render() {
         if (this.state.hasError) {
             return (
-                <div className="flex min-h-screen items-center justify-center bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-                    <div className="animate-fade-in flex flex-col items-center justify-center">
-                        <h1 className="mb-6 text-4xl font-bold">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="flex min-h-screen items-center justify-center bg-white text-gray-800 dark:bg-[#222233] dark:text-gray-200"
+                >
+                    <div className="animate-fade-in flex max-w-5/6 flex-col items-center justify-center p-4">
+                        <h1 className="mb-6 text-center text-4xl font-bold">
                             Something went wrong!
                         </h1>
-                        <p className="mb-6 px-4 text-lg text-red-500 dark:text-red-400">
+                        <p className="mb-4 max-w-full px-4 text-center text-lg break-words text-red-500 dark:text-red-400">
                             {this.state.error?.message || 'Unknown error'}
                         </p>
                         <div className="flex items-center justify-center gap-12">
@@ -46,7 +52,7 @@ export default class ErrorBoundary extends Component {
                             </button>
                         </div>
                     </div>
-                </div>
+                </motion.div>
             );
         }
 

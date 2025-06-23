@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { Link, useNavigate, useRouteError } from 'react-router';
 
 // React-Router functional Error Boundary for errors within router/routes
@@ -14,12 +15,17 @@ export default function ErrorBoundaryInRouter() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-            <div className="flex flex-col items-center justify-center gap-4 text-center">
-                <h1 className="mb-4 text-4xl font-bold">
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex min-h-screen items-center justify-center overflow-auto bg-white text-gray-800 dark:bg-[#222233] dark:text-gray-200"
+        >
+            <div className="flex max-w-5/6 flex-col items-center justify-center gap-4 p-4 text-center">
+                <h1 className="mb-4 text-center text-4xl font-bold">
                     Something went wrong!
                 </h1>
-                <p className="mb-4 px-4 text-lg text-red-500 dark:text-red-400">
+                <p className="mb-4 max-w-full px-4 text-center text-lg break-words text-red-500 dark:text-red-400">
                     {error?.message || 'Unknown error'}
                 </p>
                 <div className="flex items-center justify-center gap-12">
@@ -37,6 +43,6 @@ export default function ErrorBoundaryInRouter() {
                     </Link>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
