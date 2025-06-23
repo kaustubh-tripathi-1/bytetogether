@@ -59,6 +59,7 @@ export default [
             'react/no-find-dom-node': 'off', // Deprecated: findDOMNode is removed in React 19
             'react/no-string-refs': 'off', // Deprecated: String refs are obsolete
             'import/order': ['error', { 'newlines-between': 'always' }], // Sort imports
+            'import/no-unresolved': [2, { ignore: ['\\.svg\\?react$'] }], // Ignore SVG imports with ?react
         },
         settings: {
             react: { version: 'detect' }, // Auto-detect React version
