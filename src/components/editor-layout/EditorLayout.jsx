@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
@@ -13,11 +13,12 @@ import {
 } from '../../store/slices/filesSlice.js';
 import {
     CodeEditor,
+    EditorToolbar,
     InputPanel,
-    LanguageSelector,
     OutputPanel,
 } from '../componentsIndex.js';
-import { languageMap, defaultsSnippets } from '../../conf/languages';
+import { defaultsSnippets } from '../../conf/languages';
+import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName.js';
 
 /**
  * Layout component for the editor interface.
@@ -49,6 +50,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                 setSelectedFile({
                     $id: files[0].$id,
                     fileName: files[0].fileName,
+                    content: files[0].content,
                 })
             );
             dispatch(setLanguage(getLanguageFromFileName(files[0].fileName)));
@@ -91,11 +93,6 @@ export default function EditorLayout({ projectId, isNewProject }) {
         }
     }, [projectId, isNewProject, dispatch]);
 
-    function getLanguageFromFileName(fileName) {
-        const extension = fileName.split('.').pop().toLowerCase();
-        return languageMap[extension]?.value || 'plaintext';
-    }
-
     function handleFileChange(event) {
         const fileId = event.target.value;
         dispatch(setSelectedFile(fileId));
@@ -120,42 +117,46 @@ export default function EditorLayout({ projectId, isNewProject }) {
      * Handles language change by updating the editor state and loading appropriate code.
      * @param {string} newLanguage - The newly selected language.
      */
-    function handleLanguageChange(newLanguage) {
-        dispatch(setLanguage(newLanguage));
+    const handleLanguageChange = useCallback(
+        (newLanguage) => {
+            dispatch(setLanguage(newLanguage));
 
-        const file = files.find((f) => f.$id === selectedFile.$id);
-        if (!file) {
-            // No file selected, load default code
-            const defaultCode = getDefaultCodeForLanguage(newLanguage);
-            dispatch(setCodeContent(defaultCode));
-            return;
-        }
+            const file = files.find((f) => f.$id === selectedFile.$id);
+            if (!file) {
+                // No file selected, load default code
+                const defaultCode = getDefaultCodeForLanguage(newLanguage);
+                dispatch(setCodeContent(defaultCode));
+                return;
+            }
 
-        // If file exists, check if saved code matches the new language
-        const savedLanguage = getLanguageFromFileName(file.name);
-        if (savedLanguage !== newLanguage) {
-            // Load default code for the new language
-            const defaultCode = getDefaultCodeForLanguage(newLanguage);
-            dispatch(setCodeContent(defaultCode));
-            return;
-        }
+            // If file exists, check if saved code matches the new language
+            const savedLanguage = getLanguageFromFileName(file.fileName);
 
-        dispatch(setCodeContent(file.content || ''));
-    }
+            if (savedLanguage !== newLanguage) {
+                // Load default code for the new language
+                const defaultCode = getDefaultCodeForLanguage(newLanguage);
+                dispatch(setCodeContent(defaultCode));
+                return;
+            }
 
-    function handleFormatCode() {
+            dispatch(setCodeContent(file.content || ''));
+        },
+        [dispatch, files, selectedFile]
+    );
+
+    const handleFormatCode = useCallback(() => {
         editorRef.current?.trigger(
             'format',
             'editor.action.formatDocument',
             {}
         );
-    }
+    }, []);
 
     // Placeholder for running code (to be implemented in Phase 5)
-    function handleRunCode() {
+    const handleRunCode = useCallback(() => {
         // Simulate output for now
         setOutput(`Simulated output for:\n${codeContent}\nInput:\n${input}`);
-    }
+    }, [codeContent, input]);
 
     // Horizontal resize (CodeEditor vs Right Panel)
     function handleHorizontalMouseDown() {
@@ -204,8 +205,8 @@ export default function EditorLayout({ projectId, isNewProject }) {
     function _handleSaveAllFiles() {
         const filesToSave = files.map((file) => ({
             $id: file.$id,
-            name: file.name,
-            language: getLanguageFromFileName(file.name),
+            name: file.fileName,
+            language: getLanguageFromFileName(file.fileName),
             content: file.content || '',
         }));
 
@@ -232,52 +233,39 @@ export default function EditorLayout({ projectId, isNewProject }) {
         >
             {/* Editor Section */}
             <section className="w-full p-4 md:w-[var(--editor-width)] md:min-w-112">
-                <div
-                    className="flex justify-between pb-4"
-                    role="toolbar"
-                    aria-label="Editor toolbar"
-                >
-                    <select
-                        value={selectedFile}
-                        onChange={handleFileChange}
-                        className="w-full min-w-25 rounded border border-gray-300 bg-gray-100 p-1.5 text-gray-800 focus:outline-none md:w-1/3 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
-                        aria-label="Select file to edit"
-                    >
-                        <option
-                            value=""
-                            disabled
-                            className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                {/* File Selector */}
+                <div className="flex flex-col justify-between gap-4 md:flex-row">
+                    <div className="">
+                        <select
+                            value={selectedFile?.fileName || 'index.js'}
+                            onChange={handleFileChange}
+                            className="w-full min-w-25 rounded border border-gray-300 bg-gray-100 p-1.5 text-gray-800 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                            aria-label="Select file to edit"
                         >
-                            Select a file
-                        </option>
-                        {files.map((file) => (
                             <option
-                                key={file.$id}
-                                value={file.$id}
-                                className=""
+                                value=""
+                                disabled
+                                className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                             >
-                                {file.fileName}
+                                Select a file
                             </option>
-                        ))}
-                    </select>
-                    <LanguageSelector
-                        selectedLanguage={language}
-                        onLanguageChange={handleLanguageChange}
+                            {files.map((file) => (
+                                <option
+                                    key={file.$id}
+                                    value={file.$id}
+                                    className=""
+                                >
+                                    {file.fileName}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <EditorToolbar
+                        handleRunCode={handleRunCode}
+                        handleFormatCode={handleFormatCode}
+                        handleLanguageChange={handleLanguageChange}
+                        handleSaveAllFiles={_handleSaveAllFiles}
                     />
-                    <button
-                        onClick={handleFormatCode}
-                        className="cursor-pointer rounded bg-blue-500 px-3 py-1.5 text-white hover:bg-blue-600 focus:bg-blue-600 focus:outline-1 focus:outline-offset-2 focus:outline-blue-400"
-                        aria-label="Format code"
-                    >
-                        Format
-                    </button>
-                    <button
-                        onClick={handleRunCode}
-                        className="cursor-pointer rounded bg-green-500 px-3 py-1.5 text-white hover:bg-green-600 focus:bg-green-600 focus:outline-1 focus:outline-offset-2 focus:outline-green-400"
-                        aria-label="Run code"
-                    >
-                        Run
-                    </button>
                 </div>
                 <CodeEditor
                     language={language}
