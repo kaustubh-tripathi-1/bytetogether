@@ -1,6 +1,4 @@
-/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-/* eslint-disable jsx-a11y/no-static-element-interactions */
-/* eslint-disable jsx-a11y/click-events-have-key-events */
+import { motion } from 'framer-motion';
 import { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -12,23 +10,21 @@ import { createPortal } from 'react-dom';
  * @param {React.ReactNode} props.children - Content to display inside the modal.
  * @returns {React.ReactElement | null} Modal portal or null if not open.
  */
-export default function Modal({ isModalOpen, onClose, children }) {
+export default function Modal({ isOpen, onClose, children }) {
     const modalRef = useRef(null);
     const firstFocusableRef = useRef(null);
     const lastFocusableRef = useRef(null);
     const triggerRef = useRef(null);
 
-    const handleClose = useCallback(
-        (e) => {
-            if (e.key === 'Escape' || e.type === 'click') {
-                onClose();
-            }
-        },
-        [onClose]
-    );
+    // Memoize for useEffect
+    const handleClose = useCallback(() => {
+        setTimeout(() => {
+            onClose();
+        }, 300);
+    }, [onClose]);
 
     useEffect(() => {
-        if (!isModalOpen) return;
+        if (!isOpen) return;
 
         // Store the trigger element
         triggerRef.current = document.activeElement;
@@ -100,22 +96,37 @@ export default function Modal({ isModalOpen, onClose, children }) {
         return () => {
             modal.removeEventListener('keydown', handleKeyDown);
             document.removeEventListener('mousedown', handleClose);
+            mainContent.removeAttribute('aria-hidden');
+            mainContent.removeAttribute('inert');
             observer.disconnect();
+            // Restore focus
+            if (triggerRef.current) {
+                triggerRef.current?.focus();
+            }
         };
-    }, [isModalOpen, handleClose, children]);
+    }, [isOpen, handleClose, children]);
 
-    if (!isModalOpen) return null;
+    if (!isOpen) return null;
 
     return createPortal(
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-lg"
-            onClick={handleClose}
+        // Overlay
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ delay: 0.3 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
+            role="none"
+            onClick={onClose}
         >
             {/* Dialog (interactive) */}
-            <div
+            <motion.div
+                initial={{ opacity: 0, y: -200, scale: 0 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -200, scale: 0 }}
+                transition={{ duration: 0.5 }}
                 ref={modalRef}
-                className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800"
-                style={{ maxHeight: '90vh', overflowY: 'auto' }}
+                className="relative max-h-[90dvh] max-w-[80dvh] overflow-y-auto rounded-lg bg-white p-6 shadow-lg dark:bg-[#222233]"
                 role="dialog"
                 aria-modal="true"
                 aria-label="Modal dialog"
@@ -123,14 +134,14 @@ export default function Modal({ isModalOpen, onClose, children }) {
             >
                 <button
                     onClick={onClose}
-                    className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    className="absolute top-2 right-2 cursor-pointer text-gray-500 hover:text-gray-900 focus:text-gray-900 focus:outline-1 focus:outline-offset-4 focus:outline-gray-600 dark:text-gray-400 dark:hover:text-gray-200 dark:focus:text-gray-200"
                     aria-label="Close modal"
                 >
                     ✕
                 </button>
                 {children}
-            </div>
-        </div>,
+            </motion.div>
+        </motion.div>,
         document.body
     );
 }
