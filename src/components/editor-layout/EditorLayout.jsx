@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnimatePresence } from 'framer-motion';
 
 import {
     setCodeContent,
@@ -15,10 +16,12 @@ import {
     CodeEditor,
     EditorToolbar,
     InputPanel,
+    Modal,
     OutputPanel,
 } from '../componentsIndex.js';
 import { defaultsSnippets } from '../../conf/languages';
 import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName.js';
+import { modalConfig } from '../../conf/modalConfig.jsx';
 
 /**
  * Layout component for the editor interface.
@@ -38,6 +41,8 @@ export default function EditorLayout({ projectId, isNewProject }) {
     const [editorWidth, setEditorWidth] = useState(66.67); // 2/3 of screen
     const [inputHeight, setInputHeight] = useState(50); // 50% of right panel
     const [isResizing, setIsResizing] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
     const editorRef = useRef(null);
     const containerRef = useRef(null);
     const isDraggingHorizontal = useRef(false);
@@ -226,6 +231,24 @@ export default function EditorLayout({ projectId, isNewProject }) {
         }
     }
 
+    // Open/Close Settings modal
+    const handleOpenSettings = useCallback(() => {
+        setIsSettingsOpen((prev) => !prev);
+    }, []);
+
+    // Open/Close Settings modal
+    const handleOpenKeyboardShortcuts = useCallback(() => {
+        setIsShortcutsOpen((prev) => !prev);
+    }, []);
+
+    // Reset code to language defualt
+    function handleResetCode() {
+        const defaultCode = getDefaultCodeForLanguage(language);
+        dispatch(setCodeContent(defaultCode));
+    }
+
+    // const config = modalConfig;
+
     return (
         <section
             className={`editor-layout-container flex h-dvh flex-col bg-white text-gray-800 md:flex-row dark:bg-[#222233] dark:text-gray-200 ${isResizing ? 'select-none' : ''} `}
@@ -265,6 +288,12 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         handleFormatCode={handleFormatCode}
                         handleLanguageChange={handleLanguageChange}
                         handleSaveAllFiles={handleSaveAllFiles}
+                        fileCount={files.length}
+                        handleOpenSettings={handleOpenSettings}
+                        handleOpenKeyboardShortcuts={
+                            handleOpenKeyboardShortcuts
+                        }
+                        handleResetCode={handleResetCode}
                     />
                 </div>
                 <CodeEditor
@@ -273,6 +302,28 @@ export default function EditorLayout({ projectId, isNewProject }) {
                     ref={editorRef}
                 />
             </section>
+
+            {/* Modals */}
+            <AnimatePresence>
+                {isSettingsOpen && (
+                    <Modal
+                        key="settings-modal"
+                        isOpen={isSettingsOpen}
+                        onClose={() => setIsSettingsOpen(false)}
+                    >
+                        {modalConfig.settings.content}
+                    </Modal>
+                )}
+                {isShortcutsOpen && (
+                    <Modal
+                        key="shortcuts-modal"
+                        isOpen={isShortcutsOpen}
+                        onClose={() => setIsShortcutsOpen(false)}
+                    >
+                        {modalConfig.shortcuts.content}
+                    </Modal>
+                )}
+            </AnimatePresence>
 
             {/* Horizontal Resizer */}
             {/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */}
