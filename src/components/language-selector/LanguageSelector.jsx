@@ -51,11 +51,15 @@ export default function LanguageSelector({
     }
 
     return (
-        <div className="relative inline-block text-left" ref={dropdownRef}>
+        <div
+            className="relative inline-block text-left"
+            ref={dropdownRef}
+            role="none"
+            onKeyDown={handleKeyDown}
+        >
             <button
                 onClick={toggleLanguageSelector}
-                onKeyDown={handleKeyDown}
-                className="flex min-w-30 cursor-pointer items-center justify-center rounded border border-gray-400/90 bg-gray-300 px-3 py-2 text-sm font-medium text-gray-800 focus:outline-1 focus:outline-offset-2 focus:outline-gray-400 dark:bg-[#222233] dark:text-white dark:hover:bg-[#1A1B26] dark:focus:bg-[#1A1B26]"
+                className="flex min-w-30 cursor-pointer items-center justify-center rounded border border-gray-400/90 bg-gray-300 px-3 py-2 text-sm font-medium text-gray-800 focus:outline-1 focus:outline-offset-2 focus:outline-gray-400 dark:bg-[#222233] dark:text-white dark:hover:bg-[#2e3044] dark:focus:bg-[#2e3044]"
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
                 aria-label="Select programming language"
@@ -103,7 +107,7 @@ export default function LanguageSelector({
                                         setIsOpen(false);
                                     }
                                 }}
-                                className={`cursor-pointer px-3 py-2 text-sm focus:outline-1 focus:-outline-offset-1 focus:outline-gray-800 dark:hover:bg-[#1A1B26] dark:focus:outline-white ${selectedLanguage === language.value ? 'bg-gray-400 dark:bg-[#1A1B26]' : ''}`}
+                                className={`cursor-pointer px-3 py-2 text-sm focus:outline-1 focus:-outline-offset-1 focus:outline-gray-800 dark:hover:bg-[#1A1B26] dark:focus:outline-white ${selectedLanguage === language.value ? 'bg-gray-400 dark:bg-[#2e3044]' : ''}`}
                                 role="option"
                                 aria-selected={
                                     selectedLanguage === language.value
