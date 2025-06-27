@@ -161,8 +161,14 @@ export default function CodeEditor({ language, codeContent, ref: editorRef }) {
                 options={{
                     fontSize: settings.fontSize,
                     wordWrap: settings.wordWrap,
-                    minimap: settings.minimap,
+                    minimap: {
+                        enabled: settings.minimap,
+                        autohide: true,
+                        renderCharacters: true,
+                        showSlider: 'mouseover',
+                    },
                     tabSize: settings.tabSize,
+                    stickyScroll: { enabled: settings.stickyScroll },
                     insertSpaces: true,
                     accessibilitySupport: 'auto',
                     lineNumbers: 'on',
@@ -174,7 +180,6 @@ export default function CodeEditor({ language, codeContent, ref: editorRef }) {
                     renderLineHighlight: 'all',
                     bracketPairColorization: { enabled: true },
                     suggest: { showSnippets: true, showWords: true },
-                    stickyScroll: { enabled: false },
                     smoothScrolling: true,
                     hover: { delay: 500 },
                     scrollbar: {
