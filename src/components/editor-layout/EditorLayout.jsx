@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 
 import {
     setCodeContent,
+    setEditorSettings,
     setLanguage,
     setSelectedFile,
 } from '../../store/slices/editorSlice';
@@ -22,6 +23,7 @@ import {
 import { defaultsSnippets } from '../../conf/languages';
 import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName.js';
 import { modalConfig } from '../../conf/modalConfig.jsx';
+import { setModalType } from '../../store/slices/uiSlice.js';
 
 /**
  * Layout component for the editor interface.
@@ -33,9 +35,10 @@ import { modalConfig } from '../../conf/modalConfig.jsx';
 export default function EditorLayout({ projectId, isNewProject }) {
     const dispatch = useDispatch();
     const { files } = useSelector((state) => state.files);
-    const { codeContent, selectedFile, language } = useSelector(
+    const { codeContent, selectedFile, language, settings } = useSelector(
         (state) => state.editor
     );
+
     const [output, setOutput] = useState('');
     const [input, setInput] = useState('');
     const [editorWidth, setEditorWidth] = useState(66.67); // 2/3 of screen
@@ -231,23 +234,89 @@ export default function EditorLayout({ projectId, isNewProject }) {
         }
     }
 
-    // Open/Close Settings modal
+    // Open Settings modal
     const handleOpenSettings = useCallback(() => {
-        setIsSettingsOpen((prev) => !prev);
-    }, []);
+        setIsSettingsOpen(true);
+        dispatch(setModalType('settings'));
+    }, [dispatch]);
 
-    // Open/Close Settings modal
+    // Open Keyboard shortcuts modal
     const handleOpenKeyboardShortcuts = useCallback(() => {
-        setIsShortcutsOpen((prev) => !prev);
-    }, []);
+        setIsShortcutsOpen(true);
+        dispatch(setModalType('keyboard-shortcuts'));
+    }, [dispatch]);
+
+    // Close Settings modal
+    const handleCloseSettings = useCallback(() => {
+        setIsSettingsOpen(false);
+        dispatch(setModalType(null));
+    }, [dispatch]);
+
+    // Close Keyboard shortcuts modal
+    const handleCloseKeyboardShortcuts = useCallback(() => {
+        setIsShortcutsOpen(false);
+        dispatch(setModalType(null));
+    }, [dispatch]);
 
     // Reset code to language defualt
-    function handleResetCode() {
+    const handleResetCode = useCallback(() => {
         const defaultCode = getDefaultCodeForLanguage(language);
         dispatch(setCodeContent(defaultCode));
-    }
+    }, [dispatch, language]);
 
-    // const config = modalConfig;
+    // Handler for font size increment
+    const handleFontSizeIncrement = useCallback(() => {
+        const newSize = Math.min(24, settings.fontSize + 1);
+        dispatch(setEditorSettings({ fontSize: newSize }));
+    }, [dispatch, settings.fontSize]);
+
+    // Handler for font size decrement
+    const handleFontSizeDecrement = useCallback(() => {
+        const newSize = Math.max(10, settings.fontSize - 1);
+        dispatch(setEditorSettings({ fontSize: newSize }));
+    }, [dispatch, settings.fontSize]);
+
+    // Handler for word wrap change
+    const handleWordWrapChange = useCallback(
+        (e) => {
+            dispatch(
+                setEditorSettings({ wordWrap: e.target.checked ? 'on' : 'off' })
+            );
+        },
+        [dispatch]
+    );
+
+    // Handler for minimap change
+    const handleMinimapChange = useCallback(
+        (e) => {
+            dispatch(
+                setEditorSettings({
+                    minimap: e.target.checked,
+                })
+            );
+        },
+        [dispatch]
+    );
+
+    // Handler for minimap change
+    const handleStickyScrollChange = useCallback(
+        (e) => {
+            dispatch(
+                setEditorSettings({
+                    stickyScroll: e.target.checked,
+                })
+            );
+        },
+        [dispatch]
+    );
+
+    // Handler for tab size change
+    const handleTabSizeChange = useCallback(
+        (e) => {
+            dispatch(setEditorSettings({ tabSize: Number(e.target.value) }));
+        },
+        [dispatch]
+    );
 
     return (
         <section
@@ -309,16 +378,28 @@ export default function EditorLayout({ projectId, isNewProject }) {
                     <Modal
                         key="settings-modal"
                         isOpen={isSettingsOpen}
-                        onClose={() => setIsSettingsOpen(false)}
+                        onClose={handleCloseSettings}
                     >
-                        {modalConfig.settings.content}
+                        {modalConfig.settings.content({
+                            fontSize: settings.fontSize,
+                            onFontSizeIncrement: handleFontSizeIncrement,
+                            onFontSizeDecrement: handleFontSizeDecrement,
+                            wordWrap: settings.wordWrap,
+                            onWordWrapChange: handleWordWrapChange,
+                            minimapEnabled: settings.minimap,
+                            onMinimapChange: handleMinimapChange,
+                            stickyScrollEnabled: settings.stickyScroll,
+                            onStickyScrollChange: handleStickyScrollChange,
+                            tabSize: settings.tabSize,
+                            onTabSizeChange: handleTabSizeChange,
+                        })}
                     </Modal>
                 )}
                 {isShortcutsOpen && (
                     <Modal
                         key="shortcuts-modal"
                         isOpen={isShortcutsOpen}
-                        onClose={() => setIsShortcutsOpen(false)}
+                        onClose={handleCloseKeyboardShortcuts}
                     >
                         {modalConfig.shortcuts.content}
                     </Modal>
