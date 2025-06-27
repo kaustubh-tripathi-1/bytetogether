@@ -10,7 +10,7 @@ import { createSlice } from '@reduxjs/toolkit';
  * @property {Object|null} activeProject - The currently active project (ID and metadata).
  * @property {Array} collaborators - List of collaborators (for real-time sync).
  * @property {string} codeContent - Content of the currently selected file.
- * @property {Object} settings - Editor settings (e.g., font size, word wrap).
+ * @property {Object} settings - Editor settings (e.g. font size, word wrap etc.).
  * @property {boolean} isLoading - Loading state for async operations.
  * @property {string|null} error - Error message for failed operations.
  */
@@ -22,13 +22,8 @@ const initialState = {
         fontSize: 14,
         wordWrap: 'on',
         tabSize: 4,
-        minimap: {
-            enabled: true,
-            autohide: true,
-            renderCharacters: true,
-            showSlider: 'mouseover',
-        },
-        stickyScroll: { enabled: false },
+        minimap: true,
+        stickyScroll: false,
     },
     selectedFile: null,
     language: 'javascript',
