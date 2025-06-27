@@ -51,6 +51,14 @@ const uiSlice = createSlice({
             state.modalData = null;
         },
         /**
+         * Sets the modal type.
+         * @param {Object} state - The current state.
+         * @param {Object} action.payload - The modal type.
+         */
+        setModalType: (state, action) => {
+            state.modalType = action.payload;
+        },
+        /**
          * Adds a notification with a unique ID and auto-dismiss timeout.
          * @param {Object} state - The current state.
          * @param {Object} action - The action with payload.
@@ -98,6 +106,7 @@ const uiSlice = createSlice({
 
 export const {
     setTheme,
+    setModalType,
     openModal,
     closeModal,
     addNotification,
