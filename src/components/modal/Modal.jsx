@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, memo } from 'react';
 import { createPortal } from 'react-dom';
+import { useSelector } from 'react-redux';
 
 /**
  * Generic Modal component for displaying content with focus trapping.
@@ -10,7 +11,8 @@ import { createPortal } from 'react-dom';
  * @param {React.ReactNode} props.children - Content to display inside the modal.
  * @returns {React.ReactElement | null} Modal portal or null if not open.
  */
-export default function Modal({ isOpen, onClose, children }) {
+function Modal({ isOpen, onClose, children }) {
+    const { modalType } = useSelector((state) => state.ui);
     const modalRef = useRef(null);
     const firstFocusableRef = useRef(null);
     const lastFocusableRef = useRef(null);
@@ -32,7 +34,7 @@ export default function Modal({ isOpen, onClose, children }) {
         const modal = modalRef.current;
 
         // Function to update focusable elements
-        const updateFocusableElements = () => {
+        function updateFocusableElements() {
             const focusableElements = modal.querySelectorAll(
                 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
             );
@@ -45,12 +47,12 @@ export default function Modal({ isOpen, onClose, children }) {
 
             // Set initial focus to the first focusable element (e.g., input in SearchModalContent)
             firstFocusable?.focus();
-        };
+        }
 
         // Initial setup of focusable elements
         updateFocusableElements();
 
-        const handleKeyDown = (event) => {
+        function handleKeyDown(event) {
             if (event.key === 'Tab') {
                 const focusableElements = modal.querySelectorAll(
                     'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -77,7 +79,7 @@ export default function Modal({ isOpen, onClose, children }) {
             } else if (event.key === 'Escape') {
                 handleClose();
             }
-        };
+        }
 
         modal.addEventListener('keydown', handleKeyDown);
 
@@ -88,7 +90,9 @@ export default function Modal({ isOpen, onClose, children }) {
 
         // Observe changes to the modal content to update focusable elements
         const observer = new MutationObserver(() => {
-            updateFocusableElements();
+            if (modalType === 'search') {
+                updateFocusableElements();
+            }
         });
 
         observer.observe(modal, { childList: true, subtree: true });
@@ -104,7 +108,7 @@ export default function Modal({ isOpen, onClose, children }) {
                 triggerRef.current?.focus();
             }
         };
-    }, [isOpen, handleClose, children]);
+    }, [isOpen, handleClose, children, modalType]);
 
     if (!isOpen) return null;
 
@@ -115,7 +119,7 @@ export default function Modal({ isOpen, onClose, children }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ delay: 0.3 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs"
             role="none"
             onClick={onClose}
         >
@@ -126,7 +130,7 @@ export default function Modal({ isOpen, onClose, children }) {
                 exit={{ opacity: 0, y: -200, scale: 0 }}
                 transition={{ duration: 0.5 }}
                 ref={modalRef}
-                className="relative max-h-[90dvh] max-w-[80dvh] overflow-y-auto rounded-lg bg-white p-6 shadow-lg dark:bg-[#222233]"
+                className="relative max-h-[90dvh] max-w-[80dvh] min-w-1/2 overflow-y-auto rounded-lg bg-white p-6 shadow-lg dark:bg-[#222233]"
                 role="dialog"
                 aria-modal="true"
                 aria-label="Modal dialog"
@@ -145,3 +149,5 @@ export default function Modal({ isOpen, onClose, children }) {
         document.body
     );
 }
+
+export default memo(Modal);
