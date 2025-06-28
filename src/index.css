@@ -1,2 +1,32 @@
 @import 'tailwindcss';
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* The root elements take full height */
+html,
+body,
+#root {
+    min-height: 100vh;
+    height: 100%;
+    width: 100%;
+}
+
+/* Disable text selection while resizing panels */
+.select-none {
+    user-select: none;
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Edge */
+}
+
+/* EditorLayout custom properties */
+.editor-layout-container {
+    /* Default for mobile */
+    --editor-width: 100%;
+    --input-height: auto;
+
+    /* Medium screens and up */
+    @media (min-width: 768px) {
+        --editor-width: 66.67%;
+        --input-height: 50%;
+    }
+}

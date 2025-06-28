@@ -4,7 +4,7 @@ import { createSlice, nanoid } from '@reduxjs/toolkit';
  * Initial State for the UI slice
  */
 const initialState = {
-    theme: localStorage.getItem('theme') || 'dark', // Load theme from local storage
+    theme: localStorage.getItem('theme') || 'dark',
     isModalOpen: false,
     modalType: null,
     modalData: null,
@@ -26,7 +26,7 @@ const uiSlice = createSlice({
          */
         setTheme: (state, action) => {
             state.theme = action.payload;
-            localStorage.setItem('theme', action.payload); // Persist to local storage
+            localStorage.setItem('theme', action.payload);
         },
         /**
          * Opens a modal with a specific type and data.
@@ -49,6 +49,14 @@ const uiSlice = createSlice({
             state.isModalOpen = false;
             state.modalType = null;
             state.modalData = null;
+        },
+        /**
+         * Sets the modal type.
+         * @param {Object} state - The current state.
+         * @param {Object} action.payload - The modal type.
+         */
+        setModalType: (state, action) => {
+            state.modalType = action.payload;
         },
         /**
          * Adds a notification with a unique ID and auto-dismiss timeout.
@@ -98,6 +106,7 @@ const uiSlice = createSlice({
 
 export const {
     setTheme,
+    setModalType,
     openModal,
     closeModal,
     addNotification,

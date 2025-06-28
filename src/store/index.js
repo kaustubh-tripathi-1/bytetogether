@@ -1,22 +1,64 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 
 import authReducer from './slices/authSlice';
 import uiReducer from './slices/uiSlice';
+import editorReducer from './slices/editorSlice';
+import filesReducer from './slices/filesSlice';
 
-// Persist config
-const persistConfig = {
-    key: 'root',
+/**
+ * Persistence configuration for the auth slice.
+ * @type {Object}
+ */
+const authPersistConfig = {
+    key: 'auth',
     storage,
-    whitelist: ['auth', 'ui'], // Only persist the auth slice for now
+    whitelist: ['user', 'authStatus'], // Persist only these states
+};
+/**
+ * Persistence configuration for the ui slice.
+ * @type {Object}
+ */
+const uiPersistConfig = {
+    key: 'ui',
+    storage,
+    whitelist: ['theme'], // Persist only theme state
+};
+/**
+ * Persistence configuration for the editor slice.
+ * @type {Object}
+ */
+const editorPersistConfig = {
+    key: 'editor',
+    storage,
+    whitelist: [
+        'activeProject',
+        'codeContent',
+        'language',
+        'selectedFile',
+        'settings',
+    ], // Persist only these states
+    throttle: 1000, // Delay storage updates by 1 second
+};
+
+/**
+ * Persistence configuration for the files slice.
+ * @type {Object}
+ */
+const filesPersistConfig = {
+    key: 'files',
+    storage,
+    whitelist: ['files'], // Persist only files
 };
 
 // Combined reducers
-const rootReducer = {
-    auth: persistReducer(persistConfig, authReducer),
-    ui: persistReducer(persistConfig, uiReducer),
-};
+const rootReducer = combineReducers({
+    auth: persistReducer(authPersistConfig, authReducer),
+    ui: persistReducer(uiPersistConfig, uiReducer),
+    editor: persistReducer(editorPersistConfig, editorReducer),
+    files: persistReducer(filesPersistConfig, filesReducer),
+});
 
 // Redux Store config
 export const store = configureStore({
