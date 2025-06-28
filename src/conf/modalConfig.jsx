@@ -52,14 +52,31 @@ export const modalConfig = {
                     <label htmlFor="word-wrap" aria-label="Word wrap">
                         Word Wrap:
                     </label>
-                    <input
-                        id="word-wrap"
-                        type="checkbox"
-                        checked={wordWrap === 'on'}
-                        aria-checked={wordWrap === 'on'}
-                        onChange={onWordWrapChange}
-                        className="h-5 w-5 rounded focus:outline focus:outline-offset-2 focus:outline-blue-400"
-                    />
+                    <div className="relative inline-flex items-center">
+                        <input
+                            id="word-wrap"
+                            type="checkbox"
+                            checked={wordWrap === 'on'}
+                            aria-checked={wordWrap === 'on'}
+                            onChange={onWordWrapChange}
+                            className="peer h-0 w-0 opacity-0"
+                        />
+                        <label
+                            htmlFor="word-wrap"
+                            className="relative flex h-7 w-14 cursor-pointer items-center rounded-full bg-red-500/80 p-1 peer-checked:bg-green-600 peer-focus:outline peer-focus:outline-offset-2 peer-focus:outline-blue-400 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-7.5 dark:bg-red-400"
+                        >
+                            <span
+                                className={`${wordWrap === 'on' ? 'opacity-100' : 'opacity-0'} absolute left-1.5 text-xs text-gray-200 transition-opacity duration-500`}
+                            >
+                                On
+                            </span>
+                            <span
+                                className={`${wordWrap === 'on' ? 'opacity-0' : 'opacity-100'} absolute right-1.5 text-xs text-gray-800 transition-opacity duration-500`}
+                            >
+                                Off
+                            </span>
+                        </label>
+                    </div>
                 </div>
 
                 {/* Minimap */}
@@ -67,14 +84,31 @@ export const modalConfig = {
                     <label htmlFor="minimap" aria-label="Minimap">
                         Minimap:
                     </label>
-                    <input
-                        id="minimap"
-                        type="checkbox"
-                        checked={minimapEnabled}
-                        aria-checked={minimapEnabled}
-                        onChange={onMinimapChange}
-                        className="h-5 w-5 rounded focus:outline focus:outline-offset-2 focus:outline-blue-400"
-                    />
+                    <div className="relative inline-flex items-center">
+                        <input
+                            id="minimap"
+                            type="checkbox"
+                            checked={minimapEnabled}
+                            aria-checked={minimapEnabled}
+                            onChange={onMinimapChange}
+                            className="peer h-0 w-0 opacity-0"
+                        />
+                        <label
+                            htmlFor="minimap"
+                            className="relative flex h-7 w-14 cursor-pointer items-center rounded-full bg-red-500/80 p-1 peer-checked:bg-green-600 peer-focus:outline peer-focus:outline-offset-2 peer-focus:outline-blue-400 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-7.5 dark:bg-red-400"
+                        >
+                            <span
+                                className={`${minimapEnabled ? 'opacity-100' : 'opacity-0'} absolute left-1.5 text-xs text-gray-200 transition-opacity duration-500`}
+                            >
+                                On
+                            </span>
+                            <span
+                                className={`${minimapEnabled ? 'opacity-0' : 'opacity-100'} absolute right-1.5 text-xs text-gray-800 transition-opacity duration-500`}
+                            >
+                                Off
+                            </span>
+                        </label>
+                    </div>
                 </div>
 
                 {/* Sticky Scroll */}
@@ -82,14 +116,31 @@ export const modalConfig = {
                     <label htmlFor="stick-scroll" aria-label="Sticky Scroll">
                         Sticky Scroll:
                     </label>
-                    <input
-                        id="stick-scroll"
-                        type="checkbox"
-                        checked={stickyScrollEnabled}
-                        aria-checked={stickyScrollEnabled}
-                        onChange={onStickyScrollChange}
-                        className="h-5 w-5 rounded focus:outline focus:outline-offset-2 focus:outline-blue-400"
-                    />
+                    <div className="relative inline-flex items-center">
+                        <input
+                            id="stick-scroll"
+                            type="checkbox"
+                            checked={stickyScrollEnabled}
+                            aria-checked={stickyScrollEnabled}
+                            onChange={onStickyScrollChange}
+                            className="peer h-0 w-0 opacity-0"
+                        />
+                        <label
+                            htmlFor="stick-scroll"
+                            className="relative flex h-7 w-14 cursor-pointer items-center rounded-full bg-red-500/80 p-1 peer-checked:bg-green-600 peer-focus:outline peer-focus:outline-offset-2 peer-focus:outline-blue-400 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-7.5 dark:bg-red-400"
+                        >
+                            <span
+                                className={`${stickyScrollEnabled ? 'opacity-100' : 'opacity-0'} absolute left-1.5 text-xs text-gray-200 transition-opacity duration-500`}
+                            >
+                                On
+                            </span>
+                            <span
+                                className={`${stickyScrollEnabled ? 'opacity-0' : 'opacity-100'} absolute right-1.5 text-xs text-gray-800 transition-opacity duration-500`}
+                            >
+                                Off
+                            </span>
+                        </label>
+                    </div>
                 </div>
 
                 {/* Tab Size */}
@@ -101,15 +152,24 @@ export const modalConfig = {
                         id="tab-size"
                         value={tabSize}
                         onChange={onTabSizeChange}
-                        className="rounded border border-gray-500 px-2 py-1 text-gray-800 focus:outline focus:outline-offset-2 focus:outline-blue-400 dark:bg-[#2b2b44] dark:text-gray-200"
+                        className="rounded border border-gray-500 bg-white px-2 py-1 text-gray-800 focus:outline focus:outline-offset-2 focus:outline-blue-400 dark:bg-[#2b2b44] dark:text-gray-200"
                     >
-                        <option value="2" className="">
+                        <option
+                            value="2"
+                            className="bg-white dark:bg-[#2b2b44]"
+                        >
                             2
                         </option>
-                        <option value="4" className="">
+                        <option
+                            value="4"
+                            className="bg-white dark:bg-[#2b2b44]"
+                        >
                             4
                         </option>
-                        <option value="8" className="">
+                        <option
+                            value="8"
+                            className="bg-white dark:bg-[#2b2b44]"
+                        >
                             8
                         </option>
                     </select>
@@ -147,17 +207,51 @@ export const modalConfig = {
                         <span className="rounded-md bg-gray-300 px-2 py-1 dark:bg-gray-600">
                             M
                         </span>{' '}
-                        : Move focus
+                        : Move focus out of editor
                     </li>
                     <li className="py-2">
                         <span className="rounded-md bg-gray-300 px-2 py-1 dark:bg-gray-600">
                             Alt
                         </span>{' '}
-                        +
+                        +{' '}
                         <span className="rounded-md bg-gray-300 px-2 py-1 dark:bg-gray-600">
                             Click
                         </span>{' '}
                         : Add multi-cursor
+                    </li>
+                    <li className="py-2">
+                        <span className="rounded-md bg-gray-300 px-2 py-1 dark:bg-gray-600">
+                            Ctrl
+                        </span>{' '}
+                        +{' '}
+                        <span className="rounded-md bg-gray-300 px-2 py-1 dark:bg-gray-600">
+                            Alt
+                        </span>{' '}
+                        +{' '}
+                        <span className="rounded-md bg-gray-300 px-2 py-1 dark:bg-gray-600">
+                            Up/Down
+                        </span>{' '}
+                        : Add cursor above/below
+                    </li>
+                    <li className="py-2">
+                        <span className="rounded-md bg-gray-300 px-2 py-1 dark:bg-gray-600">
+                            Ctrl
+                        </span>{' '}
+                        +{' '}
+                        <span className="rounded-md bg-gray-300 px-2 py-1 dark:bg-gray-600">
+                            Space
+                        </span>{' '}
+                        : Trigger Intellisense
+                    </li>
+                    <li className="py-2">
+                        <span className="rounded-md bg-gray-300 px-2 py-1 dark:bg-gray-600">
+                            Ctrl
+                        </span>{' '}
+                        +{' '}
+                        <span className="rounded-md bg-gray-300 px-2 py-1 dark:bg-gray-600">
+                            F
+                        </span>{' '}
+                        : Open Find and Replace
                     </li>
                 </ul>
                 <p className="py-4">
@@ -177,6 +271,10 @@ export const modalConfig = {
                     <span className="rounded-md bg-gray-300 px-2 py-1 dark:bg-gray-600">
                         Option
                     </span>
+                </p>
+                <p className="text-xs text-pretty">
+                    Most of the VSCode shortcuts work in this editor. For more
+                    shortcuts, search VS Code shortcuts
                 </p>
             </div>
         ),
