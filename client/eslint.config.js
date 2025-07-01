@@ -46,6 +46,7 @@ export default [
                 {
                     varsIgnorePattern: '^([A-Z].*|_[a-zA-Z0-9].*)',
                     argsIgnorePattern: '^_',
+                    caughtErrors: 'none', // Allows unused catch params
                 },
             ],
             'react-refresh/only-export-components': [
