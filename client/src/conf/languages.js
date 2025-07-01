@@ -25,5 +25,5 @@ export const defaultsSnippets = {
     c: '#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}',
     java: 'public class Main {\n\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n\n}',
     html: '<!DOCTYPE html>\n<html lang="en">\n<head>\n\t<meta charset="UTF-8">\n\t<meta name="viewport" content="width=device-width, initial-scale=1.0">\n\t<title>Hello</title>\n</head>\n<body>\n\t<h1>Hello, World!</h1>\n</body>\n</html>',
-    css: 'body {\n    background-color: #f0f0f0;\n}',
+    css: 'body {\n    background-color: #fffff;\n}',
 };
