@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 
 import {
     Format,
+    Invite,
     Keyboard,
     LanguageSelector,
     Reset,
@@ -23,6 +24,7 @@ import {
  * @param {Function} props.handleOpenSettings - Callback to open settings modal.
  * @param {Function} props.handleOpenKeyboardShortcuts - Callback to open keyboard shortcuts modal.
  * @param {Function} props.handleResetCode - Callback to reset code to language default.
+ * @param {Function} props.handleInvite - Callback to invite a collaborator.
  * @returns {JSX.Element} The memoized editor toolbar with LanguageSelector and other editor controls.
  */
 function EditorToolbar({
@@ -34,12 +36,13 @@ function EditorToolbar({
     handleOpenSettings,
     handleOpenKeyboardShortcuts,
     handleResetCode,
+    handleInvite,
 }) {
     const { language } = useSelector((state) => state.editor);
 
     return (
         <div
-            className="flex flex-grow justify-between pb-4"
+            className="flex w-full flex-grow justify-between pb-4"
             role="toolbar"
             aria-label="Editor toolbar"
         >
@@ -93,6 +96,13 @@ function EditorToolbar({
                     aria-label="Open Keyboard shortcuts"
                 >
                     <Keyboard width={1.6} height={1.6} />
+                </button>
+                <button
+                    onClick={handleInvite}
+                    className="cursor-pointer rounded-full px-3 py-2 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                    aria-label="Open WS"
+                >
+                    <Invite width={1.3} height={1.3} />
                 </button>
             </div>
         </div>
