@@ -9,7 +9,11 @@ const initialState = {
     modalType: null,
     modalData: null,
     notifications: [],
+    activeNotifications: [],
+    notificationQueue: [],
 };
+
+const MAX_ACTIVE_NOTIFICATIONS = 3;
 
 /**
  * Redux slice for managing global UI state.
@@ -65,7 +69,7 @@ const uiSlice = createSlice({
          * @param {Object} action.payload - The notification details.
          * @param {string} action.payload.message - The notification message.
          * @param {string} [action.payload.type="info"] - The notification type ("success", "error", "info").
-         * @param {number} [action.payload.timeout=2500] - The auto-dismiss timeout in milliseconds.
+         * @param {number} [action.payload.timeout=3000] - The auto-dismiss timeout in milliseconds.
          */
         addNotification: (state, action) => {
             // Prevent duplicate notifications
@@ -75,12 +79,19 @@ const uiSlice = createSlice({
             );
             if (!exists) {
                 const notification = {
-                    id: nanoid(), // Use nanoid for unique ID
+                    id: nanoid(),
                     message: action.payload.message,
                     type: action.payload.type || 'info',
                     timeout: action.payload.timeout || 3000,
                 };
                 state.notifications.push(notification);
+                if (
+                    state.activeNotifications.length < MAX_ACTIVE_NOTIFICATIONS
+                ) {
+                    state.activeNotifications.push(notification);
+                } else {
+                    state.notificationQueue.push(notification);
+                }
             }
         },
         /**
@@ -90,9 +101,19 @@ const uiSlice = createSlice({
          * @param {string} action.payload - The ID of the notification to remove.
          */
         removeNotification: (state, action) => {
+            const id = action.payload;
             state.notifications = state.notifications.filter(
-                (notification) => notification.id !== action.payload
+                (n) => n.id !== id
             );
+            state.activeNotifications = state.activeNotifications.filter(
+                (n) => n.id !== id
+            );
+
+            // Promote next in queue if any
+            if (state.notificationQueue.length > 0) {
+                const next = state.notificationQueue.shift();
+                state.activeNotifications.push(next);
+            }
         },
         /**
          * Clears all notifications.
@@ -100,6 +121,8 @@ const uiSlice = createSlice({
          */
         clearNotifications: (state) => {
             state.notifications = [];
+            state.activeNotifications = [];
+            state.notificationQueue = [];
         },
     },
 });
