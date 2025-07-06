@@ -32,7 +32,8 @@ export default [
                     caughtErrors: 'none', // Allows unused catch params
                 },
             ],
-            'no-console': ['warn', { allow: ['warn', 'error'] }], // Allow warn/error logs
+            //TODO remove log rule for production
+            'no-console': ['warn', { allow: ['warn', 'error', 'log'] }], // Allow warn/error logs
             'node/no-unpublished-require': 'off', // Allow requires if needed
             'import/no-unresolved': 'off', // Turn off false alarms for subpath exports
         },
