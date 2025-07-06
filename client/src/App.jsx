@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { fetchCurrentUser } from './store/slices/authSlice';
 import { router } from './router/router.jsx';
+import { Notifications } from './components/componentsIndex.js';
 
 /**
  * Root component that sets up routing, auth validation, and theme switching.
@@ -26,5 +27,10 @@ export default function App() {
         html.setAttribute('data-theme', theme);
     }, [theme]);
 
-    return <RouterProvider router={router} />;
+    return (
+        <>
+            <Notifications />
+            <RouterProvider router={router} />
+        </>
+    );
 }
