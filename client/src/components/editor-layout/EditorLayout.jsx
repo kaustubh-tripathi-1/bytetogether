@@ -23,7 +23,8 @@ import {
 import { defaultsSnippets } from '../../conf/languages';
 import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName.js';
 import { modalConfig } from '../../conf/modalConfig.jsx';
-import { setModalType } from '../../store/slices/uiSlice.js';
+import { addNotification, setModalType } from '../../store/slices/uiSlice.js';
+import { connectYjs, disconnectYjs } from '../../../lib/yjs.js';
 
 /**
  * Layout component for the editor interface.
@@ -50,6 +51,9 @@ export default function EditorLayout({ projectId, isNewProject }) {
     const containerRef = useRef(null);
     const isDraggingHorizontal = useRef(false);
     const isDraggingVertical = useRef(false);
+
+    //TODO remove this when deploying, only for dev cuz of strict mode
+    const isMountedRef = useRef(false);
 
     // Set initial file and language
     useEffect(() => {
@@ -101,7 +105,16 @@ export default function EditorLayout({ projectId, isNewProject }) {
         }
     }, [projectId, isNewProject, dispatch]);
 
-    function handleFileChange(event) {
+    // Disconnect WS connection on unmount
+    useEffect(() => {
+        isMountedRef.current = true;
+
+        return () => {
+            if (!isMountedRef.current) disconnectYjs(); // Cleanup on unmount
+        };
+    }, []);
+
+    function _handleFileChange(event) {
         const fileId = event.target.value;
         dispatch(setSelectedFile(fileId));
 
@@ -318,6 +331,36 @@ export default function EditorLayout({ projectId, isNewProject }) {
         [dispatch]
     );
 
+    // Invite and open WebSocket connection
+    const handleInvite = useCallback(() => {
+        //TODO Enable this for prod
+        /* if (!projectId) {
+            dispatch(
+                addNotification({
+                    message: `Save the project first`,
+                    type: 'warn',
+                })
+            );
+            return;
+        } */
+
+        const currentProjectId = projectId || 'bytetogether'; // Fallback to default
+
+        // Connect Yjs for the current room
+        connectYjs(currentProjectId);
+
+        const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&room=${currentProjectId}`;
+
+        window.navigator.clipboard.writeText(inviteUrl);
+
+        dispatch(
+            addNotification({
+                message: '✅ Invite Link copied',
+                type: 'success',
+            })
+        );
+    }, [projectId, dispatch]);
+
     return (
         <section
             className={`editor-layout-container flex h-dvh flex-col bg-white text-gray-800 md:flex-row dark:bg-[#222233] dark:text-gray-200 ${isResizing ? 'select-none' : ''} `}
@@ -327,7 +370,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
             <section className="w-full p-4 md:w-[var(--editor-width)] md:min-w-112">
                 {/* File Selector */}
                 <div className="flex flex-col justify-between gap-4 md:flex-row">
-                    <div className="">
+                    {/* <div className="">
                         <select
                             value={selectedFile?.fileName || 'index.js'}
                             onChange={handleFileChange}
@@ -351,7 +394,8 @@ export default function EditorLayout({ projectId, isNewProject }) {
                                 </option>
                             ))}
                         </select>
-                    </div>
+                    </div> */}
+
                     <EditorToolbar
                         handleRunCode={handleRunCode}
                         handleFormatCode={handleFormatCode}
@@ -363,6 +407,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                             handleOpenKeyboardShortcuts
                         }
                         handleResetCode={handleResetCode}
+                        handleInvite={handleInvite}
                     />
                 </div>
                 <CodeEditor
