@@ -41,3 +41,6 @@ export { default as OutputPanel } from './output-panel/OutputPanel.jsx';
 export { default as EditorToolbar } from './editor-toolbar/EditorToolbar.jsx';
 
 export { default as Modal } from './modal/Modal.jsx';
+
+//UI Components
+export { default as Notifications } from './notifications/Notifications.jsx';
