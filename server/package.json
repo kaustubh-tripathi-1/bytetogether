@@ -27,6 +27,7 @@
         "yjs": "^13.6.27"
     },
     "devDependencies": {
+        "dotenv": "^17.0.1",
         "eslint": "^9.30.0",
         "eslint-config-prettier": "^10.1.5",
         "eslint-plugin-import": "^2.32.0",
