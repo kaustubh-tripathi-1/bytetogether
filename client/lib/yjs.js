@@ -3,7 +3,7 @@ import { WebsocketProvider } from 'y-websocket';
 
 export const yDoc = new Doc();
 
-const DEFAULT_ROOM_NAME = 'bytetogether_yjs';
+const DEFAULT_ROOM_NAME = 'bytetogether';
 
 // Get room name from URL path instead of searchParams if 'invite=true' is present
 // const urlPathSegments = window.location.pathname.split('/');
