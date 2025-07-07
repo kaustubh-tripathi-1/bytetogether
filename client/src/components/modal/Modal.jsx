@@ -125,10 +125,10 @@ function Modal({ isOpen, onClose, children }) {
         >
             {/* Dialog (interactive) */}
             <motion.div
-                initial={{ opacity: 0, y: -200, scale: 0 }}
+                initial={{ opacity: 0, y: -200, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -200, scale: 0 }}
-                transition={{ duration: 0.5 }}
+                exit={{ opacity: 0, y: -200, scale: 0.6 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
                 ref={modalRef}
                 className="relative max-h-[90dvh] max-w-[80dvh] min-w-1/2 overflow-y-auto rounded-lg bg-white p-6 shadow-lg dark:bg-[#222233]"
                 role="dialog"
