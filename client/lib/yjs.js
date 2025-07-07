@@ -1,7 +1,7 @@
 import { Doc } from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 
-export const yDoc = new Doc();
+const yDoc = new Doc();
 
 const DEFAULT_ROOM_NAME = 'bytetogether';
 
@@ -20,7 +20,7 @@ const WS_HOST = isProduction
     ? 'your-heroku-app-name.herokuapp.com'
     : 'localhost:3000';
 
-export const wsProvider = new WebsocketProvider(
+const wsProvider = new WebsocketProvider(
     //TODO Upgrade server url to wss after deployment
     `${WS_PROTOCOL}${WS_HOST}/yjs`,
     currentRoom,
@@ -42,16 +42,18 @@ if (invited) {
     wsProvider.connect();
 }
 
-export function connectYjs(room = DEFAULT_ROOM_NAME) {
+function connectYjs(room = DEFAULT_ROOM_NAME) {
     if (!wsProvider.shouldConnect) {
         console.log('Explicitly connecting Yjs provider to room:', room);
         wsProvider.connect();
     }
 }
 
-export function disconnectYjs() {
+function disconnectYjs() {
     if (wsProvider.shouldConnect) {
         console.log('Disconnecting Yjs provider.');
         wsProvider.disconnect();
     }
 }
+
+export { yDoc, wsProvider, connectYjs, disconnectYjs };
