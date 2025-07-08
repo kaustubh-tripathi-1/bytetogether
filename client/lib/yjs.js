@@ -2,6 +2,7 @@ import { Doc } from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 
 const yDoc = new Doc();
+const yText = yDoc.getText('monaco'); // 'monaco' is the name of our shared text block
 
 const DEFAULT_ROOM_NAME = 'bytetogether';
 
@@ -32,6 +33,9 @@ const wsProvider = new WebsocketProvider(
     }
 );
 
+// Awareness for collaborative cursors
+const awareness = wsProvider.awareness;
+
 wsProvider.on('status', (event) => {
     console.log('Connection status:', event.status, '\nfor room:', currentRoom);
 });
@@ -56,4 +60,4 @@ function disconnectYjs() {
     }
 }
 
-export { yDoc, wsProvider, connectYjs, disconnectYjs };
+export { yText, yDoc, wsProvider, connectYjs, disconnectYjs, awareness };

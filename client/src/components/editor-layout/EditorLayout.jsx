@@ -24,7 +24,7 @@ import { defaultsSnippets } from '../../conf/languages';
 import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName.js';
 import { modalConfig } from '../../conf/modalConfig.jsx';
 import { addNotification, setModalType } from '../../store/slices/uiSlice.js';
-import { connectYjs, disconnectYjs } from '../../../lib/yjs.js';
+import { connectYjs, disconnectYjs, yText } from '../../../lib/yjs.js';
 
 /**
  * Layout component for the editor interface.
@@ -66,9 +66,32 @@ export default function EditorLayout({ projectId, isNewProject }) {
                 })
             );
             dispatch(setLanguage(getLanguageFromFileName(files[0].fileName)));
-            dispatch(setCodeContent(files[0].content));
+            // dispatch(setCodeContent(files[0].content));
+            if (yText.length === 0) {
+                yText.insert(0, files[0].content);
+            }
         }
     }, [dispatch, files, selectedFile]);
+
+    // Update yText when selectedFile changes (e.g., user switches files)
+    useEffect(() => {
+        if (selectedFile && yText) {
+            // When file changes, clear current yText and set it to the new file's content
+            // This ensures each file has its own Yjs collaborative space implicitly managed by selectedFile ID
+            // You might want to disconnect and reconnect wsProvider to a *new* room for each file,
+            // or manage a Map of YDocs/YTexts for each file on the client-side.
+            // For now, let's just clear and set content to simulate switching files within the same Yjs doc.
+            // A more robust solution would involve loading a separate YDoc for each file.
+
+            // For a basic setup, if you want only one file open at a time in Yjs:
+            yText.delete(0, yText.length); // Clear current Yjs content
+            yText.insert(0, selectedFile.content); // Insert new file content
+            dispatch(setCodeContent(selectedFile.content)); // Keep Redux in sync
+            dispatch(
+                setLanguage(getLanguageFromFileName(selectedFile.fileName))
+            );
+        }
+    }, [selectedFile, dispatch]);
 
     // Add global event listeners for dragging
     useEffect(() => {
@@ -114,14 +137,19 @@ export default function EditorLayout({ projectId, isNewProject }) {
         };
     }, []);
 
-    function _handleFileChange(event) {
+    function handleFileChange(event) {
         const fileId = event.target.value;
         dispatch(setSelectedFile(fileId));
 
         const file = files.find((f) => f.$id === fileId);
         if (file) {
-            setLanguage(getLanguageFromFileName(file.fileName));
+            // When a file is selected, update yText to reflect its content
+            yText.delete(0, yText.length);
+            yText.insert(0, file.content);
+
+            // Keep Redux and language in sync for local UI consistency
             dispatch(setCodeContent(file.content));
+            dispatch(setLanguage(getLanguageFromFileName(file.fileName)));
         }
     }
 
@@ -146,20 +174,27 @@ export default function EditorLayout({ projectId, isNewProject }) {
             if (!file) {
                 // No file selected, load default code
                 const defaultCode = getDefaultCodeForLanguage(newLanguage);
+                yText.delete(0, yText.length);
+                yText.insert(0, defaultCode);
                 dispatch(setCodeContent(defaultCode));
                 return;
             }
 
-            // If file exists, check if saved code matches the new language
+            // File exists, check if saved code matches the new language
             const savedLanguage = getLanguageFromFileName(file.fileName);
 
             if (savedLanguage !== newLanguage) {
                 // Load default code for the new language
                 const defaultCode = getDefaultCodeForLanguage(newLanguage);
+                yText.delete(0, yText.length);
+                yText.insert(0, defaultCode);
                 dispatch(setCodeContent(defaultCode));
                 return;
             }
 
+            // If language matches, ensure yText has the file content
+            yText.delete(0, yText.length);
+            yText.insert(0, file.content || '');
             dispatch(setCodeContent(file.content || ''));
         },
         [dispatch, files, selectedFile]
@@ -173,11 +208,13 @@ export default function EditorLayout({ projectId, isNewProject }) {
         );
     }, []);
 
-    // Placeholder for running code (to be implemented in Phase 5)
+    // Placeholder for running code (to be implemented in Phase 6)
     const handleRunCode = useCallback(() => {
         // Simulate output for now
-        setOutput(`Simulated output for:\n${codeContent}\nInput:\n${input}`);
-    }, [codeContent, input]);
+        setOutput(
+            `Simulated output for:\n${yText.toString()}\nInput:\n${input}`
+        );
+    }, [input]);
 
     // Horizontal resize (CodeEditor vs Right Panel)
     function handleHorizontalMouseDown() {
@@ -228,7 +265,10 @@ export default function EditorLayout({ projectId, isNewProject }) {
             $id: file.$id,
             name: file.fileName,
             language: getLanguageFromFileName(file.fileName),
-            content: file.content || '',
+            content:
+                file.$id === selectedFile?.$id
+                    ? yText.toString()
+                    : file.content || '', // Save yText content for selected file
         }));
 
         if (isNewProject) {
@@ -274,6 +314,8 @@ export default function EditorLayout({ projectId, isNewProject }) {
     // Reset code to language defualt
     const handleResetCode = useCallback(() => {
         const defaultCode = getDefaultCodeForLanguage(language);
+        yText.delete(0, yText.length);
+        yText.insert(0, defaultCode);
         dispatch(setCodeContent(defaultCode));
     }, [dispatch, language]);
 
@@ -370,7 +412,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
             <section className="w-full p-4 md:w-[var(--editor-width)] md:min-w-112">
                 {/* File Selector */}
                 <div className="flex flex-col justify-between gap-4 md:flex-row">
-                    {/* <div className="">
+                    <div className="hidden">
                         <select
                             value={selectedFile?.fileName || 'index.js'}
                             onChange={handleFileChange}
@@ -394,7 +436,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                                 </option>
                             ))}
                         </select>
-                    </div> */}
+                    </div>
 
                     <EditorToolbar
                         handleRunCode={handleRunCode}
