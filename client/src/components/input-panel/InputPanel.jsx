@@ -1,10 +1,12 @@
+import { memo } from 'react';
+
 /**
  * InputPanel component for providing stdin for code execution.
  * @param {string} input - The current input vaue.
  * @param {Function} onInputChange - Callback for input changes.
  * @returns {JSX.Element} The input panel.
  */
-export default function InputPanel({ input, onInputChange }) {
+function InputPanel({ input, onInputChange }) {
     return (
         <div
             className="flex h-full max-h-full flex-col gap-1 p-4 text-gray-800 dark:bg-[#222233] dark:text-gray-200"
@@ -28,3 +30,5 @@ export default function InputPanel({ input, onInputChange }) {
         </div>
     );
 }
+
+export default memo(InputPanel);

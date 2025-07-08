@@ -1,9 +1,11 @@
+import { memo } from 'react';
+
 /**
  * OutputPanel component for displaying stdout from code execution.
  * @param {string} output - The output to display.
  * @returns {JSX.Element} The output panel.
  */
-export default function OutputPanel({ output }) {
+function OutputPanel({ output }) {
     return (
         <div
             className="flex h-full max-h-full flex-col overflow-auto p-4 dark:bg-[#222233]"
@@ -21,3 +23,5 @@ export default function OutputPanel({ output }) {
         </div>
     );
 }
+
+export default memo(OutputPanel);
