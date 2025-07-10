@@ -1,5 +1,75 @@
-/* Collaborators Cursors */
+/* Specific selection colors (using inlineClassName for colorIndex) */
+.collaborator-selection-0 {
+    background-color: rgba(255, 0, 0, 0.2);
+}
+.collaborator-selection-1 {
+    background-color: rgba(0, 255, 0, 0.2);
+}
+.collaborator-selection-2 {
+    background-color: rgba(0, 0, 255, 0.2);
+}
+.collaborator-selection-3 {
+    background-color: rgba(255, 0, 255, 0.2);
+}
+.collaborator-selection-4 {
+    background-color: rgba(0, 255, 255, 0.2);
+}
+
+/* Cursor line */
 .collaborator-cursor {
+    /* Monaco decorations are essentially inline elements.
+       We use a pseudo-element to create the visual cursor line. */
+    position: relative; /* Needed for pseudo-element positioning */
+    pointer-events: none; /* Crucial */
+    box-sizing: border-box;
+    z-index: 5; /* Ensure cursors are above text, but below tooltips */
+}
+
+.collaborator-cursor::before {
+    content: ''; /* Required for pseudo-elements */
+    position: absolute;
+    top: 0;
+    left: 0; /* Position at the left edge of the decoration span */
+    width: 2px; /* Thickness of the cursor */
+    height: 100%; /* Span the full line height */
+    background-color: #ff0000; /* Default color */
+    pointer-events: none; /* Inherit or explicitly set */
+}
+
+/* Specific cursor colors by overriding background-color of the pseudo-element */
+.collaborator-cursor-0::before {
+    background-color: #ff0000;
+}
+.collaborator-cursor-1::before {
+    background-color: #00ff00;
+}
+.collaborator-cursor-2::before {
+    background-color: #0000ff;
+}
+.collaborator-cursor-3::before {
+    background-color: #ff00ff;
+}
+.collaborator-cursor-4::before {
+    background-color: #00ffff;
+}
+
+/* Tooltip styling */
+.collaborator-tooltip {
+    color: white;
+    position: absolute;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 9999;
+    pointer-events: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Collaborators Cursors */
+/* .collaborator-cursor {
     position: absolute;
     border-left: 2px solid #ff0000;
     height: 1em;
@@ -20,10 +90,10 @@
 }
 .collaborator-cursor-4 {
     border-left: 2px solid #00ffff;
-}
+} */
 
 /* Collaborators Cursors Tooltip */
-.collaborator-tooltip-0 {
+/* .collaborator-tooltip-0 {
     background-color: #ff0000;
 }
 .collaborator-tooltip-1 {
@@ -37,4 +107,4 @@
 }
 .collaborator-tooltip-4 {
     background-color: #00ffff;
-}
+} */

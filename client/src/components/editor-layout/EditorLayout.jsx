@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AnimatePresence } from 'framer-motion';
 
@@ -24,7 +24,12 @@ import { defaultsSnippets } from '../../conf/languages';
 import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName.js';
 import { modalConfig } from '../../conf/modalConfig.jsx';
 import { addNotification, setModalType } from '../../store/slices/uiSlice.js';
-import { connectYjs, disconnectYjs, yText } from '../../../lib/yjs.js';
+import {
+    getOrCreateYDoc,
+    connectYjsForFile,
+    disconnectYjsForFile,
+    disconnectAllYjs,
+} from '../../../lib/yjs.js';
 
 /**
  * Layout component for the editor interface.
@@ -52,46 +57,120 @@ export default function EditorLayout({ projectId, isNewProject }) {
     const isDraggingHorizontal = useRef(false);
     const isDraggingVertical = useRef(false);
 
+    const urlParams = useMemo(
+        () => new URLSearchParams(window.location.search),
+        []
+    );
+    const isInvitedSession = urlParams.get('invite') === 'true';
+    const [isInvited, setIsInvited] = useState(isInvitedSession);
+    const [isYjsConnected, setIsYjsConnected] = useState(isInvitedSession);
+
+    // References to hold the currently active Y.Doc, Y.Text, and WebsocketProvider
+    // These will be passed down to CodeEditor
+    const activeYDocRef = useRef(null);
+    const activeYTextRef = useRef(null);
+    const activeWsProviderRef = useRef(null);
+    const activeAwarenessRef = useRef(null);
+    // Use a ref to store the currently active file ID that Yjs is connected to.
+    const currentConnectedFileIdRef = useRef(null);
+
     //TODO remove this when deploying, only for dev cuz of strict mode
     const isMountedRef = useRef(false);
 
     // Set initial file and language
     useEffect(() => {
         if (files.length > 0 && !selectedFile) {
+            const initialFile = files[0];
             dispatch(
                 setSelectedFile({
-                    $id: files[0].$id,
-                    fileName: files[0].fileName,
-                    content: files[0].content,
+                    $id: initialFile.$id,
+                    fileName: initialFile.fileName,
+                    content: initialFile.content,
                 })
             );
-            dispatch(setLanguage(getLanguageFromFileName(files[0].fileName)));
-            // dispatch(setCodeContent(files[0].content));
-            if (yText.length === 0) {
-                yText.insert(0, files[0].content);
-            }
+            dispatch(
+                setLanguage(getLanguageFromFileName(initialFile.fileName))
+            );
         }
     }, [dispatch, files, selectedFile]);
 
-    // Update yText when selectedFile changes (e.g., user switches files)
     useEffect(() => {
-        if (selectedFile && yText) {
-            // When file changes, clear current yText and set it to the new file's content
-            // This ensures each file has its own Yjs collaborative space implicitly managed by selectedFile ID
-            // You might want to disconnect and reconnect wsProvider to a *new* room for each file,
-            // or manage a Map of YDocs/YTexts for each file on the client-side.
-            // For now, let's just clear and set content to simulate switching files within the same Yjs doc.
-            // A more robust solution would involve loading a separate YDoc for each file.
-
-            // For a basic setup, if you want only one file open at a time in Yjs:
-            yText.delete(0, yText.length); // Clear current Yjs content
-            yText.insert(0, selectedFile.content); // Insert new file content
-            dispatch(setCodeContent(selectedFile.content)); // Keep Redux in sync
-            dispatch(
-                setLanguage(getLanguageFromFileName(selectedFile.fileName))
-            );
+        if (!selectedFile?.$id) {
+            // If no file is selected, disconnect the previously connected file, if any.
+            if (currentConnectedFileIdRef.current) {
+                disconnectYjsForFile(currentConnectedFileIdRef.current);
+                currentConnectedFileIdRef.current = null;
+            }
+            return; // Nothing to do if no file is selected.
         }
-    }, [selectedFile, dispatch]);
+
+        // Early return if no collaboration
+        if (!isYjsConnected) {
+            return;
+        }
+
+        const newFileId = selectedFile.$id;
+
+        // Disconnect the previous file's Yjs if the file has changed
+        if (
+            currentConnectedFileIdRef.current &&
+            currentConnectedFileIdRef.current !== newFileId
+        ) {
+            disconnectYjsForFile(currentConnectedFileIdRef.current);
+        }
+
+        const { yDoc, yText, wsProvider, awareness } =
+            getOrCreateYDoc(newFileId);
+
+        // Update refs to reflect the currently active Yjs resources
+        activeYDocRef.current = yDoc;
+        activeYTextRef.current = yText;
+        activeWsProviderRef.current = wsProvider;
+        activeAwarenessRef.current = awareness;
+
+        // Connect to the WebSocket room for the new file if not already connected
+        // or if this is an "invited" scenario that should force connection.
+        // For general file switching, you typically want to connect.
+        // For now, let's connect whenever a file is selected and we get its YDoc.
+        if (isYjsConnected) {
+            connectYjsForFile(newFileId);
+            currentConnectedFileIdRef.current = newFileId; // Mark this file as currently connected
+        } else {
+            // If Yjs is not meant to be connected, ensure it's disconnected for the current file
+            disconnectYjsForFile(newFileId); // This might be redundant if previous logic already handled it
+            currentConnectedFileIdRef.current = null; // No file is actively connected via Yjs
+        }
+
+        // Set initial content for the Y.Text if it's empty, otherwise use Yjs content
+        if (yText.length === 0 && selectedFile.content.length > 0) {
+            yText.insert(0, selectedFile.content);
+        }
+        // Dispatch the content from yText to Redux.
+        dispatch(setCodeContent(yText.toString()));
+        dispatch(setLanguage(getLanguageFromFileName(selectedFile.fileName)));
+
+        // Observer for Y.Text changes to keep Redux in sync
+        const observer = () => {
+            if (activeYTextRef.current) {
+                dispatch(setCodeContent(activeYTextRef.current.toString()));
+            }
+        };
+
+        yText.observe(observer);
+
+        // Cleanup function for this specific effect:
+        // Disconnect Yjs for the current file ONLY if the component unmounts
+        // or if `selectedFile` changes to `null` (no file selected),
+        // or if the `getOrCreateYDoc` logic changes and provides a new yText.
+        return () => {
+            yText.unobserve(observer);
+            // Important: Do NOT disconnect wsProvider here unless you're absolutely sure
+            // you want to disconnect *every time* this effect re-runs.
+            // The logic above handles disconnecting the *previous* file's provider
+            // when a *new* file is selected. The `disconnectAllYjs` in the main
+            // unmount effect handles the final cleanup.
+        };
+    }, [selectedFile, dispatch, isYjsConnected]); // Re-run when selectedFile or dispatch changes
 
     // Add global event listeners for dragging
     useEffect(() => {
@@ -128,12 +207,15 @@ export default function EditorLayout({ projectId, isNewProject }) {
         }
     }, [projectId, isNewProject, dispatch]);
 
-    // Disconnect WS connection on unmount
+    // Disconnect ALL WS connections and clear Y.Docs on component unmount
     useEffect(() => {
-        isMountedRef.current = true;
+        isMountedRef.current = true; // For strict mode
 
         return () => {
-            if (!isMountedRef.current) disconnectYjs(); // Cleanup on unmount
+            if (!isMountedRef.current) {
+                disconnectAllYjs(); // Disconnects all active providers and clears docs
+                isMountedRef.current = false;
+            }
         };
     }, []);
 
@@ -143,13 +225,13 @@ export default function EditorLayout({ projectId, isNewProject }) {
 
         const file = files.find((f) => f.$id === fileId);
         if (file) {
-            // When a file is selected, update yText to reflect its content
-            yText.delete(0, yText.length);
-            yText.insert(0, file.content);
-
-            // Keep Redux and language in sync for local UI consistency
-            dispatch(setCodeContent(file.content));
-            dispatch(setLanguage(getLanguageFromFileName(file.fileName)));
+            dispatch(
+                setSelectedFile({
+                    $id: file.$id,
+                    fileName: file.fileName,
+                    content: file.content, // This content is what Yjs will potentially use to initialize
+                })
+            );
         }
     }
 
@@ -170,34 +252,40 @@ export default function EditorLayout({ projectId, isNewProject }) {
         (newLanguage) => {
             dispatch(setLanguage(newLanguage));
 
+            //TODO Check this
             const file = files.find((f) => f.$id === selectedFile.$id);
             if (!file) {
-                // No file selected, load default code
                 const defaultCode = getDefaultCodeForLanguage(newLanguage);
-                yText.delete(0, yText.length);
-                yText.insert(0, defaultCode);
+                if (activeYTextRef.current && isYjsConnected) {
+                    activeYTextRef.current.delete(
+                        0,
+                        activeYTextRef.current.length
+                    );
+                    activeYTextRef.current.insert(0, defaultCode);
+                }
                 dispatch(setCodeContent(defaultCode));
                 return;
             }
-
-            // File exists, check if saved code matches the new language
             const savedLanguage = getLanguageFromFileName(file.fileName);
-
             if (savedLanguage !== newLanguage) {
-                // Load default code for the new language
                 const defaultCode = getDefaultCodeForLanguage(newLanguage);
-                yText.delete(0, yText.length);
-                yText.insert(0, defaultCode);
+                if (activeYTextRef.current && isYjsConnected) {
+                    activeYTextRef.current.delete(
+                        0,
+                        activeYTextRef.current.length
+                    );
+                    activeYTextRef.current.insert(0, defaultCode);
+                }
                 dispatch(setCodeContent(defaultCode));
                 return;
             }
-
-            // If language matches, ensure yText has the file content
-            yText.delete(0, yText.length);
-            yText.insert(0, file.content || '');
+            if (activeYTextRef.current && isYjsConnected) {
+                activeYTextRef.current.delete(0, activeYTextRef.current.length);
+                activeYTextRef.current.insert(0, file.content || '');
+            }
             dispatch(setCodeContent(file.content || ''));
         },
-        [dispatch, files, selectedFile]
+        [dispatch, files, isYjsConnected, selectedFile.$id]
     );
 
     const handleFormatCode = useCallback(() => {
@@ -210,11 +298,12 @@ export default function EditorLayout({ projectId, isNewProject }) {
 
     // Placeholder for running code (to be implemented in Phase 6)
     const handleRunCode = useCallback(() => {
+        const { yText } = getOrCreateYDoc(selectedFile.$id);
         // Simulate output for now
         setOutput(
-            `Simulated output for:\n${yText.toString()}\nInput:\n${input}`
+            `Simulated output for:\n${yText ? yText.toString() : codeContent}\nInput:\n${input}`
         );
-    }, [input]);
+    }, [codeContent, input, selectedFile.$id]);
 
     // Horizontal resize (CodeEditor vs Right Panel)
     function handleHorizontalMouseDown() {
@@ -260,16 +349,19 @@ export default function EditorLayout({ projectId, isNewProject }) {
     }
 
     // Saves the current file content and metadata to Appwrite.
-    function handleSaveAllFiles() {
-        const filesToSave = files.map((file) => ({
-            $id: file.$id,
-            name: file.fileName,
-            language: getLanguageFromFileName(file.fileName),
-            content:
-                file.$id === selectedFile?.$id
-                    ? yText.toString()
-                    : file.content || '', // Save yText content for selected file
-        }));
+    const handleSaveAllFiles = useCallback(() => {
+        const filesToSave = files.map((file) => {
+            const { yText } = getOrCreateYDoc(file.$id);
+            return {
+                $id: file.$id,
+                name: file.fileName,
+                language: getLanguageFromFileName(file.fileName),
+                content:
+                    file.$id === selectedFile?.$id && isYjsConnected
+                        ? yText.toString()
+                        : file.content || '', // Save yText content for selected file
+            };
+        });
 
         if (isNewProject) {
             dispatch(
@@ -285,7 +377,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                 )
             );
         }
-    }
+    }, [dispatch, files, isNewProject, isYjsConnected, selectedFile?.$id]);
 
     // Open Settings modal
     const handleOpenSettings = useCallback(() => {
@@ -313,11 +405,12 @@ export default function EditorLayout({ projectId, isNewProject }) {
 
     // Reset code to language defualt
     const handleResetCode = useCallback(() => {
+        const { yText } = getOrCreateYDoc(selectedFile.$id);
         const defaultCode = getDefaultCodeForLanguage(language);
         yText.delete(0, yText.length);
         yText.insert(0, defaultCode);
         dispatch(setCodeContent(defaultCode));
-    }, [dispatch, language]);
+    }, [dispatch, language, selectedFile]);
 
     // Handler for font size increment
     const handleFontSizeIncrement = useCallback(() => {
@@ -386,12 +479,14 @@ export default function EditorLayout({ projectId, isNewProject }) {
             return;
         } */
 
+        setIsYjsConnected(true);
+        setIsInvited(true);
         const currentProjectId = projectId || 'bytetogether'; // Fallback to default
 
         // Connect Yjs for the current room
-        connectYjs(currentProjectId);
+        connectYjsForFile(selectedFile.$id);
 
-        const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&room=${currentProjectId}`;
+        const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&room=${currentProjectId}&file=${selectedFile.$id}`;
 
         window.navigator.clipboard.writeText(inviteUrl);
 
@@ -401,7 +496,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                 type: 'success',
             })
         );
-    }, [projectId, dispatch]);
+    }, [projectId, selectedFile, dispatch]);
 
     return (
         <section
@@ -456,6 +551,12 @@ export default function EditorLayout({ projectId, isNewProject }) {
                     language={language}
                     codeContent={codeContent}
                     ref={editorRef}
+                    yDoc={isYjsConnected ? activeYDocRef.current : null}
+                    yText={isYjsConnected ? activeYTextRef.current : null}
+                    awareness={
+                        isYjsConnected ? activeAwarenessRef.current : null
+                    }
+                    isInvited={isInvited}
                 />
             </section>
 
