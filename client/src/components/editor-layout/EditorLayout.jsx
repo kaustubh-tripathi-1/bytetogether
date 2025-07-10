@@ -128,6 +128,26 @@ export default function EditorLayout({ projectId, isNewProject }) {
         activeWsProviderRef.current = wsProvider;
         activeAwarenessRef.current = awareness;
 
+        /* if (isYjsConnected) {
+        if (currentConnectedFileIdRef.current !== newFileId) {
+            if (currentConnectedFileIdRef.current) {
+                disconnectYjsForFile(currentConnectedFileIdRef.current);
+            }
+            connectYjsForFile(newFileId);
+            currentConnectedFileIdRef.current = newFileId;
+        }
+        if (yText.length === 0 && selectedFile.content.length > 0) {
+            yText.insert(0, selectedFile.content);
+        }
+        dispatch(setCodeContent(yText.toString()));
+    } else {
+        if (currentConnectedFileIdRef.current) {
+            disconnectYjsForFile(currentConnectedFileIdRef.current);
+            currentConnectedFileIdRef.current = null;
+        }
+        dispatch(setCodeContent(selectedFile.content || ""));
+    } */
+
         // Connect to the WebSocket room for the new file if not already connected
         // or if this is an "invited" scenario that should force connection.
         // For general file switching, you typically want to connect.
@@ -151,7 +171,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
 
         // Observer for Y.Text changes to keep Redux in sync
         const observer = () => {
-            if (activeYTextRef.current) {
+            if (activeYTextRef.current && isYjsConnected) {
                 dispatch(setCodeContent(activeYTextRef.current.toString()));
             }
         };
@@ -221,8 +241,6 @@ export default function EditorLayout({ projectId, isNewProject }) {
 
     function handleFileChange(event) {
         const fileId = event.target.value;
-        dispatch(setSelectedFile(fileId));
-
         const file = files.find((f) => f.$id === fileId);
         if (file) {
             dispatch(
@@ -285,7 +303,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
             }
             dispatch(setCodeContent(file.content || ''));
         },
-        [dispatch, files, isYjsConnected, selectedFile.$id]
+        [dispatch, files, isYjsConnected, selectedFile]
     );
 
     const handleFormatCode = useCallback(() => {
@@ -303,7 +321,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
         setOutput(
             `Simulated output for:\n${yText ? yText.toString() : codeContent}\nInput:\n${input}`
         );
-    }, [codeContent, input, selectedFile.$id]);
+    }, [codeContent, input, selectedFile]);
 
     // Horizontal resize (CodeEditor vs Right Panel)
     function handleHorizontalMouseDown() {
