@@ -175,41 +175,6 @@ function CodeEditor({
             const head = createRelativePositionFromTypeIndex(yText, headIndex);
 
             awareness.setLocalStateField('selection', { anchor, head });
-
-            /* editor.onDidChangeCursorSelection((e) => {
-                const model = editor.getModel();
-                const anchor = model.getOffsetAt(
-                    e.selection.getStartPosition()
-                );
-                const head = model.getOffsetAt(e.selection.getEndPosition());
-
-                awareness.setLocalStateField('selection', { anchor, head });
-            }); */
-
-            /* const { selection } = event;
-            if (selection) {
-                const startOffset = editor
-                    .getModel()
-                    .getOffsetAt(selection.getStartPosition());
-                const endOffset = editor
-                    .getModel()
-                    .getOffsetAt(selection.getEndPosition());
-
-                // Create RelativePosition objects using Yjs utils
-                const anchor = createRelativePositionFromTypeIndex(
-                    yText,
-                    startOffset
-                );
-                const head = createRelativePositionFromTypeIndex(
-                    yText,
-                    endOffset
-                );
-
-                awareness.setLocalStateField('selection', {
-                    anchor,
-                    head,
-                });
-            } */
         });
 
         if (heartbeatInterval.current) {
@@ -220,17 +185,17 @@ function CodeEditor({
             let date = new Date();
             date = date.toLocaleTimeString();
             awareness.setLocalStateField('heartbeat', date);
-        }, 10000);
+        }, 2000);
 
         // --- Yjs Awareness (Cursor & Selection Sync) ---
         awareness.on('update', ({ added, updated, removed }) => {
             /* if (awarenessTimerRef.current)
                     clearTimeout(awarenessTimerRef.current); */
-
             // awarenessTimerRef.current = setTimeout(() => {
+
             // For heavy rendering work (decorations + tooltips)
             requestAnimationFrame(() => {
-                const domNode = editor.getDomNode();
+                const editorDomNode = editor.getDomNode();
                 const model = editor.getModel();
                 if (!model) return;
 
@@ -253,9 +218,7 @@ function CodeEditor({
                         if (tooltipElement) {
                             tooltipElement.remove();
                         }
-                        const existingDecorations =
-                            clientDecorations.current.get(clientId);
-                        if (existingDecorations) {
+                        if (clientDecorations.current.has(clientId)) {
                             editor.createDecorationsCollection([]);
                             clientDecorations.current.delete(clientId);
                         }
@@ -278,23 +241,27 @@ function CodeEditor({
                         )?.index ?? 0;
 
                     const headPos = model.getPositionAt(headAbs);
+                    console.error(`headPos`, headPos);
+
                     const anchorPos = model.getPositionAt(anchorAbs);
+                    console.error(`anchorPos`, anchorPos);
 
                     const decorationsForClient = [];
 
                     // Create decorations for selections (if any)
-                    if (headPos !== anchorPos) {
-                        // It's a selection, not just a cursor
+                    if (
+                        headPos.lineNumber !== anchorPos.lineNumber ||
+                        headPos.column !== anchorPos.column
+                    ) {
+                        // Head and anchor are not equal so it's a selection, not just a cursor
                         const [start, end] = [headPos, anchorPos].sort(
                             (a, b) => a - b
                         );
-                        const startPos = model.getPositionAt(start);
-                        const endPos = model.getPositionAt(end);
                         const range = new monaco.Range(
-                            startPos.lineNumber,
-                            startPos.column,
-                            endPos.lineNumber,
-                            endPos.column
+                            start.lineNumber,
+                            start.column,
+                            end.lineNumber,
+                            end.column
                         );
                         decorationsForClient.push({
                             range: range,
@@ -305,11 +272,11 @@ function CodeEditor({
                                     monaco.editor.TrackedRangeStickiness
                                         .NeverGrowsWhenTyping,
                                 // Ensure these don't interfere with the cursor line highlight
-                                overviewRuler: {
+                                /* overviewRuler: {
                                     color: color,
                                     position:
                                         monaco.editor.OverviewRulerLane.Center,
-                                },
+                                }, */
                             },
                         });
                     }
@@ -319,6 +286,7 @@ function CodeEditor({
                         lineNumber: anchorPos.lineNumber,
                         column: anchorPos.column,
                     };
+                    console.group();
                     console.log(
                         'absoluteHead',
                         headAbs,
@@ -326,13 +294,14 @@ function CodeEditor({
                         anchorPos
                     );
                     console.log(`cursorPosition`, cursorPosition);
+                    console.groupEnd();
 
                     decorationsForClient.push({
                         range: new monaco.Range(
                             cursorPosition.lineNumber,
-                            cursorPosition.column.column,
+                            cursorPosition.column,
                             cursorPosition.lineNumber,
-                            cursorPosition.column.column
+                            cursorPosition.column
                         ),
                         options: {
                             className: `collaborator-cursor`, // Class for the cursor line
@@ -348,10 +317,10 @@ function CodeEditor({
                     });
 
                     // Update decorations for this specific client
-                    const existingDecorations =
-                        clientDecorations.current.get(clientId);
-                    console.warn(existingDecorations);
-                    clientDecorations.current.delete(existingDecorations);
+                    if (clientDecorations.current.has(clientId)) {
+                        console.warn(clientDecorations.current.get(clientId));
+                        clientDecorations.current.delete(clientId);
+                    }
                     const newIds =
                         editor.createDecorationsCollection(
                             decorationsForClient
@@ -367,8 +336,8 @@ function CodeEditor({
                         tooltipElement = document.createElement('div');
                         tooltipElement.className = `collaborator-tooltip collaborator-tooltip-${colorIndex}`;
                         tooltipElement.style.backgroundColor = color;
-                        if (!domNode.contains(tooltipElement)) {
-                            domNode.appendChild(tooltipElement);
+                        if (!editorDomNode.contains(tooltipElement)) {
+                            editorDomNode.appendChild(tooltipElement);
                         }
                     }
                     tooltipElement.textContent = user.name || 'Anonymous';
@@ -385,7 +354,7 @@ function CodeEditor({
                         editor.getDomNode().querySelector('.lines-content') ||
                         editor.getDomNode(); // Target the visible lines container for more accurate relative positioning
 
-                    if (targetPixelPosition && editor.hasTextFocus()) {
+                    if (targetPixelPosition) {
                         // Get the bounding rectangle of the editor's main DOM node
                         const editorRect = editor
                             .getDomNode()
@@ -431,16 +400,14 @@ function CodeEditor({
                 // Clean up removed clients' tooltips
                 removed.forEach((clientId) => {
                     const tooltipElement = document.querySelector(
-                        `.collaborator-tooltip-${clientId}`
+                        `.collaborator-tooltip-${clientId % cursorColors.length}`
                     );
                     if (tooltipElement) {
                         tooltipElement.remove();
                     }
 
                     // Clear decorations for the removed client
-                    const existingDecorations =
-                        clientDecorations.current.get(clientId);
-                    if (existingDecorations) {
+                    if (clientDecorations.current.has(clientId)) {
                         editor.createDecorationsCollection([]);
                         clientDecorations.current.delete(clientId);
                     }
