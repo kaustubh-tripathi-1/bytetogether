@@ -22,7 +22,7 @@
     position: relative; /* Needed for pseudo-element positioning */
     pointer-events: none; /* Crucial */
     box-sizing: border-box;
-    z-index: 5; /* Ensure cursors are above text, but below tooltips */
+    z-index: 500; /* Ensure cursors are above text, but below tooltips */
 }
 
 .collaborator-cursor::before {
@@ -30,9 +30,9 @@
     position: absolute;
     top: 0;
     left: 0; /* Position at the left edge of the decoration span */
-    width: 2px; /* Thickness of the cursor */
+    width: 0px; /* Thickness of the cursor */
     height: 100%; /* Span the full line height */
-    background-color: #ff0000; /* Default color */
+    background-color: currentColor; /* Default color */
     pointer-events: none; /* Inherit or explicitly set */
 }
 

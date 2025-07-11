@@ -5,8 +5,6 @@ const DEFAULT_ROOM_NAME = 'bytetogether';
 
 // Get room name from URL params if 'invite=true' is present, otherwise use default
 const urlParams = new URLSearchParams(window.location.search);
-// const invited = urlParams.get('invite') === 'true';
-// const fileId = invited ? urlParams.get('file') : null;
 const initialRoom = urlParams.get('room') || DEFAULT_ROOM_NAME; // Get 'room' from URL or use default
 const isProduction = import.meta.env.PROD; // Vite sets this by default
 const WS_PROTOCOL = isProduction ? 'wss://' : 'ws://';
@@ -39,6 +37,8 @@ function getOrCreateYDoc(fileId) {
                 connect: false, // Manage connection explicitly
                 maxBackoffTime: 5000,
                 params: { room: roomName },
+                maxRetries: Infinity, // Prevent giving up on reconnect
+                WebSocketPolyfill: WebSocket, // Ensure compatibility
             }
         );
 
