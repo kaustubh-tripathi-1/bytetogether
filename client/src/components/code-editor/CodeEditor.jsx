@@ -9,6 +9,7 @@ import {
 
 import { setCodeContent } from '../../store/slices/editorSlice';
 import { Spinner } from '../componentsIndex';
+import { addNotification } from '../../store/slices/uiSlice';
 
 import nightOwlTheme from './themes/night-owl.json';
 import vsLight from './themes/custom-light.json';
@@ -130,6 +131,18 @@ export default function CodeEditor({
             return;
         }
 
+        if (awareness.getStates().size > 5) {
+            dispatch(
+                addNotification({
+                    message:
+                        "Can't join the collaborative room as it's full. Please try again after some time...",
+                    type: 'error',
+                    timeout: 10000,
+                })
+            );
+            return;
+        }
+
         // Yjs-Monaco Binding
         // Create the Monaco Editor model that y-monaco will bind to
         const model = editor.getModel();
@@ -150,10 +163,38 @@ export default function CodeEditor({
             );
         }
 
-        // Set initial user awareness state for this client
-        awareness.setLocalStateField('user', {
-            name: 'User' + Math.floor(Math.random() * 100), // Unique username
-        });
+        // Initialize or update awareness state with unique color index
+        const localState = awareness.getLocalState();
+        if (!localState?.user?.cursorColorIndex) {
+            const usedIndices = new Set();
+
+            for (const [, state] of awareness.getStates()) {
+                if (state?.user?.cursorColorIndex !== undefined) {
+                    usedIndices.add(state.user.cursorColorIndex);
+                }
+            }
+
+            let availableIndex = -1;
+            for (let i = 0; i < cursorColors.length; i++) {
+                if (!usedIndices.has(i)) {
+                    availableIndex = i;
+                    break;
+                }
+            }
+
+            // fallback: pick a random if all used
+            if (availableIndex === -1) {
+                availableIndex = Math.floor(
+                    Math.random() * cursorColors.length
+                );
+            }
+
+            awareness.setLocalStateField('user', {
+                ...localState?.user,
+                name: `User${Math.floor(Math.random() * 100)}`,
+                cursorColorIndex: availableIndex,
+            });
+        }
 
         // Update awareness on local cursor movement and selection change
         editor.onDidChangeCursorSelection((e) => {
@@ -228,8 +269,7 @@ export default function CodeEditor({
 
                             const { user, selection } = state;
 
-                            const cursorColorIndex =
-                                clientId % cursorColors.length;
+                            const cursorColorIndex = user.cursorColorIndex;
                             const color = cursorColors[cursorColorIndex];
 
                             const headAbs =
@@ -330,7 +370,7 @@ export default function CodeEditor({
                                 tooltipElement = document.createElement('div');
                                 tooltipElement.className = `collaborator-tooltip collaborator-tooltip-${cursorColorIndex} collaborator-tooltip-${clientId} `;
                                 tooltipElement.style.backgroundColor = color;
-                                tooltipElement.style.width = 'fit-content'; // Or "auto"
+                                tooltipElement.style.width = 'fit-content'; // Set width explicitly
                                 tooltipElement.style.maxWidth = '200px'; // Optional safety limit width
                                 if (
                                     !overlayContainer.contains(tooltipElement)
@@ -409,6 +449,8 @@ export default function CodeEditor({
                 // Clear local awareness state when editor unmounts or file changes
                 awareness.setLocalStateField('selection', null);
                 awareness.setLocalStateField('user', null);
+                awareness.setLocalStateField('usedColorIndices', []);
+                awareness.destroy();
             }
 
             // Clear all remaining decorations from clientDecorations map
