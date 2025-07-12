@@ -20,6 +20,8 @@
     /* Monaco decorations are essentially inline elements.
        We use a pseudo-element to create the visual cursor line. */
     position: relative; /* Needed for pseudo-element positioning */
+    height: 0;
+    width: 0;
     pointer-events: none; /* Crucial */
     box-sizing: border-box;
     z-index: 500; /* Ensure cursors are above text, but below tooltips */
@@ -30,9 +32,9 @@
     position: absolute;
     top: 0;
     left: 0; /* Position at the left edge of the decoration span */
-    width: 0px; /* Thickness of the cursor */
+    width: 2px; /* Thickness of the cursor */
     height: 100%; /* Span the full line height */
-    background-color: currentColor; /* Default color */
+    background-color: var(--cursor-color);
     pointer-events: none; /* Inherit or explicitly set */
 }
 
@@ -58,53 +60,28 @@
     color: white;
     position: absolute;
     padding: 2px 5px;
-    border-radius: 3px;
+    transform: translateX(-130%);
     font-size: 0.75rem;
-    padding: 2px 4px;
     border-radius: 4px;
     white-space: nowrap;
     z-index: 9999;
     pointer-events: none;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 3px rgba(0, 0, 0, 0.2);
 }
-
-/* Collaborators Cursors */
-/* .collaborator-cursor {
-    position: absolute;
-    border-left: 2px solid #ff0000;
-    height: 1em;
-    margin-left: -1px;
-}
-
-.collaborator-cursor-0 {
-    border-left: 2px solid #ff0000;
-}
-.collaborator-cursor-1 {
-    border-left: 2px solid #00ff00;
-}
-.collaborator-cursor-2 {
-    border-left: 2px solid #0000ff;
-}
-.collaborator-cursor-3 {
-    border-left: 2px solid #ff00ff;
-}
-.collaborator-cursor-4 {
-    border-left: 2px solid #00ffff;
-} */
 
 /* Collaborators Cursors Tooltip */
-/* .collaborator-tooltip-0 {
-    background-color: #ff0000;
+.collaborator-tooltip-0 {
+    background-color: #b40000;
 }
 .collaborator-tooltip-1 {
-    background-color: #00ff00;
+    background-color: #00b100;
 }
 .collaborator-tooltip-2 {
-    background-color: #0000ff;
+    background-color: #000061;
 }
 .collaborator-tooltip-3 {
-    background-color: #ff00ff;
+    background-color: #9c009c;
 }
 .collaborator-tooltip-4 {
-    background-color: #00ffff;
-} */
+    background-color: #009191;
+}
