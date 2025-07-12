@@ -34,7 +34,6 @@
     left: 0; /* Position at the left edge of the decoration span */
     width: 2px; /* Thickness of the cursor */
     height: 100%; /* Span the full line height */
-    background-color: var(--cursor-color);
     pointer-events: none; /* Inherit or explicitly set */
 }
 
@@ -64,7 +63,7 @@
     font-size: 0.75rem;
     border-radius: 4px;
     white-space: nowrap;
-    z-index: 9999;
+    z-index: 1000;
     pointer-events: none;
     box-shadow: 0 10px 3px rgba(0, 0, 0, 0.2);
 }
