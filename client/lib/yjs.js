@@ -34,7 +34,7 @@ function getOrCreateYDoc(fileId) {
             roomName,
             yDoc,
             {
-                connect: false, // Manage connection explicitly
+                connect: true,
                 maxBackoffTime: 5000,
                 params: { room: roomName },
                 maxRetries: Infinity, // Prevent giving up on reconnect
