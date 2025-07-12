@@ -130,6 +130,10 @@ export default function CodeEditor({
             return;
         }
 
+        const cursorColorIndex = Math.floor(
+            Math.random() * cursorColors.length
+        );
+
         // Yjs-Monaco Binding
         // Create the Monaco Editor model that y-monaco will bind to
         const model = editor.getModel();
@@ -153,9 +157,8 @@ export default function CodeEditor({
         // Set initial user awareness state for this client
         awareness.setLocalStateField('user', {
             name: 'User' + Math.floor(Math.random() * 100), // Unique username
-            color: cursorColors[
-                Math.floor(Math.random() * cursorColors.length)
-            ],
+            color: cursorColors[cursorColorIndex],
+            cursorColorIndex,
         });
 
         // Update awareness on local cursor movement and selection change
@@ -179,7 +182,6 @@ export default function CodeEditor({
 
         if (heartbeatInterval.current) {
             clearInterval(heartbeatInterval.current);
-            console.warn(`leaking interval cleared`);
         }
         heartbeatInterval.current = setInterval(() => {
             let date = new Date();
@@ -188,14 +190,12 @@ export default function CodeEditor({
         }, 60000);
 
         // --- Yjs Awareness (Cursor & Selection Sync) ---
-        awareness.on(
-            'update',
-            ({ added, updated, removed }) => {
-                if (awarenessTimerRef.current) {
-                    clearTimeout(awarenessTimerRef.current);
-                    console.error(`cleared timeout`);
-                }
-                awarenessTimerRef.current = setTimeout(() => {
+        if (awarenessTimerRef.current) {
+            clearTimeout(awarenessTimerRef.current);
+        }
+        awarenessTimerRef.current = setTimeout(
+            () => {
+                awareness.on('update', ({ added, updated, removed }) => {
                     // For heavy rendering work (decorations + tooltips)
                     requestAnimationFrame(() => {
                         const editorDomNode = editor.getDomNode();
@@ -209,10 +209,6 @@ export default function CodeEditor({
                         // Process added and updated clients
                         [...added, ...updated].forEach((clientId) => {
                             const state = awareness.getStates().get(clientId); // Use getStates() to get all states
-                            console.log(
-                                `client id for this client - ${clientId} and state `,
-                                state
-                            );
 
                             if (!state || !state.selection || !state.user) {
                                 // If state is incomplete, clean up any existing decorations/tooltips for this client
@@ -250,10 +246,7 @@ export default function CodeEditor({
                                 )?.index ?? 0;
 
                             const headPos = model.getPositionAt(headAbs);
-                            console.error(`headPos`, headPos);
-
                             const anchorPos = model.getPositionAt(anchorAbs);
-                            console.error(`anchorPos`, anchorPos);
 
                             const decorationsForClient = [];
 
@@ -280,13 +273,13 @@ export default function CodeEditor({
                                     range: range,
                                     options: {
                                         className: `collaborator-selection`,
-                                        inlineClassName: `collaborator-selection-${colorIndex}`,
+                                        inlineClassName: `collaborator-selection-${/* user?.cursorColorIndex */ colorIndex}`,
                                         stickiness:
                                             monaco.editor.TrackedRangeStickiness
                                                 .NeverGrowsWhenTyping,
                                         // Ensure these don't interfere with the cursor line highlight
                                         overviewRuler: {
-                                            color: color,
+                                            color: /* user. */ color,
                                             position:
                                                 monaco.editor.OverviewRulerLane
                                                     .Center,
@@ -300,15 +293,6 @@ export default function CodeEditor({
                                 lineNumber: anchorPos.lineNumber,
                                 column: anchorPos.column,
                             };
-                            console.group();
-                            console.log(
-                                'absoluteHead',
-                                headAbs,
-                                'anchorPos',
-                                anchorPos
-                            );
-                            console.log(`cursorPosition`, cursorPosition);
-                            console.groupEnd();
 
                             decorationsForClient.push({
                                 range: new monaco.Range(
@@ -319,14 +303,8 @@ export default function CodeEditor({
                                 ),
                                 options: {
                                     className: `collaborator-cursor`, // Class for the cursor line
-                                    inlineClassName: `collaborator-cursor-${colorIndex} `, // Specific color class for the cursor
-                                    // `beforeContent` and `afterContent` can be used for custom cursor shapes/blinking
-                                    // For a simple vertical line, `className` on a zero-width range is often enough.
-                                    // This will create a thin line (cursor)
+                                    inlineClassName: `collaborator-cursor-${/* user?.cursorColorIndex */ colorIndex} `, // Specific color class for the cursor
                                     isWholeLine: false, // Apply only to the cursor position, not the whole line
-                                    // `cursor` is not directly controllable via decorations for custom shapes that easily.
-                                    // A better approach for the actual blinking cursor is to use `inlineClassName`
-                                    // and manipulate its CSS for `:after` or `:before` pseudo-elements.
                                 },
                             });
 
@@ -334,8 +312,6 @@ export default function CodeEditor({
                             let decorationCollection =
                                 clientDecorations.current.get(clientId);
                             if (!decorationCollection) {
-                                // console.warn(clientDecorations.current.get(clientId));
-                                // clientDecorations.current.delete(clientId);
                                 decorationCollection =
                                     editor.createDecorationsCollection();
                                 clientDecorations.current.set(
@@ -345,18 +321,32 @@ export default function CodeEditor({
                             }
                             decorationCollection.clear();
                             decorationCollection.append(decorationsForClient);
-                            console.warn(clientDecorations.current);
 
                             // Create or update tooltip (label above cursor)
+                            const overlayContainer = editor
+                                .getDomNode()
+                                ?.querySelector('.view-overlays');
+                            overlayContainer.style.setProperty(
+                                '--cursor-color',
+                                user.color
+                            );
                             let tooltipElement = document.querySelector(
-                                `.collaborator-tooltip-${colorIndex}`
+                                `.collaborator-tooltip-${/* user?.cursorColorIndex */ colorIndex}`
                             );
                             if (!tooltipElement) {
                                 tooltipElement = document.createElement('div');
-                                tooltipElement.className = `collaborator-tooltip collaborator-tooltip-${colorIndex}`;
-                                tooltipElement.style.backgroundColor = color;
-                                if (!editorDomNode.contains(tooltipElement)) {
-                                    editorDomNode.appendChild(tooltipElement);
+                                tooltipElement.className = `collaborator-tooltip collaborator-tooltip-${/* user?.cursorColorIndex */ colorIndex}`;
+                                tooltipElement.style.backgroundColor =
+                                    user?.color;
+                                tooltipElement.style.width = 'fit-content'; // Or "auto"
+                                tooltipElement.style.maxWidth = '200px'; // Optional safety limit width
+                                // tooltipElement.style.position = 'absolute'; // <== IMPORTANT
+                                if (
+                                    !overlayContainer.contains(tooltipElement)
+                                ) {
+                                    overlayContainer?.appendChild(
+                                        tooltipElement
+                                    );
                                 }
                             }
                             tooltipElement.textContent =
@@ -368,57 +358,24 @@ export default function CodeEditor({
                                 editor.getScrolledVisiblePosition(
                                     cursorPosition
                                 );
-                            // Also get the overall editor position for relative positioning
-                            const _editorContainer = editor
-                                .getContainerDomNode()
-                                .getBoundingClientRect();
-                            const _viewZoneContainer =
-                                editor
-                                    .getDomNode()
-                                    .querySelector('.lines-content') ||
-                                editor.getDomNode(); // Target the visible lines container for more accurate relative positioning
 
                             if (targetPixelPosition) {
-                                // Get the bounding rectangle of the editor's main DOM node
-                                const editorRect = editor
-                                    .getDomNode()
-                                    .getBoundingClientRect();
+                                // Get the scroll offsets to position the tooltips absolutely inside the editor
+                                const scrollTop = editor.getScrollTop();
+                                const scrollLeft = editor.getScrollLeft();
 
-                                // The targetPixelPosition is relative to the editor's *content area*.
-                                // We need to position the tooltip absolutely relative to the document or a positioned parent.
-                                // If your CodeEditor section has `position: relative`, then you can position relative to it.
-                                // Assuming the 'section' parent of MonacoEditor has 'position: relative':
-                                // Get the bounding box of the CodeEditor's containing <section>
-                                const codeEditorSection =
-                                    closestSectionRef.current;
+                                const leftPos =
+                                    targetPixelPosition.left +
+                                    scrollLeft; /*  - 63 */
 
-                                const _sectionRect = codeEditorSection
-                                    ? codeEditorSection.getBoundingClientRect()
-                                    : { left: 0, top: 0 };
+                                const topPos =
+                                    targetPixelPosition.top +
+                                    scrollTop -
+                                    tooltipElement.offsetHeight -
+                                    3; // 3px above cursor
 
-                                console.log(
-                                    'targetPixelPosition',
-                                    targetPixelPosition
-                                );
-
-                                // Calculate absolute position on the page
-                                // The `targetPixelPosition.left` and `targetPixelPosition.top` are relative to the
-                                // scrollable content viewport. We need to add the offset of the editor itself
-                                // relative to the document's viewport.
-                                const _editorOffsetLeft =
-                                    editorRect.left + window.scrollX;
-                                const _editorOffsetTop =
-                                    editorRect.top + window.scrollY;
-
-                                // Position tooltip relative to its parent (`domNode` which is part of editor container)
-                                // targetPixelPosition is already relative to the editor's content view.
-                                // So, `targetPixelPosition.left` and `targetPixelPosition.top` should work directly
-                                // if `domNode` (where tooltip is appended) is the editor's root, AND it's positioned.
-
-                                // Simpler approach (relative to editor domNode, which is usually `position:relative`)
-                                tooltipElement.style.left = `${targetPixelPosition.left}px`;
-                                tooltipElement.style.top = `${targetPixelPosition.top - tooltipElement.offsetHeight - 3}px`; // 5px above cursor
-
+                                tooltipElement.style.left = `${leftPos}px`;
+                                tooltipElement.style.top = `${topPos}px`;
                                 tooltipElement.style.display = 'block';
                             } else {
                                 tooltipElement.style.display = 'none';
