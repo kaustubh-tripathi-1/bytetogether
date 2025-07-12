@@ -18,7 +18,7 @@
 /* Cursor line */
 .collaborator-cursor {
     /* Monaco decorations are essentially inline elements.
-       We use a pseudo-element to create the visual cursor line. */
+       Use a pseudo-element to create the visual cursor line. */
     position: relative; /* Needed for pseudo-element positioning */
     height: 0;
     width: 0;
@@ -28,13 +28,26 @@
 }
 
 .collaborator-cursor::before {
-    content: ''; /* Required for pseudo-elements */
+    content: '';
     position: absolute;
     top: 0;
     left: 0; /* Position at the left edge of the decoration span */
     width: 2px; /* Thickness of the cursor */
+    transform: translateX(-1.5px);
     height: 100%; /* Span the full line height */
-    pointer-events: none; /* Inherit or explicitly set */
+    pointer-events: none;
+    animation: cursorBlink 500ms ease-in-out 500ms 20 alternate;
+}
+
+@keyframes cursorBlink {
+    0%,
+    20% {
+        opacity: 1;
+    }
+    60%,
+    100% {
+        opacity: 0;
+    }
 }
 
 /* Specific cursor colors by overriding background-color of the pseudo-element */
