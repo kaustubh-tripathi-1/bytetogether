@@ -42,8 +42,8 @@ export default function CodeEditor({
     const bindingRef = useRef(null); // To store the MonacoBinding instance for cleanup
     const closestSectionRef = useRef(null); // To store the parent section of Monaco for relative postioning of tooltips
     const awarenessTimerRef = useRef(null); // To debounce the awareness update rendering
-    const heartbeatInterval = useRef(null); // To clear heartbeat interval
-    const clientDecorations = useRef(new Map()); // Map to store decorations for each client
+    const heartbeatIntervalRef = useRef(null); // To clear heartbeat interval
+    const clientDecorationsRef = useRef(new Map()); // Map to store decorations for each client
 
     // Distinct cursor colors for each collaborator
     const cursorColors = [
@@ -143,6 +143,8 @@ export default function CodeEditor({
             return;
         }
 
+        let decorationUpdateScheduled = false;
+
         // Yjs-Monaco Binding
         // Create the Monaco Editor model that y-monaco will bind to
         const model = editor.getModel();
@@ -182,13 +184,6 @@ export default function CodeEditor({
                 }
             }
 
-            // fallback: pick a random if all used
-            if (availableIndex === -1) {
-                availableIndex = Math.floor(
-                    Math.random() * cursorColors.length
-                );
-            }
-
             awareness.setLocalStateField('user', {
                 ...localState?.user,
                 name: `User${Math.floor(Math.random() * 100)}`,
@@ -215,26 +210,26 @@ export default function CodeEditor({
             awareness.setLocalStateField('selection', { anchor, head });
         });
 
-        if (heartbeatInterval.current) {
-            clearInterval(heartbeatInterval.current);
+        if (heartbeatIntervalRef.current) {
+            clearInterval(heartbeatIntervalRef.current);
         }
-        heartbeatInterval.current = setInterval(() => {
+        heartbeatIntervalRef.current = setInterval(() => {
             let date = new Date();
             date = date.toLocaleTimeString();
             awareness.setLocalStateField('heartbeat', date);
         }, 60000);
 
         // --- Yjs Awareness (Cursor & Selection Sync) ---
-
-        awareness.on(
-            'update',
-            ({ added, updated, removed }) => {
+        awareness.on('update', ({ added, updated, removed }) => {
+            if (!decorationUpdateScheduled) {
+                decorationUpdateScheduled = true;
                 if (awarenessTimerRef.current) {
                     clearTimeout(awarenessTimerRef.current);
                 }
                 awarenessTimerRef.current = setTimeout(() => {
                     // For heavy rendering work (decorations + tooltips)
                     requestAnimationFrame(() => {
+                        decorationUpdateScheduled = false;
                         const editorDomNode = editor.getDomNode();
                         const model = editor.getModel();
                         if (
@@ -259,10 +254,10 @@ export default function CodeEditor({
                                     tooltipElement.remove();
                                 }
                                 const decorationCollection =
-                                    clientDecorations.current.get(clientId);
+                                    clientDecorationsRef.current.get(clientId);
                                 if (decorationCollection) {
                                     decorationCollection.clear();
-                                    clientDecorations.current.clear();
+                                    clientDecorationsRef.current.clear();
                                 }
                                 return;
                             }
@@ -347,17 +342,24 @@ export default function CodeEditor({
 
                             // Update decorations for this specific client
                             let decorationCollection =
-                                clientDecorations.current.get(clientId);
+                                clientDecorationsRef.current.get(clientId);
                             if (!decorationCollection) {
                                 decorationCollection =
                                     editor.createDecorationsCollection();
-                                clientDecorations.current.set(
+                                clientDecorationsRef.current.set(
                                     clientId,
                                     decorationCollection
                                 );
                             }
-                            decorationCollection.clear();
-                            decorationCollection.append(decorationsForClient);
+
+                            setTimeout(() => {
+                                requestIdleCallback(() => {
+                                    decorationCollection.clear();
+                                    decorationCollection.set(
+                                        decorationsForClient
+                                    );
+                                });
+                            }, 0);
 
                             // Create or update tooltip (label above cursor)
                             const overlayContainer = editor
@@ -424,15 +426,14 @@ export default function CodeEditor({
 
                             // Clear decorations for the removed client
                             let decorationCollection =
-                                clientDecorations.current.get(clientId);
+                                clientDecorationsRef.current.get(clientId);
                             decorationCollection?.clear();
-                            clientDecorations.current.delete(clientId);
+                            clientDecorationsRef.current.delete(clientId);
                         });
                     });
-                });
-            },
-            1000 // debounce awareness updates
-        );
+                }, 0); // debounce awareness update
+            }
+        });
     }
 
     // Effect to clean up the MonacoBinding and awareness listeners when CodeEditor unmounts
@@ -456,11 +457,11 @@ export default function CodeEditor({
             // Clear all remaining decorations from clientDecorations map
             if (editorRef.current) {
                 // eslint-disable-next-line react-hooks/exhaustive-deps
-                clientDecorations.current.forEach(() => {
+                clientDecorationsRef.current.forEach(() => {
                     editorRef.current.createDecorationsCollection([]);
                 });
             }
-            clientDecorations.current?.clear(); // Clear the map
+            clientDecorationsRef.current?.clear(); // Clear the map
 
             // Clean up any remaining tooltips from this client if it was the last one
             document
