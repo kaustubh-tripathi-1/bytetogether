@@ -130,10 +130,6 @@ export default function CodeEditor({
             return;
         }
 
-        const cursorColorIndex = Math.floor(
-            Math.random() * cursorColors.length
-        );
-
         // Yjs-Monaco Binding
         // Create the Monaco Editor model that y-monaco will bind to
         const model = editor.getModel();
@@ -157,8 +153,6 @@ export default function CodeEditor({
         // Set initial user awareness state for this client
         awareness.setLocalStateField('user', {
             name: 'User' + Math.floor(Math.random() * 100), // Unique username
-            color: cursorColors[cursorColorIndex],
-            cursorColorIndex,
         });
 
         // Update awareness on local cursor movement and selection change
@@ -190,12 +184,14 @@ export default function CodeEditor({
         }, 60000);
 
         // --- Yjs Awareness (Cursor & Selection Sync) ---
-        if (awarenessTimerRef.current) {
-            clearTimeout(awarenessTimerRef.current);
-        }
-        awarenessTimerRef.current = setTimeout(
-            () => {
-                awareness.on('update', ({ added, updated, removed }) => {
+
+        awareness.on(
+            'update',
+            ({ added, updated, removed }) => {
+                if (awarenessTimerRef.current) {
+                    clearTimeout(awarenessTimerRef.current);
+                }
+                awarenessTimerRef.current = setTimeout(() => {
                     // For heavy rendering work (decorations + tooltips)
                     requestAnimationFrame(() => {
                         const editorDomNode = editor.getDomNode();
@@ -231,8 +227,10 @@ export default function CodeEditor({
                             }
 
                             const { user, selection } = state;
-                            const colorIndex = clientId % cursorColors.length;
-                            const color = cursorColors[colorIndex];
+
+                            const cursorColorIndex =
+                                clientId % cursorColors.length;
+                            const color = cursorColors[cursorColorIndex];
 
                             const headAbs =
                                 createAbsolutePositionFromRelativePosition(
@@ -273,13 +271,13 @@ export default function CodeEditor({
                                     range: range,
                                     options: {
                                         className: `collaborator-selection`,
-                                        inlineClassName: `collaborator-selection-${/* user?.cursorColorIndex */ colorIndex}`,
+                                        inlineClassName: `collaborator-selection-${cursorColorIndex}`,
                                         stickiness:
                                             monaco.editor.TrackedRangeStickiness
                                                 .NeverGrowsWhenTyping,
                                         // Ensure these don't interfere with the cursor line highlight
                                         overviewRuler: {
-                                            color: /* user. */ color,
+                                            color: color,
                                             position:
                                                 monaco.editor.OverviewRulerLane
                                                     .Center,
@@ -302,8 +300,7 @@ export default function CodeEditor({
                                     cursorPosition.column
                                 ),
                                 options: {
-                                    className: `collaborator-cursor`, // Class for the cursor line
-                                    inlineClassName: `collaborator-cursor-${/* user?.cursorColorIndex */ colorIndex} `, // Specific color class for the cursor
+                                    className: `collaborator-cursor collaborator-cursor-${cursorColorIndex}`, // Class for the cursor line
                                     isWholeLine: false, // Apply only to the cursor position, not the whole line
                                 },
                             });
@@ -326,21 +323,15 @@ export default function CodeEditor({
                             const overlayContainer = editor
                                 .getDomNode()
                                 ?.querySelector('.view-overlays');
-                            overlayContainer.style.setProperty(
-                                '--cursor-color',
-                                user.color
-                            );
                             let tooltipElement = document.querySelector(
-                                `.collaborator-tooltip-${/* user?.cursorColorIndex */ colorIndex}`
+                                `.collaborator-tooltip-${clientId}`
                             );
                             if (!tooltipElement) {
                                 tooltipElement = document.createElement('div');
-                                tooltipElement.className = `collaborator-tooltip collaborator-tooltip-${/* user?.cursorColorIndex */ colorIndex}`;
-                                tooltipElement.style.backgroundColor =
-                                    user?.color;
+                                tooltipElement.className = `collaborator-tooltip collaborator-tooltip-${cursorColorIndex} collaborator-tooltip-${clientId} `;
+                                tooltipElement.style.backgroundColor = color;
                                 tooltipElement.style.width = 'fit-content'; // Or "auto"
                                 tooltipElement.style.maxWidth = '200px'; // Optional safety limit width
-                                // tooltipElement.style.position = 'absolute'; // <== IMPORTANT
                                 if (
                                     !overlayContainer.contains(tooltipElement)
                                 ) {
@@ -385,7 +376,7 @@ export default function CodeEditor({
                         // Clean up removed clients' tooltips
                         removed.forEach((clientId) => {
                             const tooltipElement = document.querySelector(
-                                `.collaborator-tooltip-${clientId % cursorColors.length}`
+                                `.collaborator-tooltip-${clientId}`
                             );
                             if (tooltipElement) {
                                 tooltipElement.remove();
