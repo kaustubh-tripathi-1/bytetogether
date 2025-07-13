@@ -431,7 +431,7 @@ export default function CodeEditor({
                             clientDecorationsRef.current.delete(clientId);
                         });
                     });
-                }, 0); // debounce awareness update
+                }, 30); // debounce awareness update 1 frame
             }
         });
     }
