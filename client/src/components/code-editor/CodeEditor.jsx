@@ -143,8 +143,6 @@ export default function CodeEditor({
             return;
         }
 
-        let decorationUpdateScheduled = false;
-
         // Yjs-Monaco Binding
         // Create the Monaco Editor model that y-monaco will bind to
         const model = editor.getModel();
@@ -219,6 +217,7 @@ export default function CodeEditor({
             awareness.setLocalStateField('heartbeat', date);
         }, 60000);
 
+        let decorationUpdateScheduled = false;
         // --- Yjs Awareness (Cursor & Selection Sync) ---
         awareness.on('update', ({ added, updated, removed }) => {
             if (!decorationUpdateScheduled) {
@@ -358,6 +357,7 @@ export default function CodeEditor({
                                     decorationCollection.set(
                                         decorationsForClient
                                     );
+                                    console.clear();
                                 });
                             }, 0);
 
