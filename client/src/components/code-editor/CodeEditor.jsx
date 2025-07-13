@@ -228,7 +228,7 @@ export default function CodeEditor({
                 awarenessTimerRef.current = setTimeout(() => {
                     // For heavy rendering work (decorations + tooltips)
                     requestAnimationFrame(() => {
-                        decorationUpdateScheduled = false;
+                        // decorationUpdateScheduled = false;
                         const editorDomNode = editor.getDomNode();
                         const model = editor.getModel();
                         if (
@@ -236,6 +236,9 @@ export default function CodeEditor({
                             !editorDomNode /* || !editor.hasTextFocus() */
                         )
                             return;
+
+                        // Collect decorations for all active clients
+                        const batchedDecorationsMap = new Map();
 
                         // Process added and updated clients
                         [...added, ...updated].forEach((clientId) => {
@@ -340,7 +343,7 @@ export default function CodeEditor({
                             });
 
                             // Update decorations for this specific client
-                            let decorationCollection =
+                            /* let decorationCollection =
                                 clientDecorationsRef.current.get(clientId);
                             if (!decorationCollection) {
                                 decorationCollection =
@@ -349,9 +352,14 @@ export default function CodeEditor({
                                     clientId,
                                     decorationCollection
                                 );
-                            }
+                            } */
 
-                            setTimeout(() => {
+                            batchedDecorationsMap.set(
+                                clientId,
+                                decorationsForClient
+                            );
+
+                            /* setTimeout(() => {
                                 requestIdleCallback(() => {
                                     decorationCollection.clear();
                                     decorationCollection.set(
@@ -359,7 +367,7 @@ export default function CodeEditor({
                                     );
                                     console.clear();
                                 });
-                            }, 0);
+                            }, 0); */
 
                             // Create or update tooltip (label above cursor)
                             const overlayContainer = editor
@@ -414,6 +422,33 @@ export default function CodeEditor({
                                 tooltipElement.style.display = 'none';
                             }
                         });
+
+                        // Try applying decorations after ALL clients have been processed:
+                        setTimeout(() => {
+                            requestIdleCallback(() => {
+                                for (const [
+                                    clientId,
+                                    decorationsForClient,
+                                ] of batchedDecorationsMap.entries()) {
+                                    let decorationCollection =
+                                        clientDecorationsRef.current.get(
+                                            clientId
+                                        );
+                                    if (!decorationCollection) {
+                                        decorationCollection =
+                                            editor.createDecorationsCollection();
+                                        clientDecorationsRef.current.set(
+                                            clientId,
+                                            decorationCollection
+                                        );
+                                    }
+                                    decorationCollection.set(
+                                        decorationsForClient
+                                    );
+                                }
+                            });
+                            decorationUpdateScheduled = false;
+                        }, 0);
 
                         // Clean up removed clients' tooltips
                         removed.forEach((clientId) => {
