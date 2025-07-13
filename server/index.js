@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 3000;
 const ALLOWED_ORIGINS = ALLOWED_ORIGINS_STRING.split(',').map((origin) => {
     const trimmed = origin.trim();
 
-    // Convert wildcard to regex
+    // Convert wildcard to regex for vercel preview builds
     // if (trimmed.includes('*')) {
     //     // Simple conversion for *.vercel.app: replace . with \. and * with .+
     //     // Vercel preview builds origin using regex (not safe)
@@ -67,7 +67,7 @@ httpServer.on('upgrade', (request, socket, head) => {
     // Handle WebSocket connections on the /yjs path
     wsServer.handleUpgrade(request, socket, head, (wsInstance) => {
         // Extract room from search params or fallback to default
-        const room = searchParams.get('room') || 'bytetogether'; // Assuming 'bytetogether' is the default room
+        const room = searchParams.get('room') || 'bytetogether'; // fallback to 'bytetogether' as the default room
 
         // Handle the Yjs protocol using y-websocket-server
         setupWSConnection(wsInstance, request, { docName: room });
