@@ -116,12 +116,365 @@ export default function CodeEditor({
         });
     }
 
+    // function handleEditorDidMount(editor, monaco) {
+    //     editorRef.current = editor;
+    //     editorRef.current?.focus();
+
+    //     // Ensure yText and awareness are available before attempting binding
+    //     // This check is crucial if props can be null/undefined initially
+    //     if (!yText || !awareness) {
+    //         console.warn(
+    //             'yText or awareness is not available on editor mount. Skipping MonacoBinding.',
+    //             yText,
+    //             awareness
+    //         );
+    //         return;
+    //     }
+
+    //     if (awareness.getStates().size > 5) {
+    //         dispatch(
+    //             addNotification({
+    //                 message:
+    //                     "Can't join the collaborative room as it's full. Please try again after some time...",
+    //                 type: 'error',
+    //                 timeout: 10000,
+    //             })
+    //         );
+    //         return;
+    //     }
+
+    //     // Yjs-Monaco Binding
+    //     // Create the Monaco Editor model that y-monaco will bind to
+    //     const model = editor.getModel();
+
+    //     if (model) {
+    //         // Destroy any existing binding before creating a new one
+    //         if (bindingRef.current) {
+    //             bindingRef.current.destroy();
+    //             bindingRef.current = null;
+    //         }
+
+    //         // Bind the Y.Text to the Monaco Editor model
+    //         bindingRef.current = new MonacoBinding(
+    //             yText,
+    //             model,
+    //             new Set([editor]),
+    //             awareness
+    //         );
+    //     }
+
+    //     // Initialize or update awareness state with unique color index
+    //     const localState = awareness.getLocalState();
+    //     if (!localState?.user?.cursorColorIndex) {
+    //         const usedIndices = new Set();
+
+    //         for (const [, state] of awareness.getStates()) {
+    //             if (state?.user?.cursorColorIndex !== undefined) {
+    //                 usedIndices.add(state.user.cursorColorIndex);
+    //             }
+    //         }
+
+    //         let availableIndex = -1;
+    //         for (let i = 0; i < cursorColors.length; i++) {
+    //             if (!usedIndices.has(i)) {
+    //                 availableIndex = i;
+    //                 break;
+    //             }
+    //         }
+
+    //         awareness.setLocalStateField('user', {
+    //             ...localState?.user,
+    //             name: `User${Math.floor(Math.random() * 100)}`,
+    //             cursorColorIndex: availableIndex,
+    //         });
+    //     }
+
+    //     // Update awareness on local cursor movement and selection change
+    //     editor.onDidChangeCursorSelection((e) => {
+    //         if (!yText || !awareness) return;
+
+    //         const model = editor.getModel();
+    //         const anchorIndex = model.getOffsetAt(
+    //             e.selection.getStartPosition()
+    //         );
+    //         const headIndex = model.getOffsetAt(e.selection.getEndPosition());
+
+    //         const anchor = createRelativePositionFromTypeIndex(
+    //             yText,
+    //             anchorIndex
+    //         );
+    //         const head = createRelativePositionFromTypeIndex(yText, headIndex);
+
+    //         awareness.setLocalStateField('selection', { anchor, head });
+    //     });
+
+    //     if (heartbeatIntervalRef.current) {
+    //         clearInterval(heartbeatIntervalRef.current);
+    //     }
+    //     heartbeatIntervalRef.current = setInterval(() => {
+    //         let date = new Date();
+    //         date = date.toLocaleTimeString();
+    //         awareness.setLocalStateField('heartbeat', date);
+    //     }, 60000);
+
+    //     let decorationUpdateScheduled = false;
+    //     // --- Yjs Awareness (Cursor & Selection Sync) ---
+    //     awareness.on('update', ({ added, updated, removed }) => {
+    //         if (!decorationUpdateScheduled) {
+    //             decorationUpdateScheduled = true;
+    //             if (awarenessTimerRef.current) {
+    //                 clearTimeout(awarenessTimerRef.current);
+    //             }
+    //             awarenessTimerRef.current = setTimeout(() => {
+    //                 // For heavy rendering work (decorations + tooltips)
+    //                 requestAnimationFrame(() => {
+    //                     // decorationUpdateScheduled = false;
+    //                     const editorDomNode = editor.getDomNode();
+    //                     const model = editor.getModel();
+    //                     if (
+    //                         !model ||
+    //                         !editorDomNode /* || !editor.hasTextFocus() */
+    //                     )
+    //                         return;
+
+    //                     // Collect decorations for all active clients
+    //                     const batchedDecorationsMap = new Map();
+
+    //                     // Process added and updated clients
+    //                     [...added, ...updated].forEach((clientId) => {
+    //                         const state = awareness.getStates().get(clientId); // Use getStates() to get all states
+
+    //                         if (!state || !state.selection || !state.user) {
+    //                             // If state is incomplete, clean up any existing decorations/tooltips for this client
+    //                             console.warn(
+    //                                 `Incomplete awareness states for client ${clientId}. Cleaning up.`
+    //                             );
+    //                             const tooltipElement = document.querySelector(
+    //                                 `.collaborator-tooltip-${clientId}`
+    //                             );
+    //                             if (tooltipElement) {
+    //                                 tooltipElement.remove();
+    //                             }
+    //                             const decorationCollection =
+    //                                 clientDecorationsRef.current.get(clientId);
+    //                             if (decorationCollection) {
+    //                                 decorationCollection.clear();
+    //                                 clientDecorationsRef.current.clear();
+    //                             }
+    //                             return;
+    //                         }
+
+    //                         const { user, selection } = state;
+
+    //                         const cursorColorIndex = user.cursorColorIndex;
+    //                         const color = cursorColors[cursorColorIndex];
+
+    //                         const headAbs =
+    //                             createAbsolutePositionFromRelativePosition(
+    //                                 selection.head,
+    //                                 yDoc
+    //                             )?.index ?? 0;
+    //                         const anchorAbs =
+    //                             createAbsolutePositionFromRelativePosition(
+    //                                 selection.anchor,
+    //                                 yDoc
+    //                             )?.index ?? 0;
+
+    //                         const headPos = model.getPositionAt(headAbs);
+    //                         const anchorPos = model.getPositionAt(anchorAbs);
+
+    //                         const decorationsForClient = [];
+
+    //                         // Create decorations for selections (if any)
+    //                         if (
+    //                             headPos.lineNumber !== anchorPos.lineNumber ||
+    //                             headPos.column !== anchorPos.column
+    //                         ) {
+    //                             // Head and anchor are not equal so it's a selection, not just a cursor
+    //                             const [start, end] = [headPos, anchorPos].sort(
+    //                                 (a, b) => {
+    //                                     if (a.lineNumber !== b.lineNumber)
+    //                                         return a.lineNumber - b.lineNumber;
+    //                                     return a.column - b.column;
+    //                                 }
+    //                             );
+    //                             const range = new monaco.Range(
+    //                                 start.lineNumber,
+    //                                 start.column,
+    //                                 end.lineNumber,
+    //                                 end.column
+    //                             );
+    //                             decorationsForClient.push({
+    //                                 range: range,
+    //                                 options: {
+    //                                     className: `collaborator-selection`,
+    //                                     inlineClassName: `collaborator-selection-${cursorColorIndex}`,
+    //                                     stickiness:
+    //                                         monaco.editor.TrackedRangeStickiness
+    //                                             .NeverGrowsWhenTyping,
+    //                                     // Ensure these don't interfere with the cursor line highlight
+    //                                     overviewRuler: {
+    //                                         color: color,
+    //                                         position:
+    //                                             monaco.editor.OverviewRulerLane
+    //                                                 .Center,
+    //                                     },
+    //                                 },
+    //                             });
+    //                         }
+
+    //                         // Create decoration for cursor
+    //                         const cursorPosition = {
+    //                             lineNumber: anchorPos.lineNumber,
+    //                             column: anchorPos.column,
+    //                         };
+
+    //                         decorationsForClient.push({
+    //                             range: new monaco.Range(
+    //                                 cursorPosition.lineNumber,
+    //                                 cursorPosition.column,
+    //                                 cursorPosition.lineNumber,
+    //                                 cursorPosition.column
+    //                             ),
+    //                             options: {
+    //                                 className: `collaborator-cursor collaborator-cursor-${cursorColorIndex}`, // Class for the cursor line
+    //                                 isWholeLine: false, // Apply only to the cursor position, not the whole line
+    //                             },
+    //                         });
+
+    //                         // Update decorations for this specific client
+    //                         /* let decorationCollection =
+    //                             clientDecorationsRef.current.get(clientId);
+    //                         if (!decorationCollection) {
+    //                             decorationCollection =
+    //                                 editor.createDecorationsCollection();
+    //                             clientDecorationsRef.current.set(
+    //                                 clientId,
+    //                                 decorationCollection
+    //                             );
+    //                         } */
+
+    //                         batchedDecorationsMap.set(
+    //                             clientId,
+    //                             decorationsForClient
+    //                         );
+
+    //                         /* setTimeout(() => {
+    //                             requestIdleCallback(() => {
+    //                                 decorationCollection.clear();
+    //                                 decorationCollection.set(
+    //                                     decorationsForClient
+    //                                 );
+    //                                 console.clear();
+    //                             });
+    //                         }, 0); */
+
+    //                         // Create or update tooltip (label above cursor)
+    //                         const overlayContainer = editor
+    //                             .getDomNode()
+    //                             ?.querySelector('.view-overlays');
+    //                         let tooltipElement = document.querySelector(
+    //                             `.collaborator-tooltip-${clientId}`
+    //                         );
+    //                         if (!tooltipElement) {
+    //                             tooltipElement = document.createElement('div');
+    //                             tooltipElement.className = `collaborator-tooltip collaborator-tooltip-${cursorColorIndex} collaborator-tooltip-${clientId} `;
+    //                             tooltipElement.style.backgroundColor = color;
+    //                             tooltipElement.style.width = 'fit-content'; // Set width explicitly
+    //                             tooltipElement.style.maxWidth = '200px'; // Optional safety limit width
+    //                             if (
+    //                                 !overlayContainer.contains(tooltipElement)
+    //                             ) {
+    //                                 overlayContainer?.appendChild(
+    //                                     tooltipElement
+    //                                 );
+    //                             }
+    //                         }
+    //                         tooltipElement.textContent =
+    //                             user.name || 'Anonymous';
+
+    //                         // Position the tooltip relative to the editor content
+    //                         // Monaco provides `getScrolledVisiblePosition` which gives pixel coords
+    //                         const targetPixelPosition =
+    //                             editor.getScrolledVisiblePosition(
+    //                                 cursorPosition
+    //                             );
+
+    //                         if (targetPixelPosition) {
+    //                             // Get the scroll offsets to position the tooltips absolutely inside the editor
+    //                             const scrollTop = editor.getScrollTop();
+    //                             const scrollLeft = editor.getScrollLeft();
+
+    //                             const leftPos =
+    //                                 targetPixelPosition.left +
+    //                                 scrollLeft; /*  - 63 */
+
+    //                             const topPos =
+    //                                 targetPixelPosition.top +
+    //                                 scrollTop -
+    //                                 tooltipElement.offsetHeight -
+    //                                 3; // 3px above cursor
+
+    //                             tooltipElement.style.left = `${leftPos}px`;
+    //                             tooltipElement.style.top = `${topPos}px`;
+    //                             tooltipElement.style.display = 'block';
+    //                         } else {
+    //                             tooltipElement.style.display = 'none';
+    //                         }
+    //                     });
+
+    //                     // Try applying decorations after ALL clients have been processed:
+    //                     setTimeout(() => {
+    //                         requestIdleCallback(() => {
+    //                             for (const [
+    //                                 clientId,
+    //                                 decorationsForClient,
+    //                             ] of batchedDecorationsMap.entries()) {
+    //                                 let decorationCollection =
+    //                                     clientDecorationsRef.current.get(
+    //                                         clientId
+    //                                     );
+    //                                 if (!decorationCollection) {
+    //                                     decorationCollection =
+    //                                         editor.createDecorationsCollection();
+    //                                     clientDecorationsRef.current.set(
+    //                                         clientId,
+    //                                         decorationCollection
+    //                                     );
+    //                                 }
+    //                                 decorationCollection.set(
+    //                                     decorationsForClient
+    //                                 );
+    //                             }
+    //                         });
+    //                         decorationUpdateScheduled = false;
+    //                     }, 0);
+
+    //                     // Clean up removed clients' tooltips
+    //                     removed.forEach((clientId) => {
+    //                         const tooltipElement = document.querySelector(
+    //                             `.collaborator-tooltip-${clientId}`
+    //                         );
+    //                         if (tooltipElement) {
+    //                             tooltipElement.remove();
+    //                         }
+
+    //                         // Clear decorations for the removed client
+    //                         let decorationCollection =
+    //                             clientDecorationsRef.current.get(clientId);
+    //                         decorationCollection?.clear();
+    //                         clientDecorationsRef.current.delete(clientId);
+    //                     });
+    //                 });
+    //             }, 30); // debounce awareness update 1 frame
+    //         }
+    //     });
+    // }
+
     function handleEditorDidMount(editor, monaco) {
         editorRef.current = editor;
         editorRef.current?.focus();
 
-        // Ensure yText and awareness are available before attempting binding
-        // This check is crucial if props can be null/undefined initially
         if (!yText || !awareness) {
             console.warn(
                 'yText or awareness is not available on editor mount. Skipping MonacoBinding.',
@@ -143,18 +496,12 @@ export default function CodeEditor({
             return;
         }
 
-        // Yjs-Monaco Binding
-        // Create the Monaco Editor model that y-monaco will bind to
         const model = editor.getModel();
-
         if (model) {
-            // Destroy any existing binding before creating a new one
             if (bindingRef.current) {
                 bindingRef.current.destroy();
                 bindingRef.current = null;
             }
-
-            // Bind the Y.Text to the Monaco Editor model
             bindingRef.current = new MonacoBinding(
                 yText,
                 model,
@@ -163,11 +510,9 @@ export default function CodeEditor({
             );
         }
 
-        // Initialize or update awareness state with unique color index
         const localState = awareness.getLocalState();
         if (!localState?.user?.cursorColorIndex) {
             const usedIndices = new Set();
-
             for (const [, state] of awareness.getStates()) {
                 if (state?.user?.cursorColorIndex !== undefined) {
                     usedIndices.add(state.user.cursorColorIndex);
@@ -189,286 +534,242 @@ export default function CodeEditor({
             });
         }
 
-        // Update awareness on local cursor movement and selection change
         editor.onDidChangeCursorSelection((e) => {
             if (!yText || !awareness) return;
-
             const model = editor.getModel();
             const anchorIndex = model.getOffsetAt(
                 e.selection.getStartPosition()
             );
             const headIndex = model.getOffsetAt(e.selection.getEndPosition());
-
             const anchor = createRelativePositionFromTypeIndex(
                 yText,
                 anchorIndex
             );
             const head = createRelativePositionFromTypeIndex(yText, headIndex);
-
             awareness.setLocalStateField('selection', { anchor, head });
         });
 
-        if (heartbeatIntervalRef.current) {
+        if (heartbeatIntervalRef.current)
             clearInterval(heartbeatIntervalRef.current);
-        }
         heartbeatIntervalRef.current = setInterval(() => {
-            let date = new Date();
-            date = date.toLocaleTimeString();
+            const date = new Date().toLocaleTimeString();
             awareness.setLocalStateField('heartbeat', date);
         }, 60000);
 
         let decorationUpdateScheduled = false;
-        // --- Yjs Awareness (Cursor & Selection Sync) ---
+        const localClientId = awareness.clientID; // Store local client ID
+
         awareness.on('update', ({ added, updated, removed }) => {
-            if (!decorationUpdateScheduled) {
-                decorationUpdateScheduled = true;
-                if (awarenessTimerRef.current) {
+            if (decorationUpdateScheduled) return;
+            decorationUpdateScheduled = true;
+
+            // Immediate update for local client
+            const localUpdates = [...added, ...updated].filter(
+                (clientId) => clientId === localClientId
+            );
+            if (localUpdates.length > 0) {
+                requestAnimationFrame(() => {
+                    updateDecorations(
+                        localUpdates,
+                        removed,
+                        editor,
+                        model,
+                        yDoc,
+                        clientDecorationsRef
+                    );
+                    decorationUpdateScheduled = false;
+                });
+            }
+
+            // Debounced update for remote clients
+            const remoteUpdates = [...added, ...updated].filter(
+                (clientId) => clientId !== localClientId
+            );
+            if (remoteUpdates.length > 0) {
+                if (awarenessTimerRef.current)
                     clearTimeout(awarenessTimerRef.current);
-                }
                 awarenessTimerRef.current = setTimeout(() => {
-                    // For heavy rendering work (decorations + tooltips)
                     requestAnimationFrame(() => {
-                        // decorationUpdateScheduled = false;
-                        const editorDomNode = editor.getDomNode();
-                        const model = editor.getModel();
-                        if (
-                            !model ||
-                            !editorDomNode /* || !editor.hasTextFocus() */
-                        )
-                            return;
-
-                        // Collect decorations for all active clients
-                        const batchedDecorationsMap = new Map();
-
-                        // Process added and updated clients
-                        [...added, ...updated].forEach((clientId) => {
-                            const state = awareness.getStates().get(clientId); // Use getStates() to get all states
-
-                            if (!state || !state.selection || !state.user) {
-                                // If state is incomplete, clean up any existing decorations/tooltips for this client
-                                console.warn(
-                                    `Incomplete awareness states for client ${clientId}. Cleaning up.`
-                                );
-                                const tooltipElement = document.querySelector(
-                                    `.collaborator-tooltip-${clientId}`
-                                );
-                                if (tooltipElement) {
-                                    tooltipElement.remove();
-                                }
-                                const decorationCollection =
-                                    clientDecorationsRef.current.get(clientId);
-                                if (decorationCollection) {
-                                    decorationCollection.clear();
-                                    clientDecorationsRef.current.clear();
-                                }
-                                return;
-                            }
-
-                            const { user, selection } = state;
-
-                            const cursorColorIndex = user.cursorColorIndex;
-                            const color = cursorColors[cursorColorIndex];
-
-                            const headAbs =
-                                createAbsolutePositionFromRelativePosition(
-                                    selection.head,
-                                    yDoc
-                                )?.index ?? 0;
-                            const anchorAbs =
-                                createAbsolutePositionFromRelativePosition(
-                                    selection.anchor,
-                                    yDoc
-                                )?.index ?? 0;
-
-                            const headPos = model.getPositionAt(headAbs);
-                            const anchorPos = model.getPositionAt(anchorAbs);
-
-                            const decorationsForClient = [];
-
-                            // Create decorations for selections (if any)
-                            if (
-                                headPos.lineNumber !== anchorPos.lineNumber ||
-                                headPos.column !== anchorPos.column
-                            ) {
-                                // Head and anchor are not equal so it's a selection, not just a cursor
-                                const [start, end] = [headPos, anchorPos].sort(
-                                    (a, b) => {
-                                        if (a.lineNumber !== b.lineNumber)
-                                            return a.lineNumber - b.lineNumber;
-                                        return a.column - b.column;
-                                    }
-                                );
-                                const range = new monaco.Range(
-                                    start.lineNumber,
-                                    start.column,
-                                    end.lineNumber,
-                                    end.column
-                                );
-                                decorationsForClient.push({
-                                    range: range,
-                                    options: {
-                                        className: `collaborator-selection`,
-                                        inlineClassName: `collaborator-selection-${cursorColorIndex}`,
-                                        stickiness:
-                                            monaco.editor.TrackedRangeStickiness
-                                                .NeverGrowsWhenTyping,
-                                        // Ensure these don't interfere with the cursor line highlight
-                                        overviewRuler: {
-                                            color: color,
-                                            position:
-                                                monaco.editor.OverviewRulerLane
-                                                    .Center,
-                                        },
-                                    },
-                                });
-                            }
-
-                            // Create decoration for cursor
-                            const cursorPosition = {
-                                lineNumber: anchorPos.lineNumber,
-                                column: anchorPos.column,
-                            };
-
-                            decorationsForClient.push({
-                                range: new monaco.Range(
-                                    cursorPosition.lineNumber,
-                                    cursorPosition.column,
-                                    cursorPosition.lineNumber,
-                                    cursorPosition.column
-                                ),
-                                options: {
-                                    className: `collaborator-cursor collaborator-cursor-${cursorColorIndex}`, // Class for the cursor line
-                                    isWholeLine: false, // Apply only to the cursor position, not the whole line
-                                },
-                            });
-
-                            // Update decorations for this specific client
-                            /* let decorationCollection =
-                                clientDecorationsRef.current.get(clientId);
-                            if (!decorationCollection) {
-                                decorationCollection =
-                                    editor.createDecorationsCollection();
-                                clientDecorationsRef.current.set(
-                                    clientId,
-                                    decorationCollection
-                                );
-                            } */
-
-                            batchedDecorationsMap.set(
-                                clientId,
-                                decorationsForClient
-                            );
-
-                            /* setTimeout(() => {
-                                requestIdleCallback(() => {
-                                    decorationCollection.clear();
-                                    decorationCollection.set(
-                                        decorationsForClient
-                                    );
-                                    console.clear();
-                                });
-                            }, 0); */
-
-                            // Create or update tooltip (label above cursor)
-                            const overlayContainer = editor
-                                .getDomNode()
-                                ?.querySelector('.view-overlays');
-                            let tooltipElement = document.querySelector(
-                                `.collaborator-tooltip-${clientId}`
-                            );
-                            if (!tooltipElement) {
-                                tooltipElement = document.createElement('div');
-                                tooltipElement.className = `collaborator-tooltip collaborator-tooltip-${cursorColorIndex} collaborator-tooltip-${clientId} `;
-                                tooltipElement.style.backgroundColor = color;
-                                tooltipElement.style.width = 'fit-content'; // Set width explicitly
-                                tooltipElement.style.maxWidth = '200px'; // Optional safety limit width
-                                if (
-                                    !overlayContainer.contains(tooltipElement)
-                                ) {
-                                    overlayContainer?.appendChild(
-                                        tooltipElement
-                                    );
-                                }
-                            }
-                            tooltipElement.textContent =
-                                user.name || 'Anonymous';
-
-                            // Position the tooltip relative to the editor content
-                            // Monaco provides `getScrolledVisiblePosition` which gives pixel coords
-                            const targetPixelPosition =
-                                editor.getScrolledVisiblePosition(
-                                    cursorPosition
-                                );
-
-                            if (targetPixelPosition) {
-                                // Get the scroll offsets to position the tooltips absolutely inside the editor
-                                const scrollTop = editor.getScrollTop();
-                                const scrollLeft = editor.getScrollLeft();
-
-                                const leftPos =
-                                    targetPixelPosition.left +
-                                    scrollLeft; /*  - 63 */
-
-                                const topPos =
-                                    targetPixelPosition.top +
-                                    scrollTop -
-                                    tooltipElement.offsetHeight -
-                                    3; // 3px above cursor
-
-                                tooltipElement.style.left = `${leftPos}px`;
-                                tooltipElement.style.top = `${topPos}px`;
-                                tooltipElement.style.display = 'block';
-                            } else {
-                                tooltipElement.style.display = 'none';
-                            }
-                        });
-
-                        // Try applying decorations after ALL clients have been processed:
-                        setTimeout(() => {
-                            requestIdleCallback(() => {
-                                for (const [
-                                    clientId,
-                                    decorationsForClient,
-                                ] of batchedDecorationsMap.entries()) {
-                                    let decorationCollection =
-                                        clientDecorationsRef.current.get(
-                                            clientId
-                                        );
-                                    if (!decorationCollection) {
-                                        decorationCollection =
-                                            editor.createDecorationsCollection();
-                                        clientDecorationsRef.current.set(
-                                            clientId,
-                                            decorationCollection
-                                        );
-                                    }
-                                    decorationCollection.set(
-                                        decorationsForClient
-                                    );
-                                }
-                            });
-                            decorationUpdateScheduled = false;
-                        }, 0);
-
-                        // Clean up removed clients' tooltips
-                        removed.forEach((clientId) => {
-                            const tooltipElement = document.querySelector(
-                                `.collaborator-tooltip-${clientId}`
-                            );
-                            if (tooltipElement) {
-                                tooltipElement.remove();
-                            }
-
-                            // Clear decorations for the removed client
-                            let decorationCollection =
-                                clientDecorationsRef.current.get(clientId);
-                            decorationCollection?.clear();
-                            clientDecorationsRef.current.delete(clientId);
-                        });
+                        updateDecorations(
+                            remoteUpdates,
+                            removed,
+                            editor,
+                            model,
+                            yDoc,
+                            clientDecorationsRef
+                        );
+                        decorationUpdateScheduled = false;
                     });
-                }, 30); // debounce awareness update 1 frame
+                }, 2000); // 100ms debounce for remote updates
+            } else if (localUpdates.length === 0 && removed.length > 0) {
+                // Handle removals immediately if no updates
+                requestAnimationFrame(() => {
+                    updateDecorations(
+                        [],
+                        removed,
+                        editor,
+                        model,
+                        yDoc,
+                        clientDecorationsRef
+                    );
+                    decorationUpdateScheduled = false;
+                });
             }
         });
+
+        function updateDecorations(
+            updatedClients,
+            removedClients,
+            editor,
+            model,
+            yDoc,
+            clientDecorations
+        ) {
+            const editorDomNode = editor.getDomNode();
+            if (!model || !editorDomNode) return;
+
+            updatedClients.forEach((clientId) => {
+                const state = awareness.getStates().get(clientId);
+                if (!state || !state.selection || !state.user) {
+                    console.warn(
+                        `Incomplete awareness states for client ${clientId}. Cleaning up.`
+                    );
+                    const tooltipElement = document.querySelector(
+                        `.collaborator-tooltip-${clientId}`
+                    );
+                    if (tooltipElement) tooltipElement.remove();
+                    const decorationCollection =
+                        clientDecorations.current.get(clientId);
+                    if (decorationCollection) decorationCollection.clear();
+                    return;
+                }
+
+                const { user, selection } = state;
+                const cursorColorIndex = user.cursorColorIndex;
+                const color = cursorColors[cursorColorIndex];
+
+                const headAbs =
+                    createAbsolutePositionFromRelativePosition(
+                        selection.head,
+                        yDoc
+                    )?.index ?? 0;
+                const anchorAbs =
+                    createAbsolutePositionFromRelativePosition(
+                        selection.anchor,
+                        yDoc
+                    )?.index ?? 0;
+                const headPos = model.getPositionAt(headAbs);
+                const anchorPos = model.getPositionAt(anchorAbs);
+
+                const decorationsForClient = [];
+                if (
+                    headPos.lineNumber !== anchorPos.lineNumber ||
+                    headPos.column !== anchorPos.column
+                ) {
+                    const [start, end] = [headPos, anchorPos].sort(
+                        (a, b) =>
+                            a.lineNumber - b.lineNumber || a.column - b.column
+                    );
+                    decorationsForClient.push({
+                        range: new monaco.Range(
+                            start.lineNumber,
+                            start.column,
+                            end.lineNumber,
+                            end.column
+                        ),
+                        options: {
+                            className: `collaborator-selection`,
+                            inlineClassName: `collaborator-selection-${cursorColorIndex}`,
+                            stickiness:
+                                monaco.editor.TrackedRangeStickiness
+                                    .NeverGrowsWhenTyping,
+                            overviewRuler: {
+                                color,
+                                position:
+                                    monaco.editor.OverviewRulerLane.Center,
+                            },
+                        },
+                    });
+                }
+
+                const cursorPosition = {
+                    lineNumber: anchorPos.lineNumber,
+                    column: anchorPos.column,
+                };
+                decorationsForClient.push({
+                    range: new monaco.Range(
+                        cursorPosition.lineNumber,
+                        cursorPosition.column,
+                        cursorPosition.lineNumber,
+                        cursorPosition.column
+                    ),
+                    options: {
+                        className: `collaborator-cursor collaborator-cursor-${cursorColorIndex}`,
+                        isWholeLine: false,
+                    },
+                });
+
+                let decorationCollection =
+                    clientDecorations.current.get(clientId);
+                if (!decorationCollection) {
+                    decorationCollection = editor.createDecorationsCollection();
+                    clientDecorations.current.set(
+                        clientId,
+                        decorationCollection
+                    );
+                }
+                decorationCollection.clear();
+                decorationCollection.set(decorationsForClient); // Use set instead of append
+
+                const overlayContainer = editor
+                    .getDomNode()
+                    ?.querySelector('.view-overlays');
+                let tooltipElement = document.querySelector(
+                    `.collaborator-tooltip-${clientId}`
+                );
+                if (!tooltipElement) {
+                    tooltipElement = document.createElement('div');
+                    tooltipElement.className = `collaborator-tooltip collaborator-tooltip-${clientId}`;
+                    tooltipElement.style.backgroundColor = color;
+                    tooltipElement.style.width = 'fit-content';
+                    tooltipElement.style.maxWidth = '200px';
+                    if (!overlayContainer?.contains(tooltipElement))
+                        overlayContainer?.appendChild(tooltipElement);
+                }
+                tooltipElement.textContent = user.name || 'Anonymous';
+
+                const targetPixelPosition =
+                    editor.getScrolledVisiblePosition(cursorPosition);
+                if (targetPixelPosition) {
+                    const scrollTop = editor.getScrollTop();
+                    const scrollLeft = editor.getScrollLeft();
+                    const leftPos = targetPixelPosition.left + scrollLeft;
+                    const topPos =
+                        targetPixelPosition.top +
+                        scrollTop -
+                        tooltipElement.offsetHeight -
+                        3;
+                    tooltipElement.style.left = `${leftPos}px`;
+                    tooltipElement.style.top = `${topPos}px`;
+                    tooltipElement.style.display = 'block';
+                } else {
+                    tooltipElement.style.display = 'none';
+                }
+            });
+
+            removedClients.forEach((clientId) => {
+                const tooltipElement = document.querySelector(
+                    `.collaborator-tooltip-${clientId}`
+                );
+                if (tooltipElement) tooltipElement.remove();
+                const decorationCollection =
+                    clientDecorations.current.get(clientId);
+                if (decorationCollection) {
+                    decorationCollection.clear();
+                    clientDecorations.current.delete(clientId);
+                }
+            });
+        }
     }
 
     // Effect to clean up the MonacoBinding and awareness listeners when CodeEditor unmounts
