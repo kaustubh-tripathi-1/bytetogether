@@ -273,7 +273,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
             }
             dispatch(setCodeContent(file.content || ''));
         },
-        [dispatch, files, isYjsConnected, selectedFile.$id, yjsResources.yText]
+        [dispatch, files, isYjsConnected, selectedFile, yjsResources.yText]
     );
 
     const handleFormatCode = useCallback(() => {
@@ -501,7 +501,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                 type: 'success',
             })
         );
-    }, [isYjsConnected, projectId, selectedFile.$id, dispatch]);
+    }, [isYjsConnected, projectId, selectedFile, dispatch]);
 
     return (
         <section
