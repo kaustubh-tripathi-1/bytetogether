@@ -79,6 +79,14 @@ const editorSlice = createSlice({
             state.selectedFile = action.payload;
         },
         /**
+         * Sets the the selected file.
+         * @param {EditorState} state - Current state.
+         * @param {Object} action - Action with payload containing selected file name.
+         */
+        setSelectedFileContent: (state, action) => {
+            state.selectedFile.content = action.payload;
+        },
+        /**
          * Sets the programming language
          * @param {EditorState} state - Current state.
          * @param {Object} action - Action with payload containing language name
@@ -111,6 +119,7 @@ export const {
     setCodeContent,
     setLanguage,
     setSelectedFile,
+    setSelectedFileContent,
     setEditorSettings,
     setIsLoading,
     setError,
