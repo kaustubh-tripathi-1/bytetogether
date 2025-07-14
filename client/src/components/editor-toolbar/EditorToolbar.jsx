@@ -99,10 +99,10 @@ function EditorToolbar({
                 </button>
                 <button
                     onClick={handleInvite}
-                    className="cursor-pointer rounded-full px-3 py-2 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                    className="cursor-pointer rounded-full px-2 py-1 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                     aria-label="Open WS"
                 >
-                    <Invite width={1.3} height={1.3} />
+                    <Invite width={1.8} height={1.8} />
                 </button>
             </div>
         </div>
