@@ -467,14 +467,15 @@ export default function CodeEditor({
                 awareness.setLocalStateField('selection', null);
                 awareness.setLocalStateField('user', null);
                 awareness.setLocalStateField('usedColorIndices', []);
-                awareness.destroy();
+                awareness.setLocalState(null);
+                awareness.getStates()?.delete(awareness.clientID);
             }
 
             // Clear all remaining decorations from clientDecorations map
             if (editorRef.current) {
                 // eslint-disable-next-line react-hooks/exhaustive-deps
-                clientDecorationsRef.current.forEach(() => {
-                    editorRef.current.createDecorationsCollection([]);
+                clientDecorationsRef.current.forEach((decorations) => {
+                    decorations.clear();
                 });
             }
             clientDecorationsRef.current?.clear(); // Clear the map
@@ -487,7 +488,7 @@ export default function CodeEditor({
     }, [yText, awareness, editorRef]); // Re-run effect on file switches
 
     useEffect(() => {
-        if (!awareness) return;
+        if (!awareness || awareness.getStates()?.size < 2) return;
 
         const afkCheckInterval = setInterval(() => {
             const states = awareness.getStates();
