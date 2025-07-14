@@ -7,7 +7,10 @@ import {
     createAbsolutePositionFromRelativePosition,
 } from 'yjs';
 
-import { setCodeContent } from '../../store/slices/editorSlice';
+import {
+    setCodeContent,
+    setSelectedFileContent,
+} from '../../store/slices/editorSlice';
 import { Spinner } from '../componentsIndex';
 import { addNotification } from '../../store/slices/uiSlice';
 
@@ -42,8 +45,8 @@ export default function CodeEditor({
     const bindingRef = useRef(null); // To store the MonacoBinding instance for cleanup
     const closestSectionRef = useRef(null); // To store the parent section of Monaco for relative postioning of tooltips
     const awarenessTimerRef = useRef(null); // To debounce the awareness update rendering
-    const heartbeatIntervalRef = useRef(null); // To clear heartbeat interval
     const clientDecorationsRef = useRef(new Map()); // Map to store decorations for each client
+    const lastHeartbeatTimeRef = useRef(0); // To store last time heartbeat state is updated for throttling
 
     // Distinct cursor colors for each collaborator
     const cursorColors = [
@@ -57,6 +60,7 @@ export default function CodeEditor({
     function handleContentChange(value) {
         if (!yText) {
             dispatch(setCodeContent(value));
+            dispatch(setSelectedFileContent(value));
         }
     }
 
@@ -208,14 +212,19 @@ export default function CodeEditor({
             awareness.setLocalStateField('selection', { anchor, head });
         });
 
-        if (heartbeatIntervalRef.current) {
-            clearInterval(heartbeatIntervalRef.current);
+        function sendThrottledHeartbeat() {
+            const now = Date.now();
+            if (now - lastHeartbeatTimeRef.current >= 5000) {
+                // 5 seconds
+                awareness.setLocalStateField('heartbeat', now);
+                console.log(`lol`);
+                lastHeartbeatTimeRef.current = now;
+            }
         }
-        heartbeatIntervalRef.current = setInterval(() => {
-            let date = new Date();
-            date = date.toLocaleTimeString();
-            awareness.setLocalStateField('heartbeat', date);
-        }, 60000);
+
+        editor.onDidChangeCursorPosition(() => {
+            sendThrottledHeartbeat();
+        });
 
         let decorationUpdateScheduled = false;
         // --- Yjs Awareness (Cursor & Selection Sync) ---
@@ -263,7 +272,7 @@ export default function CodeEditor({
                                 return;
                             }
 
-                            const { user, selection } = state;
+                            const { user, selection /* , heartbeat */ } = state;
 
                             const cursorColorIndex = user.cursorColorIndex;
                             const color = cursorColors[cursorColorIndex];
@@ -371,7 +380,6 @@ export default function CodeEditor({
                                 user.name || 'Anonymous';
 
                             // Position the tooltip relative to the editor content
-                            // Monaco provides `getScrolledVisiblePosition` which gives pixel coords
                             const targetPixelPosition =
                                 editor.getScrolledVisiblePosition(
                                     cursorPosition
@@ -383,8 +391,7 @@ export default function CodeEditor({
                                 const scrollLeft = editor.getScrollLeft();
 
                                 const leftPos =
-                                    targetPixelPosition.left +
-                                    scrollLeft; /*  - 63 */
+                                    targetPixelPosition.left + scrollLeft;
 
                                 const topPos =
                                     targetPixelPosition.top +
@@ -480,6 +487,32 @@ export default function CodeEditor({
         };
     }, [yText, awareness, editorRef]); // Re-run effect when yText or awareness instances change (i.e., file switch)
 
+    useEffect(() => {
+        if (!awareness) return;
+
+        const afkCheckInterval = setInterval(() => {
+            const states = awareness.getStates();
+
+            states.forEach((state, clientId) => {
+                if (clientId === awareness.clientID) return; // skip self
+
+                const tooltip = document.querySelector(
+                    `.collaborator-tooltip-${clientId}`
+                );
+                if (!tooltip || !state.user || !state.heartbeat) return;
+
+                const minutesIdle =
+                    (Date.now() - state.heartbeat) / (60 * 1000);
+
+                tooltip.classList.toggle('tooltip-afk', minutesIdle >= 2);
+            });
+        }, 30 * 1000); // check AFK every 30 sec
+
+        return () => {
+            clearInterval(afkCheckInterval);
+        };
+    }, [awareness]);
+
     const editorSectionProps = {
         className:
             'relative flex h-[calc(100%-4rem)] flex-col text-gray-800 dark:text-gray-200',
@@ -538,7 +571,9 @@ export default function CodeEditor({
 
     // Only render MonacoEditor if yText and awareness are provided
     if (!yText || !awareness) {
-        return <Spinner size="4" />; // Or some other placeholder/loading indicator
+        console.log(yText, awareness);
+
+        return <Spinner size="4" />;
     }
 
     return (
