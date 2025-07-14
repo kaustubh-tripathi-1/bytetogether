@@ -396,7 +396,7 @@ export default function CodeEditor({
                                     targetPixelPosition.top +
                                     scrollTop -
                                     tooltipElement.offsetHeight -
-                                    3; // 3px above cursor
+                                    0; // Tooltip offset from the cursor
 
                                 tooltipElement.style.left = `${leftPos}px`;
                                 tooltipElement.style.top = `${topPos}px`;
