@@ -97,3 +97,15 @@
 .collaborator-tooltip-4 {
     background-color: #009191;
 }
+
+/* AFK User Tooltip style*/
+.tooltip-afk {
+    opacity: 0.7;
+    filter: grayscale(40%);
+    transition: opacity 0.3s ease;
+
+    &::after {
+        content: ' (AFK)';
+        color: #ffffff;
+    }
+}
