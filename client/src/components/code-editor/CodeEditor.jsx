@@ -217,7 +217,6 @@ export default function CodeEditor({
             if (now - lastHeartbeatTimeRef.current >= 5000) {
                 // 5 seconds
                 awareness.setLocalStateField('heartbeat', now);
-                console.log(`lol`);
                 lastHeartbeatTimeRef.current = now;
             }
         }
@@ -485,7 +484,7 @@ export default function CodeEditor({
                 .querySelectorAll('.collaborator-tooltip')
                 .forEach((el) => el.remove());
         };
-    }, [yText, awareness, editorRef]); // Re-run effect when yText or awareness instances change (i.e., file switch)
+    }, [yText, awareness, editorRef]); // Re-run effect on file switches
 
     useEffect(() => {
         if (!awareness) return;
