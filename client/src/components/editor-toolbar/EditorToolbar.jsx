@@ -55,10 +55,10 @@ function EditorToolbar({
                 <Tooltip content={'Format code'}>
                     <button
                         onClick={handleFormatCode}
-                        className="cursor-pointer rounded-full px-3 pt-2 pb-2 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                        className="cursor-pointer rounded-full px-3 pt-2.25 pb-2 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                         aria-label="Format code"
                     >
-                        <Format />
+                        <Format width={1.6} height={1.6} />
                     </button>
                 </Tooltip>
                 <Tooltip content={'Run code'}>
@@ -73,7 +73,7 @@ function EditorToolbar({
                 <Tooltip content={'Reset code'}>
                     <button
                         onClick={handleResetCode}
-                        className="cursor-pointer rounded-full px-3 pt-3 pb-2 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                        className="cursor-pointer rounded-full px-3 pt-2.5 pb-2 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                         aria-label="Reset code to language default"
                     >
                         <Reset width={1.3} height={1.3} />
@@ -99,7 +99,7 @@ function EditorToolbar({
                 <Tooltip content={'Settings'}>
                     <button
                         onClick={handleOpenSettings}
-                        className="cursor-pointer rounded-full px-3 pt-2.25 pb-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                        className="cursor-pointer rounded-full px-3 pt-2 pb-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                         aria-label="Open settings"
                     >
                         <Settings width={1.7} height={1.7} />
