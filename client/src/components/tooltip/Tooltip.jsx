@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 
+import './Tooltip.css';
+
 /**
  * Generic Tooltip component for any component
  */
@@ -75,7 +77,7 @@ export default function Tooltip({
                         animate={{ y: 0, opacity: 1, scale: 1 }}
                         exit={{ y: -10, opacity: 0, scale: 0.9 }}
                         transition={{ duration: 0.3 }}
-                        className={`absolute z-50 rounded-md bg-gray-300 px-2 py-1 text-xs whitespace-nowrap text-gray-800 opacity-90 dark:bg-[#2b2b44] dark:text-white ${className}`}
+                        className={`tooltip-box absolute z-50 -translate-x-0.5 transform rounded-md bg-gray-400 px-2 py-2 text-xs whitespace-nowrap text-gray-900 opacity-90 shadow-sm shadow-black/70 dark:bg-[#1c1c29] dark:text-white ${position} ${className}`}
                         style={positionStyles}
                         role="tooltip"
                     >
