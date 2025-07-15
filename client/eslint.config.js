@@ -61,6 +61,7 @@ export default [
             'react/no-string-refs': 'off', // Deprecated: String refs are obsolete
             'import/order': ['error', { 'newlines-between': 'always' }], // Sort imports
             'import/no-unresolved': [2, { ignore: ['\\.svg\\?react$'] }], // Ignore SVG imports with ?react
+            'no-console': ['warn', { allow: ['warn', 'error', 'log'] }], // Allow warn/error logs
         },
         settings: {
             react: { version: 'detect' }, // Auto-detect React version
