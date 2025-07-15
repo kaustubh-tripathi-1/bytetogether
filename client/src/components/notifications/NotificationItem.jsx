@@ -52,6 +52,8 @@ export default function NotificationItem({ notification }) {
             className={`flex items-center justify-between rounded-lg p-3 shadow-md ${
                 typeClasses[notification.type] || typeClasses.info
             }`}
+            aria-live={notification.type === 'error' ? 'assertive' : 'polite'}
+            aria-atomic="true"
         >
             <p className="text-sm font-medium">{notification.message}</p>
             <button
