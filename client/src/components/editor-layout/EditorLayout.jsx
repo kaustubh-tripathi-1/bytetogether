@@ -11,7 +11,7 @@ import {
     OutputPanel,
 } from '../componentsIndex.js';
 import { modalConfig } from '../../conf/modalConfig.jsx';
-import { disconnectAllYjs } from '../../../lib/yjs.js';
+import { disconnectAllYjs } from '../../lib/yjs.js';
 import { useRealTimeSync } from '../../hooks/yjs-real-time-sync/useRealTimeSync.js';
 import { useInitialFileStup } from '../../hooks/editor-layout-and-actions/useInitialFileSetup.js';
 import { usePanelsResize } from '../../hooks/editor-layout-and-actions/usePanelsResize.js';
