@@ -14,7 +14,7 @@ import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName';
  * @param {Object} config Parameters for real time sync logic.
  * @param {React.ComponentState<Object>} config.selectedFile The selected file data
  * @param {React.ComponentState<boolean>} config.isYjsConnected State indicating if yjs is connected
- * @param {React.ComponentState<boolean>} config.isInviter State indicating if the client is the inviter
+ * @param {React.ComponentState<boolean>} config.isAdmin State indicating if the client is the isInviteradmin
  * @param {React.ComponentState<Object>} config.yjsResources State containing YJS resources like Doc, CRDT and Awareness
  * @param {React.SetStateAction<Function>} config.setYjsResources State setter to update YJS resources
  * @param {React.MutableRefObject<string>} config.currentConnectedFileIdRef Ref containing the file id of the current file
@@ -22,7 +22,7 @@ import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName';
 export function useRealTimeSync({
     selectedFile,
     isYjsConnected,
-    isInviter,
+    isAdmin,
     yjsResources,
     currentConnectedFileIdRef,
     setYjsResources,
@@ -54,9 +54,10 @@ export function useRealTimeSync({
             disconnectYjsForFile(currentConnectedFileIdRef.current);
         }
 
-        const { yDoc, yText, awareness } = getOrCreateYDoc(newFileId);
+        const { yDoc, yText, awareness, wsProvider } =
+            getOrCreateYDoc(newFileId);
         // Update yjs resources
-        setYjsResources({ yDoc, yText, awareness });
+        setYjsResources({ yDoc, yText, awareness, wsProvider });
 
         // Connect to room for the new file if not already connected or if invited
         if (isYjsConnected) {
@@ -69,11 +70,7 @@ export function useRealTimeSync({
         }
 
         // Set initial content for the Y.Text if it's empty, otherwise use Yjs content
-        if (
-            isInviter &&
-            yText.length === 0 &&
-            selectedFile.content.length > 0
-        ) {
+        if (isAdmin && yText.length === 0 && selectedFile.content.length > 0) {
             yText.insert(0, selectedFile.content);
         }
 
@@ -97,7 +94,7 @@ export function useRealTimeSync({
         selectedFile,
         dispatch,
         isYjsConnected,
-        isInviter,
+        isAdmin,
         yjsResources.yText,
         currentConnectedFileIdRef,
         setYjsResources,
