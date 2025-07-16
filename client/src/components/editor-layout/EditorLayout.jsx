@@ -72,6 +72,9 @@ export default function EditorLayout({ projectId, isNewProject }) {
         yjsResources,
         currentConnectedFileIdRef,
         setYjsResources,
+        isNewProject,
+        projectId,
+        setIsYjsConnected,
     });
 
     const { handleHorizontalMouseDown, handleVerticalMouseDown } =
