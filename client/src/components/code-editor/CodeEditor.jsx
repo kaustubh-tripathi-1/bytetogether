@@ -33,14 +33,13 @@ export default function CodeEditor({
     language,
     codeContent,
     ref: editorRef,
-    yDoc,
-    yText,
-    awareness,
-    isInvited,
+    yjsResources,
+    isYjsConnected,
 }) {
     const dispatch = useDispatch();
     const { settings } = useSelector((state) => state.editor);
     const { theme } = useSelector((state) => state.ui);
+    const { yDoc, yText, awareness } = yjsResources;
 
     const bindingRef = useRef(null); // To store the MonacoBinding instance for cleanup
     const closestSectionRef = useRef(null); // To store the parent section of Monaco for relative postioning of tooltips
@@ -561,7 +560,7 @@ export default function CodeEditor({
     };
 
     // Only render MonacoEditor if yText and awareness are provided
-    if (!isInvited) {
+    if (!isYjsConnected) {
         return (
             <section {...editorSectionProps}>
                 <MonacoEditor {...editorProps} />
