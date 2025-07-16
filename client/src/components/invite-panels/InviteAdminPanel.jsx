@@ -19,7 +19,7 @@ export default function InviteAdminPanel({
     anchorRef,
 }) {
     const panelRef = useRef(null);
-    const [position, setPosition] = useState({ top: 0, left: 0 });
+    const [position, setPosition] = useState(null);
 
     // Calculate position relative to anchor (Invite button)
     useEffect(() => {
@@ -60,7 +60,7 @@ export default function InviteAdminPanel({
         );
     }, [awareness]);
 
-    if (!isOpen) return null;
+    if (!isOpen || !position) return null;
 
     return (
         <div

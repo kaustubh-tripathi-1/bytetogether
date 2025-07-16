@@ -19,7 +19,7 @@ export default function InvitePanel({
     anchorRef,
 }) {
     const panelRef = useRef(null);
-    const [position, setPosition] = useState({ top: 0, left: 0 });
+    const [position, setPosition] = useState(null);
 
     // Calculate position relative to anchor (Invite button)
     useEffect(() => {
@@ -51,7 +51,7 @@ export default function InvitePanel({
         };
     }, [isOpen, onClose]);
 
-    if (!isOpen) return null;
+    if (!isOpen || !position) return null;
 
     return (
         <div
