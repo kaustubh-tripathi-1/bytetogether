@@ -90,9 +90,10 @@ function disconnectYjsForFile(fileId) {
  */
 function disconnectAllYjs() {
     wsProvidersMap.forEach((provider, fileId) => {
-        if (provider && provider.shouldConnect) {
+        if (provider) {
             console.log(
-                `Disconnecting all Yjs providers from room ${provider.roomid} with file id - ${fileId}.`
+                `Disconnecting all Yjs providers from room ${provider.roomname} with file id - ${fileId}.`,
+                provider
             );
             provider.disconnect();
         }
