@@ -159,42 +159,61 @@ export function useEditorActions({
      * Placeholder for running code (to be implemented in Phase 6)
      */
     const handleRunCode = useCallback(() => {
-        const { yText } = getOrCreateYDoc(selectedFile.$id);
-        // Simulate output for now
-        setOutput(
-            `Simulated output for:\n${yText ? yText.toString() : codeContent}\nInput:\n${input}`
-        );
-    }, [codeContent, input, selectedFile, setOutput]);
+        try {
+            const { yText } = getOrCreateYDoc(selectedFile.$id);
+            // Simulate output for now
+            setOutput(
+                `Simulated output for:\n${yText ? yText.toString() : codeContent}\nInput:\n${input}`
+            );
+        } catch (err) {
+            dispatch(
+                addNotification({
+                    message:
+                        'Failed to retrieve shared code! Please try again...',
+                    type: 'error',
+                })
+            );
+        }
+    }, [codeContent, dispatch, input, selectedFile.$id, setOutput]);
 
     /**
      * Saves the current file content and metadata to Appwrite.
      */
     const handleSaveAllFiles = useCallback(() => {
-        const filesToSave = files.map((file) => {
-            const { yText } = getOrCreateYDoc(file.$id);
-            return {
-                $id: file.$id,
-                name: file.fileName,
-                language: getLanguageFromFileName(file.fileName),
-                content:
-                    file.$id === selectedFile?.$id && isYjsConnected
-                        ? yText.toString()
-                        : file.content || '', // Save yText content for selected file
-            };
-        });
+        try {
+            const filesToSave = files.map((file) => {
+                const { yText } = getOrCreateYDoc(file.$id);
+                return {
+                    $id: file.$id,
+                    name: file.fileName,
+                    language: getLanguageFromFileName(file.fileName),
+                    content:
+                        file.$id === selectedFile?.$id && isYjsConnected
+                            ? yText.toString()
+                            : file.content || '', // Save yText content for selected file
+                };
+            });
 
-        if (isNewProject) {
+            if (isNewProject) {
+                dispatch(
+                    saveAllFilesForNewProject({
+                        projectName: 'default',
+                        files: filesToSave.filter((file) => !file.$id), // Only new files
+                    })
+                );
+            } else {
+                dispatch(
+                    updateAllFilesForExistingProject(
+                        filesToSave.filter((file) => file.$id) // Only existing files
+                    )
+                );
+            }
+        } catch (err) {
             dispatch(
-                saveAllFilesForNewProject({
-                    projectName: 'default',
-                    files: filesToSave.filter((file) => !file.$id), // Only new files
+                addNotification({
+                    message: 'Failed to save! Please try again...',
+                    type: 'error',
                 })
-            );
-        } else {
-            dispatch(
-                updateAllFilesForExistingProject(
-                    filesToSave.filter((file) => file.$id) // Only existing files
-                )
             );
         }
     }, [dispatch, files, isNewProject, isYjsConnected, selectedFile?.$id]);
@@ -235,11 +254,20 @@ export function useEditorActions({
      * Reset code to language defualt
      */
     const handleResetCode = useCallback(() => {
-        const { yText } = getOrCreateYDoc(selectedFile.$id);
-        const defaultCode = getDefaultCodeForLanguage(language);
-        yText.delete(0, yText.length);
-        yText.insert(0, defaultCode);
-        dispatch(setCodeContent(defaultCode));
+        try {
+            const { yText } = getOrCreateYDoc(selectedFile.$id);
+            const defaultCode = getDefaultCodeForLanguage(language);
+            yText.delete(0, yText.length);
+            yText.insert(0, defaultCode);
+            dispatch(setCodeContent(defaultCode));
+        } catch (err) {
+            dispatch(
+                addNotification({
+                    message: 'Failed to reset! Please try again...',
+                    type: 'error',
+                })
+            );
+        }
     }, [dispatch, language, selectedFile]);
 
     /**
