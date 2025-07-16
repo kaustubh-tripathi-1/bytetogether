@@ -1,7 +1,11 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { connectYjsForFile, getOrCreateYDoc } from '../../../lib/yjs';
+import {
+    connectYjsForFile,
+    disconnectAllYjs,
+    getOrCreateYDoc,
+} from '../../../lib/yjs';
 import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName';
 import {
     saveAllFilesForNewProject,
@@ -21,23 +25,23 @@ import {
  * running code, saving files, managing settings UI, handling collaboration (Yjs) and file and language changes.
  *
  * @param {Object} options
- * @param {React.RefObject} options.editorRef - Ref to the Monaco editor instance.
- * @param {Object} options.selectedFile - Currently selected file object.
- * @param {Function} options.setOutput - Setter to update output (used in run simulation).
- * @param {string} options.codeContent - Current code content of the editor.
- * @param {string} options.input - Custom input provided by user for code execution.
- * @param {Array} options.files - List of all files in the current project.
- * @param {boolean} options.isYjsConnected - Whether Yjs collaboration is active.
- * @param {boolean} options.isNewProject - Whether the project is newly created.
- * @param {Function} options.setIsSettingsOpen - Setter to control settings modal visibility.
- * @param {Function} options.setIsShortcutsOpen - Setter to control shortcuts modal visibility.
- * @param {Function} options.setIsYjsConnected - Setter to enable/disable Yjs collaboration.
- * @param {Function} options.setIsInvited - Setter to mark user as invited in a session.
- * @param {Function} options.setIsInviter - Setter to mark user as inviter in a session.
- * @param {string} options.projectId - Unique ID of the project.
- * @param {string} options.language - Currently selected programming language.
- * @param {Object} options.settings - Current editor settings from Redux.
- * @param {Object} options.yjsResources - Contains yText, yDoc, and awareness instances.
+ * @param {boolean} options.isNewProject Whether the project is newly created.
+ * @param {string} options.projectId Unique ID of the project.
+ * @param {React.RefObject} options.editorRef Ref to the Monaco editor instance.
+ * @param {Array} options.files List of all files in the current project.
+ * @param {Object} options.selectedFile Currently selected file object.
+ * @param {string} options.codeContent Current code content of the editor.
+ * @param {string} options.language Currently selected programming language.
+ * @param {Object} options.settings Current editor settings from Redux.
+ * @param {React.SetStateAction} options.setOutput Setter to update output (used in run simulation).
+ * @param {string} options.input Custom input provided by user for code execution.
+ * @param {React.ComponentState<boolean>} options.isYjsConnected Whether Yjs collaboration is active.
+ * @param {React.SetStateAction} options.setIsSettingsOpen Setter to control settings modal visibility.
+ * @param {React.SetStateAction} options.setIsShortcutsOpen Setter to control shortcuts modal visibility.
+ * @param {React.SetStateAction} options.setIsYjsConnected Setter to enable/disable Yjs collaboration.
+ * @param {React.SetStateAction} options.setIsInvited Setter to mark user as invited in a session.
+ * @param {React.SetStateAction} options.setIsAdmin Setter to mark user as admin of a room.
+ * @param {React.ComponentState<Object>} options.yjsResources Contains yText, yDoc, and awareness instances.
  *
  * @returns {Object} Memoized Editor action handlers
  * @returns {Function} handleFileChange - Changes the selected file.
@@ -60,23 +64,24 @@ import {
  */
 
 export function useEditorActions({
-    editorRef,
-    selectedFile,
-    setOutput,
-    codeContent,
-    input,
-    files,
-    isYjsConnected,
     isNewProject,
-    setIsSettingsOpen,
-    setIsShortcutsOpen,
-    setIsYjsConnected,
-    setIsInvited,
-    setIsInviter,
     projectId,
+    editorRef,
+    files,
+    selectedFile,
+    codeContent,
     language,
     settings,
+    setOutput,
+    input,
+    isYjsConnected,
+    setIsYjsConnected,
+    setIsSettingsOpen,
+    setIsShortcutsOpen,
+    isAdmin,
+    setIsAdmin,
     yjsResources,
+    setYjsResources,
 }) {
     const dispatch = useDispatch();
 
@@ -319,7 +324,7 @@ export function useEditorActions({
         } */
 
         // Just copy the url and show noti if already connected
-        if (isYjsConnected) {
+        if (!isAdmin) {
             const currentProjectId = projectId || 'bytetogether'; // Fallback to default
             const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&room=${currentProjectId}&file=${selectedFile.$id}`;
 
@@ -335,8 +340,7 @@ export function useEditorActions({
         }
 
         setIsYjsConnected(true);
-        setIsInvited(true);
-        setIsInviter(true);
+        setIsAdmin(true);
         const currentProjectId = projectId || 'bytetogether'; // Fallback to default
 
         // Connect Yjs for the current room
@@ -353,14 +357,28 @@ export function useEditorActions({
             })
         );
     }, [
-        isYjsConnected,
+        isAdmin,
         setIsYjsConnected,
-        setIsInvited,
-        setIsInviter,
+        setIsAdmin,
         projectId,
-        selectedFile,
+        selectedFile.$id,
         dispatch,
     ]);
+
+    const handleEndRoom = useCallback(() => {
+        if (yjsResources.wsProvider) {
+            yjsResources.wsProvider.destroy();
+            disconnectAllYjs();
+            setYjsResources({
+                yDoc: null,
+                yText: null,
+                awareness: null,
+                wsProvider: null,
+            });
+            setIsYjsConnected(false);
+            // Notify clients or clean up state
+        }
+    }, [setIsYjsConnected, setYjsResources, yjsResources.wsProvider]);
 
     return {
         handleFileChange,
@@ -380,5 +398,6 @@ export function useEditorActions({
         handleStickyScrollChange,
         handleTabSizeChange,
         handleInvite,
+        handleEndRoom,
     };
 }
