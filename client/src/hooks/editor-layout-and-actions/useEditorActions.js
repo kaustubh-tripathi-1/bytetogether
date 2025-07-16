@@ -5,7 +5,7 @@ import {
     connectYjsForFile,
     disconnectAllYjs,
     getOrCreateYDoc,
-} from '../../../lib/yjs';
+} from '../../lib/yjs';
 import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName';
 import {
     saveAllFilesForNewProject,

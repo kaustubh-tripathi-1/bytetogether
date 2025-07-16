@@ -5,7 +5,7 @@ import {
     connectYjsForFile,
     disconnectYjsForFile,
     getOrCreateYDoc,
-} from '../../../lib/yjs';
+} from '../../lib/yjs';
 import { setCodeContent, setLanguage } from '../../store/slices/editorSlice';
 import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName';
 import { addNotification } from '../../store/slices/uiSlice';
