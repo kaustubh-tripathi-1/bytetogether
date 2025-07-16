@@ -1,9 +1,10 @@
-import { memo } from 'react';
-// import { useSelector } from 'react-redux';
+import { memo, useCallback, useRef, useState } from 'react';
 
 import {
     Format,
     Invite,
+    InviteAdminPanel,
+    InvitePanel,
     Keyboard,
     LanguageSelector,
     Reset,
@@ -16,30 +17,52 @@ import {
 
 /**
  * Toolbar component for editor controls.
- * @param {object} props - Props for the component.
- * @param {Function} props.handleFormatCode - Callback to format code in the editor.
- * @param {Function} props.handleRunCode - Callback to run the code.
- * @param {Function} props.handleLanguageChange - Callback to change language for the editor.
- * @param {Function} props.handleSaveAllFiles - Callback to save all files to DB.
- * @param {number} props.fileCount - Number of files in state.
- * @param {Function} props.handleOpenSettings - Callback to open settings modal.
- * @param {Function} props.handleOpenKeyboardShortcuts - Callback to open keyboard shortcuts modal.
- * @param {Function} props.handleResetCode - Callback to reset code to language default.
- * @param {Function} props.handleInvite - Callback to invite a collaborator.
+ * @param {object} props Props for the component.
+ * @param {Function} props.handleFormatCode Callback to format code in the editor.
+ * @param {Function} props.handleRunCode Callback to run the code.
+ * @param {Function} props.handleLanguageChange Callback to change language for the editor.
+ * @param {Function} props.handleSaveAllFiles Callback to save all files to DB.
+ * @param {number} props.fileCount Number of files in state.
+ * @param {Function} props.handleOpenSettings Callback to open settings modal.
+ * @param {Function} props.handleOpenKeyboardShortcuts Callback to open keyboard shortcuts modal.
+ * @param {Function} props.handleResetCode Callback to reset code to language default.
+ * @param {Function} props.handleInvite Callback to invite a collaborator.
  * @returns {JSX.Element} The memoized editor toolbar with LanguageSelector and other editor controls.
  */
 function EditorToolbar({
+    language,
     handleFormatCode,
     handleRunCode,
-    // handleLanguageChange,
+    handleLanguageChange,
     handleSaveAllFiles,
     fileCount,
     handleOpenSettings,
     handleOpenKeyboardShortcuts,
     handleResetCode,
     handleInvite,
+    isAdmin,
+    handleEndRoom,
+    // onRemoveCollaborator,
+    // collaborators,
+    yjsResources,
+    setIsYjsConnected,
 }) {
-    // const { language } = useSelector((state) => state.editor);
+    const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+    const inviteButtonRef = useRef(null);
+
+    function handleInviteClick() {
+        setIsAdminPanelOpen((prev) => !prev);
+    }
+
+    const closeAdminPanel = useCallback(() => {
+        setIsAdminPanelOpen(false);
+    }, []);
+
+    const handleEndSession = useCallback(() => {
+        handleEndRoom();
+        setIsYjsConnected(false);
+        setIsAdminPanelOpen(false);
+    }, [handleEndRoom, setIsYjsConnected]);
 
     return (
         <div
@@ -47,10 +70,10 @@ function EditorToolbar({
             role="toolbar"
             aria-label="Editor toolbar"
         >
-            {/* <LanguageSelector
+            <LanguageSelector
                 selectedLanguage={language}
                 onLanguageChange={handleLanguageChange}
-            /> */}
+            />
             <div className="flex w-full items-center justify-center gap-1 sm:gap-8 md:justify-end md:gap-1.5">
                 <Tooltip content={'Format code'}>
                     <button
@@ -116,13 +139,42 @@ function EditorToolbar({
                 </Tooltip>
                 <Tooltip content={'Invite'}>
                     <button
-                        onClick={handleInvite}
+                        ref={inviteButtonRef}
+                        onClick={handleInviteClick}
                         className="cursor-pointer rounded-full px-2.5 py-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                         aria-label="Invite collaborators"
                     >
                         <Invite width={1.8} height={1.8} />
                     </button>
                 </Tooltip>
+                {/* {isAdmin && isAdminPanelOpen && (
+                    <InviteAdminPanel
+                        onEndRoom={handleEndRoom}
+                        onCopyInviteLink={handleInvite}
+                        collaborators={collaborators}
+                        onClose={closeAdminPanel}
+                        anchorRef={inviteButtonRef}
+                    />
+                )} */}
+                {isAdmin && isAdminPanelOpen ? (
+                    <InviteAdminPanel
+                        isOpen={isAdminPanelOpen}
+                        onClose={closeAdminPanel}
+                        awareness={yjsResources.awareness}
+                        onEndSession={handleEndSession}
+                        onCopyLink={handleInvite}
+                        anchorRef={inviteButtonRef}
+                    />
+                ) : (
+                    <InvitePanel
+                        isOpen={isAdminPanelOpen}
+                        onClose={closeAdminPanel}
+                        awareness={yjsResources.awareness}
+                        onEndSession={handleEndSession}
+                        onCopyLink={handleInvite}
+                        anchorRef={inviteButtonRef}
+                    />
+                )}
             </div>
         </div>
     );
