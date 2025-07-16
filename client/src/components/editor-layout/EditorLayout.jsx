@@ -50,15 +50,15 @@ export default function EditorLayout({ projectId, isNewProject }) {
         yDoc: null,
         yText: null,
         awareness: null,
+        wsProvider: null,
     });
     const urlParams = useMemo(
         () => new URLSearchParams(window.location.search),
         []
     );
     const isInvitedSession = urlParams.get('invite') === 'true';
-    const [isInvited, setIsInvited] = useState(isInvitedSession);
     const [isYjsConnected, setIsYjsConnected] = useState(isInvitedSession);
-    const [isInviter, setIsInviter] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(!isInvitedSession);
 
     // Store the currently active file ID that Yjs is connected to.
     const currentConnectedFileIdRef = useRef(null);
@@ -68,7 +68,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
     useRealTimeSync({
         selectedFile,
         isYjsConnected,
-        isInviter,
+        isAdmin,
         yjsResources,
         currentConnectedFileIdRef,
         setYjsResources,
@@ -104,24 +104,26 @@ export default function EditorLayout({ projectId, isNewProject }) {
         handleStickyScrollChange,
         handleTabSizeChange,
         handleInvite,
+        handleEndRoom,
     } = useEditorActions({
-        editorRef,
-        selectedFile,
-        setOutput,
-        codeContent,
-        input,
-        files,
-        isYjsConnected,
         isNewProject,
-        setIsSettingsOpen,
-        setIsShortcutsOpen,
-        setIsYjsConnected,
-        setIsInvited,
-        setIsInviter,
         projectId,
+        editorRef,
+        files,
+        selectedFile,
+        codeContent,
         language,
         settings,
+        setOutput,
+        input,
+        isYjsConnected,
+        setIsYjsConnected,
+        setIsSettingsOpen,
+        setIsShortcutsOpen,
+        isAdmin,
+        setIsAdmin,
         yjsResources,
+        setYjsResources,
     });
 
     //TODO remove this when deploying, only for dev cuz of strict mode
@@ -183,6 +185,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                     </div>
 
                     <EditorToolbar
+                        language={language}
                         handleRunCode={handleRunCode}
                         handleFormatCode={handleFormatCode}
                         handleLanguageChange={handleLanguageChange}
@@ -194,16 +197,20 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         }
                         handleResetCode={handleResetCode}
                         handleInvite={handleInvite}
+                        isAdmin={isAdmin}
+                        handleEndRoom={handleEndRoom}
+                        yjsResources={yjsResources}
+                        isYjsConnected={isYjsConnected}
+                        setIsYjsConnected={setIsYjsConnected}
+                        isInvited={isInvitedSession}
                     />
                 </div>
                 <CodeEditor
                     language={language}
                     codeContent={codeContent}
                     ref={editorRef}
-                    yDoc={yjsResources.yDoc}
-                    yText={yjsResources.yText}
-                    awareness={yjsResources.awareness}
-                    isInvited={isInvited}
+                    yjsResources={yjsResources}
+                    isYjsConnected={isYjsConnected}
                 />
             </section>
 
