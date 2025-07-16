@@ -147,15 +147,6 @@ function EditorToolbar({
                         <Invite width={1.8} height={1.8} />
                     </button>
                 </Tooltip>
-                {/* {isAdmin && isAdminPanelOpen && (
-                    <InviteAdminPanel
-                        onEndRoom={handleEndRoom}
-                        onCopyInviteLink={handleInvite}
-                        collaborators={collaborators}
-                        onClose={closeAdminPanel}
-                        anchorRef={inviteButtonRef}
-                    />
-                )} */}
                 {isAdmin && isAdminPanelOpen ? (
                     <InviteAdminPanel
                         isOpen={isAdminPanelOpen}
