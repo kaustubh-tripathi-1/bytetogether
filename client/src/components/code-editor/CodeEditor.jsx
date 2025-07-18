@@ -570,8 +570,6 @@ export default function CodeEditor({
 
     // Only render MonacoEditor if yText and awareness are provided
     if (!yText || !awareness) {
-        console.log(yText, awareness);
-
         return <Spinner size="4" />;
     }
 
