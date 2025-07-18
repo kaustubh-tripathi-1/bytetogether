@@ -92,13 +92,23 @@ function disconnectAllYjs() {
     wsProvidersMap.forEach((provider, fileId) => {
         if (provider) {
             console.log(
-                `Disconnecting all Yjs providers from room ${provider.roomname} with file id - ${fileId}.`,
+                `Disconnecting all Yjs ws providers from room ${provider.roomname} with file id - ${fileId}.`,
                 provider
             );
             provider.disconnect();
+            provider.destroy();
         }
     });
     wsProvidersMap.clear();
+    yDocsMap.forEach((yDoc, fileId) => {
+        if (yDoc) {
+            console.log(
+                `Destroying all Yjs yDocs from room with file id - ${fileId}.`,
+                yDoc
+            );
+            yDoc.destroy();
+        }
+    });
     yDocsMap.clear();
     console.log('Cleared all Yjs documents and providers.');
 }
