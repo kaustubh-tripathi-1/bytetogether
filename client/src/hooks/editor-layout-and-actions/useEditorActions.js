@@ -160,21 +160,27 @@ export function useEditorActions({
      */
     const handleRunCode = useCallback(() => {
         try {
-            const { yText } = getOrCreateYDoc(selectedFile.$id);
-            // Simulate output for now
+            if (isYjsConnected) {
+                const { yText } = getOrCreateYDoc(selectedFile.$id);
+                // Simulate output for now
+                setOutput(
+                    `Simulated output for:\n${yText ? yText.toString() : codeContent}\nInput:\n${input}`
+                );
+                return;
+            }
+
             setOutput(
-                `Simulated output for:\n${yText ? yText.toString() : codeContent}\nInput:\n${input}`
+                `Simulated output for:\n${codeContent}\nInput:\n${input}`
             );
-        } catch (err) {
+        } catch (error) {
             dispatch(
                 addNotification({
-                    message:
-                        'Failed to retrieve shared code! Please try again...',
+                    message: `Failed to retrieve shared code! with error${error} Please try again...`,
                     type: 'error',
                 })
             );
         }
-    }, [codeContent, dispatch, input, selectedFile.$id, setOutput]);
+    }, [codeContent, dispatch, input, isYjsConnected, selectedFile, setOutput]);
 
     /**
      * Saves the current file content and metadata to Appwrite.
@@ -208,15 +214,22 @@ export function useEditorActions({
                     )
                 );
             }
-        } catch (err) {
+
             dispatch(
                 addNotification({
-                    message: 'Failed to save! Please try again...',
+                    message: 'Files saved successfully',
+                    type: 'success',
+                })
+            );
+        } catch (error) {
+            dispatch(
+                addNotification({
+                    message: `Failed to save with ${error}! Please try again...`,
                     type: 'error',
                 })
             );
         }
-    }, [dispatch, files, isNewProject, isYjsConnected, selectedFile?.$id]);
+    }, [dispatch, files, isNewProject, isYjsConnected, selectedFile]);
 
     /**
      * Open Settings modal
@@ -260,10 +273,10 @@ export function useEditorActions({
             yText.delete(0, yText.length);
             yText.insert(0, defaultCode);
             dispatch(setCodeContent(defaultCode));
-        } catch (err) {
+        } catch (error) {
             dispatch(
                 addNotification({
-                    message: 'Failed to reset! Please try again...',
+                    message: `Failed to reset with error ${error}! Please try again...`,
                     type: 'error',
                 })
             );
@@ -389,14 +402,53 @@ export function useEditorActions({
         setIsYjsConnected,
         setIsAdmin,
         projectId,
-        selectedFile.$id,
+        selectedFile,
         dispatch,
     ]);
 
     const handleEndRoom = useCallback(() => {
         if (yjsResources.wsProvider) {
             yjsResources.wsProvider.destroy();
-            disconnectAllYjs();
+            if (isAdmin) {
+                try {
+                    disconnectAllYjs();
+                    dispatch(
+                        addNotification({
+                            message:
+                                '✅ Room closed and session ended successfully',
+                            type: 'success',
+                            timeout: 4000,
+                        })
+                    );
+                } catch (error) {
+                    dispatch(
+                        addNotification({
+                            message: `🔴 Error in closing room with error ${error}. Please try again...`,
+                            type: 'error',
+                            timeout: 4000,
+                        })
+                    );
+                }
+            } else {
+                try {
+                    disconnectAllYjs();
+                    dispatch(
+                        addNotification({
+                            message: '✅ Left room successfully',
+                            type: 'success',
+                            timeout: 4000,
+                        })
+                    );
+                } catch (error) {
+                    dispatch(
+                        addNotification({
+                            message: `🔴 Error in closing room with error ${error}. Please try again...`,
+                            type: 'error',
+                            timeout: 4000,
+                        })
+                    );
+                }
+            }
             setYjsResources({
                 yDoc: null,
                 yText: null,
@@ -406,7 +458,13 @@ export function useEditorActions({
             setIsYjsConnected(false);
             // Notify clients or clean up state
         }
-    }, [setIsYjsConnected, setYjsResources, yjsResources.wsProvider]);
+    }, [
+        dispatch,
+        isAdmin,
+        setIsYjsConnected,
+        setYjsResources,
+        yjsResources.wsProvider,
+    ]);
 
     return {
         handleFileChange,
