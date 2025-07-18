@@ -1,4 +1,5 @@
 import { memo, useCallback, useRef, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 
 import {
     Format,
@@ -147,25 +148,29 @@ function EditorToolbar({
                         <Invite width={1.8} height={1.8} />
                     </button>
                 </Tooltip>
-                {isAdmin && isAdminPanelOpen ? (
-                    <InviteAdminPanel
-                        isOpen={isAdminPanelOpen}
-                        onClose={closeAdminPanel}
-                        awareness={yjsResources.awareness}
-                        onEndSession={handleEndSession}
-                        onCopyLink={handleInvite}
-                        anchorRef={inviteButtonRef}
-                    />
-                ) : (
-                    <InvitePanel
-                        isOpen={isAdminPanelOpen}
-                        onClose={closeAdminPanel}
-                        awareness={yjsResources.awareness}
-                        onEndSession={handleEndSession}
-                        onCopyLink={handleInvite}
-                        anchorRef={inviteButtonRef}
-                    />
-                )}
+                <AnimatePresence>
+                    {isAdmin && isAdminPanelOpen ? (
+                        <InviteAdminPanel
+                            isOpen={isAdminPanelOpen}
+                            key={'InviteAdminPanel'}
+                            onClose={closeAdminPanel}
+                            awareness={yjsResources.awareness}
+                            onEndSession={handleEndSession}
+                            onCopyLink={handleInvite}
+                            anchorRef={inviteButtonRef}
+                        />
+                    ) : (
+                        <InvitePanel
+                            isOpen={isAdminPanelOpen}
+                            key={'InvitePanel'}
+                            onClose={closeAdminPanel}
+                            awareness={yjsResources.awareness}
+                            onEndSession={handleEndSession}
+                            onCopyLink={handleInvite}
+                            anchorRef={inviteButtonRef}
+                        />
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );
