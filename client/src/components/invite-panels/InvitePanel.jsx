@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 
 /**
@@ -36,6 +37,12 @@ export default function InvitePanel({
 
     // Close on outside click
     useEffect(() => {
+        function handleClickOutside(e) {
+            if (panelRef.current && !panelRef.current?.contains(e.target)) {
+                onClose();
+            }
+        }
+
         function handleKeydownClose(e) {
             if (e.key === `Escape`) {
                 onClose();
@@ -43,10 +50,12 @@ export default function InvitePanel({
         }
 
         if (isOpen) {
+            document.addEventListener('click', handleClickOutside);
             document.addEventListener('keydown', handleKeydownClose);
         }
 
         return () => {
+            document.removeEventListener('click', handleClickOutside);
             document.removeEventListener('keydown', handleKeydownClose);
         };
     }, [isOpen, onClose]);
@@ -54,7 +63,11 @@ export default function InvitePanel({
     if (!isOpen || !position) return null;
 
     return (
-        <div
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
             ref={panelRef}
             className="absolute z-50 w-64 -translate-x-5/6 transform rounded-md border border-gray-300 bg-white p-3 shadow-md md:translate-0 dark:border-gray-600 dark:bg-[#1e1e2e]"
             style={{
@@ -92,6 +105,6 @@ export default function InvitePanel({
                     </button>
                 )}
             </div>
-        </div>
+        </motion.div>
     );
 }
