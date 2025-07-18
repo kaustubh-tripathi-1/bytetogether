@@ -9,7 +9,6 @@ import {
 import { setCodeContent, setLanguage } from '../../store/slices/editorSlice';
 import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName';
 import { addNotification } from '../../store/slices/uiSlice';
-// import { addNotification } from '../../store/slices/uiSlice';
 
 /**
  * Custom hook to handle real-time collaboration Yjs setup, switching, and cleanup.
@@ -90,6 +89,7 @@ export function useRealTimeSync({
             }
 
             // Set initial content for the Y.Text if it's empty, otherwise use Yjs content
+            //TODO fix this condition for duplicate code insertion
             if (
                 isAdmin &&
                 yText.length === 0 &&
@@ -115,9 +115,12 @@ export function useRealTimeSync({
             return () => {
                 yText.unobserve(observer);
             };
-        } catch (err) {
+        } catch (error) {
             dispatch(
-                addNotification({ message: 'Failed to connect', type: 'error' })
+                addNotification({
+                    message: `Failed to connect with error:${error}`,
+                    type: 'error',
+                })
             );
         }
     }, [
