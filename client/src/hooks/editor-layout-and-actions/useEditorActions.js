@@ -365,8 +365,29 @@ export function useEditorActions({
         } */
 
         // Just copy the url and show noti if already connected
-        if (!isAdmin) {
+        try {
+            if (!isAdmin) {
+                const currentProjectId = projectId || 'bytetogether'; // Fallback to default
+                const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&room=${currentProjectId}&file=${selectedFile.$id}`;
+
+                window.navigator.clipboard.writeText(inviteUrl);
+
+                dispatch(
+                    addNotification({
+                        message: '✅ Invite Link copied',
+                        type: 'success',
+                    })
+                );
+                return;
+            }
+
+            setIsYjsConnected(true);
+            setIsAdmin(true);
             const currentProjectId = projectId || 'bytetogether'; // Fallback to default
+
+            // Connect Yjs for the current room
+            connectYjsForFile(selectedFile.$id);
+
             const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&room=${currentProjectId}&file=${selectedFile.$id}`;
 
             window.navigator.clipboard.writeText(inviteUrl);
@@ -377,26 +398,14 @@ export function useEditorActions({
                     type: 'success',
                 })
             );
-            return;
+        } catch (error) {
+            dispatch(
+                addNotification({
+                    message: `Invite failed with error ${error}`,
+                    type: 'error',
+                })
+            );
         }
-
-        setIsYjsConnected(true);
-        setIsAdmin(true);
-        const currentProjectId = projectId || 'bytetogether'; // Fallback to default
-
-        // Connect Yjs for the current room
-        connectYjsForFile(selectedFile.$id);
-
-        const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&room=${currentProjectId}&file=${selectedFile.$id}`;
-
-        window.navigator.clipboard.writeText(inviteUrl);
-
-        dispatch(
-            addNotification({
-                message: '✅ Invite Link copied',
-                type: 'success',
-            })
-        );
     }, [
         isAdmin,
         setIsYjsConnected,
