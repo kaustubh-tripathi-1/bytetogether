@@ -34,21 +34,21 @@ export function useRealTimeSync({
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (!selectedFile?.$id) {
-            // No file selected, disconnect if anything was connected
-            if (currentConnectedFileIdRef.current) {
-                disconnectYjsForFile(currentConnectedFileIdRef.current);
-                currentConnectedFileIdRef.current = null;
-            }
-            return; // Nothing to do if no file is selected.
-        }
-
-        // Don't connect if not in collab mode
-        if (!isYjsConnected) {
-            return;
-        }
-
         try {
+            if (!selectedFile?.$id) {
+                // No file selected, disconnect if anything was connected
+                if (currentConnectedFileIdRef.current) {
+                    disconnectYjsForFile(currentConnectedFileIdRef.current);
+                    currentConnectedFileIdRef.current = null;
+                }
+                return; // Nothing to do if no file is selected.
+            }
+
+            // Don't connect if not in collab mode
+            if (!isYjsConnected) {
+                return;
+            }
+
             const newFileId = selectedFile.$id;
 
             // Disconnect the previous file's Yjs if the file has changed
@@ -97,6 +97,17 @@ export function useRealTimeSync({
             ) {
                 yText.insert(0, selectedFile.content);
             }
+
+            /* const { yDoc, yText, awareness, wsProvider } = getOrCreateYDoc(
+                newFileId,
+                true
+            ); // Fresh yDoc
+            setYjsResources({ yDoc, yText, awareness, wsProvider });
+            connectYjsForFile(newFileId);
+            currentConnectedFileIdRef.current = newFileId;
+
+            yText.delete(0, yText.length);
+            yText.insert(0, selectedFile.content || ''); */
 
             // Dispatch the content from yText to Redux.
             dispatch(setCodeContent(yText.toString()));
