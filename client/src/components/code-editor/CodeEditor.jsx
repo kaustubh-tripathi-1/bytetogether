@@ -187,7 +187,6 @@ export default function CodeEditor({
 
             awareness.setLocalStateField('user', {
                 ...localState?.user,
-                name: `User${Math.floor(Math.random() * 100)}`,
                 cursorColorIndex: availableIndex,
             });
         }
