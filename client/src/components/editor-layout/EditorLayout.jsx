@@ -30,6 +30,11 @@ export default function EditorLayout({ projectId, isNewProject }) {
     const { codeContent, selectedFile, language, settings } = useSelector(
         (state) => state.editor
     );
+    const { profile } = useSelector((state) => state.user);
+
+    if (profile) {
+        var { username } = profile;
+    }
 
     // Layout and UI related States
     const [output, setOutput] = useState('');
@@ -68,13 +73,15 @@ export default function EditorLayout({ projectId, isNewProject }) {
     useRealTimeSync({
         selectedFile,
         isYjsConnected,
+        setIsYjsConnected,
         isAdmin,
+        setIsAdmin,
         yjsResources,
         currentConnectedFileIdRef,
         setYjsResources,
         isNewProject,
         projectId,
-        setIsYjsConnected,
+        username,
     });
 
     const { handleHorizontalMouseDown, handleVerticalMouseDown } =
@@ -127,6 +134,8 @@ export default function EditorLayout({ projectId, isNewProject }) {
         setIsAdmin,
         yjsResources,
         setYjsResources,
+        currentConnectedFileIdRef,
+        username,
     });
 
     //TODO remove this when deploying, only for dev cuz of strict mode
