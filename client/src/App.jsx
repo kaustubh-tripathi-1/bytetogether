@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchCurrentUser } from './store/slices/authSlice';
 import { router } from './router/router.jsx';
 import { Notifications } from './components/componentsIndex.js';
+import { setPreferences, setProfile } from './store/slices/userSlice.js';
 
 /**
  * Root component that sets up routing, auth validation, and theme switching.
@@ -16,9 +17,22 @@ export default function App() {
 
     // Perform background auth validation on mount
     useEffect(() => {
-        dispatch(fetchCurrentUser()).catch((error) => {
-            console.error('Background auth validation failed:', error);
-        });
+        dispatch(fetchCurrentUser())
+            .then((action) => {
+                if (action.meta.requestStatus === 'fulfilled') {
+                    const userData = action.payload;
+                    dispatch(
+                        setProfile({
+                            ...userData,
+                            username: userData?.prefs?.username,
+                        })
+                    );
+                    dispatch(setPreferences(userData.prefs));
+                }
+            })
+            .catch((error) => {
+                console.error('Background auth validation failed:', error);
+            });
     }, [dispatch]);
 
     // Apply theme using data-theme attribute
