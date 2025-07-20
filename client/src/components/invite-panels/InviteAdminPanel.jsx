@@ -103,7 +103,9 @@ export default function InviteAdminPanel({
                     onClick={onCopyLink}
                     className="w-full cursor-pointer rounded bg-blue-100 px-3 py-1.5 text-left text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800"
                 >
-                    🔗 Copy Invite Link
+                    {awareness
+                        ? '🔗 Copy Invite Link'
+                        : '🔗 Create Invite Link'}
                 </button>
 
                 {awareness && (
