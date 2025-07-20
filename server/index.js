@@ -1,7 +1,12 @@
 import express from 'express';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
-import { setupWSConnection } from '@y/websocket-server/utils';
+import {
+    setupWSConnection,
+    getYDoc,
+    setPersistence,
+    docs,
+} from '@y/websocket-server/utils';
 
 if (process.env.NODE_ENV !== 'production') {
     const dotenv = await import('dotenv');
@@ -12,6 +17,8 @@ const ALLOWED_ORIGINS_STRING =
     process.env.ALLOWED_ORIGINS || 'http://localhost:5173';
 
 const PORT = process.env.PORT || 3000;
+
+const MAX_CLIENTS_PER_ROOM = 5;
 
 const ALLOWED_ORIGINS = ALLOWED_ORIGINS_STRING.split(',').map((origin) => {
     const trimmed = origin.trim();
@@ -29,12 +36,24 @@ const ALLOWED_ORIGINS = ALLOWED_ORIGINS_STRING.split(',').map((origin) => {
     return trimmed;
 });
 
+// Track yDocs and clients per room
+const roomClients = new Map(); // room -> Map<wsInstance, { clientId: number, username: string }>
+const roomAdmins = new Map(); // room -> wsInstance (admin client)
+
 const app = express();
 const httpServer = createServer(app);
 
 // WebSocket server instance.
 // Attach it to the HTTP server and keep noServer to handle custom ws upgrade logic
 const wsServer = new WebSocketServer({ noServer: true });
+
+// Disable default persistence (not using y-indexeddb or y-leveldb)
+setPersistence(null);
+
+// Helper to safely get connected clients Map size
+function getRoomClientCount(room) {
+    return roomClients.get(room)?.size ?? 0;
+}
 
 // Handle WebSocket upgrade requests
 httpServer.on('upgrade', (request, socket, head) => {
@@ -68,17 +87,143 @@ httpServer.on('upgrade', (request, socket, head) => {
     wsServer.handleUpgrade(request, socket, head, (wsInstance) => {
         // Extract room from search params or fallback to default
         const room = searchParams.get('room') || 'bytetogether'; // fallback to 'bytetogether' as the default room
+        const isAdmin = searchParams.get('admin') === 'true'; // Set by client in handleInvite
+        const clientId = parseInt(searchParams.get('clientId')) || 0; // Unique client ID
+        const username = searchParams.get('username') || `User${clientId}`; // From awareness
+
+        const currentClientCount = getRoomClientCount(room);
+        if (currentClientCount >= MAX_CLIENTS_PER_ROOM) {
+            const message = JSON.stringify({
+                type: 'room-full',
+                error: `Room "${room}" has reached the limit of ${MAX_CLIENTS_PER_ROOM} participants.`,
+            });
+
+            console.warn(
+                `Client rejected: Room "${room}" is full (${currentClientCount}/${MAX_CLIENTS_PER_ROOM})`
+            );
+
+            wsInstance.send(message); // Inform the client why they’re unable to join
+            wsInstance.close(4001, 'Room is full'); // Close with custom code (4001 = custom app limit)
+            return;
+        }
+
+        // Track clients
+        if (!roomClients.has(room)) {
+            roomClients.set(room, new Map());
+        }
+        roomClients.get(room).set(wsInstance, { clientId, username });
+        if (isAdmin) {
+            roomAdmins.set(room, wsInstance);
+        }
 
         // Handle the Yjs protocol using y-websocket-server
         setupWSConnection(wsInstance, request, { docName: room });
-        console.log(`WebSocket client connected to room: ${room}`);
+        console.log(
+            `WebSocket client ${username} (ID: ${clientId}) connected to room: ${room}`
+        );
+
+        // Notify all clients of current connected users
+        function notifyClients() {
+            const clients = [...roomClients.get(room).entries()];
+            const connectedClients = clients.map(
+                ([_, { clientId, username }]) => ({ clientId, username })
+            );
+            roomClients.get(room).forEach((_, client) => {
+                if (client.readyState === client.OPEN) {
+                    client.send(
+                        JSON.stringify({
+                            type: 'client-update',
+                            connectedClients,
+                        })
+                    );
+                }
+            });
+        }
+
+        wsInstance.on('message', (data, isBinary) => {
+            if (isBinary || data instanceof ArrayBuffer) return;
+            try {
+                const message = JSON.parse(data);
+                console.log(message);
+                if (
+                    message.type === 'end-room' &&
+                    isAdmin &&
+                    roomAdmins.get(room) === wsInstance
+                ) {
+                    // Destroy yDoc and disconnect all clients
+                    console.log(`inside end room`);
+                    const yDoc = getYDoc(room);
+                    yDoc.destroy();
+                    docs.delete(room);
+                    roomClients.get(room).forEach((_, client) => {
+                        if (
+                            client !== wsInstance &&
+                            client.readyState === client.OPEN
+                        ) {
+                            client.send(
+                                JSON.stringify({
+                                    type: 'room-ended',
+                                    message: `Room has been closed by the admin ${username}`,
+                                })
+                            );
+                            client.close();
+                        }
+                    });
+                    roomClients.delete(room);
+                    roomAdmins.delete(room);
+                    console.log(`Room ${room} destroyed by admin`);
+                } else if (message.type === 'client-left') {
+                    console.log(`inside client left`);
+                    const { clientId, username } = message;
+                    roomClients.get(room).delete(wsInstance);
+                    notifyClients();
+                    roomClients.get(room).forEach((_, client) => {
+                        if (
+                            client !== wsInstance &&
+                            client.readyState === client.OPEN
+                        ) {
+                            client.send(
+                                JSON.stringify({
+                                    type: 'client-left',
+                                    clientId,
+                                    username,
+                                    message: `${username} left the room`,
+                                })
+                            );
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error(
+                    `Error processing message in room ${room}:`,
+                    error
+                );
+            }
+        });
 
         wsInstance.on('close', () => {
-            console.log(`WebSocket client disconnected from room: ${room}`);
+            console.log(
+                `WebSocket client ${username} (ID: ${clientId}) disconnected from room: ${room}`
+            );
+            roomClients.get(room).delete(wsInstance);
+            if (roomAdmins.get(room) === wsInstance) {
+                roomAdmins.delete(room);
+            }
+            notifyClients();
+            if (roomClients.get(room)?.size === 0) {
+                const yDoc = getYDoc(room);
+                yDoc.destroy();
+                roomClients.delete(room);
+                docs.delete(room);
+                console.log(`Room ${room} destroyed (no clients left)`);
+            }
         });
         wsInstance.on('error', (error) => {
             console.log(`WebSocket error in room ${room}:`, error);
         });
+
+        // Initial notification of connected clients
+        notifyClients();
     });
 });
 
