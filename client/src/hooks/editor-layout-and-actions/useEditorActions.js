@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import {
     connectYjsForFile,
     disconnectAllYjs,
+    disconnectYjsForFile,
     getOrCreateYDoc,
 } from '../../lib/yjs';
 import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName';
@@ -19,6 +20,7 @@ import {
     setLanguage,
     setSelectedFile,
 } from '../../store/slices/editorSlice';
+import { setPreferences } from '../../store/slices/userSlice';
 
 /**
  * Custom hook that provides reusable editor-related actions such as formatting,
@@ -82,6 +84,10 @@ export function useEditorActions({
     setIsAdmin,
     yjsResources,
     setYjsResources,
+    currentConnectedFileIdRef,
+    username,
+    navigate,
+    location,
 }) {
     const dispatch = useDispatch();
 
@@ -161,7 +167,11 @@ export function useEditorActions({
     const handleRunCode = useCallback(() => {
         try {
             if (isYjsConnected) {
-                const { yText } = getOrCreateYDoc(selectedFile.$id);
+                const { yText } = getOrCreateYDoc(
+                    selectedFile.$id,
+                    username,
+                    isAdmin
+                );
                 // Simulate output for now
                 setOutput(
                     `Simulated output for:\n${yText ? yText.toString() : codeContent}\nInput:\n${input}`
@@ -180,7 +190,16 @@ export function useEditorActions({
                 })
             );
         }
-    }, [codeContent, dispatch, input, isYjsConnected, selectedFile, setOutput]);
+    }, [
+        codeContent,
+        dispatch,
+        input,
+        isAdmin,
+        isYjsConnected,
+        selectedFile,
+        setOutput,
+        username,
+    ]);
 
     /**
      * Saves the current file content and metadata to Appwrite.
@@ -188,7 +207,7 @@ export function useEditorActions({
     const handleSaveAllFiles = useCallback(() => {
         try {
             const filesToSave = files.map((file) => {
-                const { yText } = getOrCreateYDoc(file.$id);
+                const { yText } = getOrCreateYDoc(file.$id, username, isAdmin);
                 return {
                     $id: file.$id,
                     name: file.fileName,
@@ -229,7 +248,15 @@ export function useEditorActions({
                 })
             );
         }
-    }, [dispatch, files, isNewProject, isYjsConnected, selectedFile]);
+    }, [
+        dispatch,
+        files,
+        isAdmin,
+        isNewProject,
+        isYjsConnected,
+        selectedFile,
+        username,
+    ]);
 
     /**
      * Open Settings modal
@@ -268,7 +295,11 @@ export function useEditorActions({
      */
     const handleResetCode = useCallback(() => {
         try {
-            const { yText } = getOrCreateYDoc(selectedFile.$id);
+            const { yText } = getOrCreateYDoc(
+                selectedFile.$id,
+                username,
+                isAdmin
+            );
             const defaultCode = getDefaultCodeForLanguage(language);
             yText.delete(0, yText.length);
             yText.insert(0, defaultCode);
@@ -281,7 +312,7 @@ export function useEditorActions({
                 })
             );
         }
-    }, [dispatch, language, selectedFile]);
+    }, [dispatch, isAdmin, language, selectedFile, username]);
 
     /**
      * Handler for font size increment
@@ -289,6 +320,7 @@ export function useEditorActions({
     const handleFontSizeIncrement = useCallback(() => {
         const newSize = Math.min(24, settings.fontSize + 1);
         dispatch(setEditorSettings({ fontSize: newSize }));
+        dispatch(setPreferences({ fontSize: newSize }));
     }, [dispatch, settings.fontSize]);
 
     /**
@@ -297,6 +329,7 @@ export function useEditorActions({
     const handleFontSizeDecrement = useCallback(() => {
         const newSize = Math.max(10, settings.fontSize - 1);
         dispatch(setEditorSettings({ fontSize: newSize }));
+        dispatch(setPreferences({ fontSize: newSize }));
     }, [dispatch, settings.fontSize]);
 
     /**
@@ -367,10 +400,7 @@ export function useEditorActions({
         // Just copy the url and show noti if already connected
         try {
             if (!isAdmin) {
-                const currentProjectId = projectId || 'bytetogether'; // Fallback to default
-                const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&room=${currentProjectId}&file=${selectedFile.$id}`;
-
-                window.navigator.clipboard.writeText(inviteUrl);
+                window.navigator.clipboard.writeText(window.location.href);
 
                 dispatch(
                     addNotification({
@@ -386,9 +416,9 @@ export function useEditorActions({
             const currentProjectId = projectId || 'bytetogether'; // Fallback to default
 
             // Connect Yjs for the current room
-            connectYjsForFile(selectedFile.$id);
+            connectYjsForFile(selectedFile.$id, username);
 
-            const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&room=${currentProjectId}&file=${selectedFile.$id}`;
+            const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&admin=${!isAdmin}&room=${currentProjectId}&file=${selectedFile.$id}&username=${username}&clientId=${yjsResources.yDoc?.clientID || Date.now()}`;
 
             window.navigator.clipboard.writeText(inviteUrl);
 
@@ -398,6 +428,31 @@ export function useEditorActions({
                     type: 'success',
                 })
             );
+
+            /* const currentProjectId = projectId || 'bytetogether';
+            const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&room=${currentProjectId}&file=${selectedFile.$id}&admin=${isAdmin}&username=${username}&clientId=${yjsResources.yDoc?.clientID || Date.now()}`;
+            window.navigator.clipboard.writeText(inviteUrl);
+
+            if (!yjsResources.wsProvider) {
+                setIsYjsConnected(true);
+                setIsAdmin(true);
+                connectYjsForFile(selectedFile.$id, username);
+                dispatch(
+                    addNotification({
+                        message: '✅ Invite Link copied',
+                        type: 'success',
+                        timeout: 4000,
+                    })
+                );
+            } else {
+                dispatch(
+                    addNotification({
+                        message: '✅ Invite Link copied',
+                        type: 'success',
+                        timeout: 4000,
+                    })
+                );
+            } */
         } catch (error) {
             dispatch(
                 addNotification({
@@ -412,14 +467,24 @@ export function useEditorActions({
         setIsAdmin,
         projectId,
         selectedFile,
+        username,
+        yjsResources,
         dispatch,
     ]);
 
     const handleEndRoom = useCallback(() => {
         if (yjsResources.wsProvider) {
-            yjsResources.wsProvider.destroy();
-            if (isAdmin) {
-                try {
+            try {
+                if (isAdmin) {
+                    yjsResources.wsProvider?.ws?.send(
+                        JSON.stringify({
+                            type: 'end-room',
+                            //TODO replace this with projectId
+                            room: `bytetogether-${currentConnectedFileIdRef.current}`,
+                            clientId: yjsResources.yDoc?.clientID,
+                            username,
+                        })
+                    );
                     disconnectAllYjs();
                     dispatch(
                         addNotification({
@@ -429,18 +494,17 @@ export function useEditorActions({
                             timeout: 4000,
                         })
                     );
-                } catch (error) {
-                    dispatch(
-                        addNotification({
-                            message: `🔴 Error in closing room with error ${error}. Please try again...`,
-                            type: 'error',
-                            timeout: 4000,
+                } else {
+                    yjsResources.wsProvider?.ws?.send(
+                        JSON.stringify({
+                            type: 'client-left',
+                            //TODO replace this with projectId
+                            room: `bytetogether-${currentConnectedFileIdRef.current}`,
+                            clientId: yjsResources.yDoc?.clientID,
+                            username,
                         })
                     );
-                }
-            } else {
-                try {
-                    disconnectAllYjs();
+                    disconnectYjsForFile(currentConnectedFileIdRef?.current);
                     dispatch(
                         addNotification({
                             message: '✅ Left room successfully',
@@ -448,31 +512,42 @@ export function useEditorActions({
                             timeout: 4000,
                         })
                     );
-                } catch (error) {
-                    dispatch(
-                        addNotification({
-                            message: `🔴 Error in closing room with error ${error}. Please try again...`,
-                            type: 'error',
-                            timeout: 4000,
-                        })
-                    );
                 }
+
+                setYjsResources({
+                    yDoc: null,
+                    yText: null,
+                    awareness: null,
+                    wsProvider: null,
+                });
+                setIsYjsConnected(false);
+                // Notify clients or clean up state
+
+                if (!isAdmin) {
+                    const path = location.pathname;
+                    navigate(`${path}`);
+                }
+            } catch (error) {
+                dispatch(
+                    addNotification({
+                        message: `🔴 Error in ${isAdmin ? 'closing room' : 'leaving room'}: ${error.message}. Please try again...`,
+                        type: 'error',
+                        timeout: 4000,
+                    })
+                );
             }
-            setYjsResources({
-                yDoc: null,
-                yText: null,
-                awareness: null,
-                wsProvider: null,
-            });
-            setIsYjsConnected(false);
-            // Notify clients or clean up state
         }
     }, [
+        currentConnectedFileIdRef,
         dispatch,
         isAdmin,
+        location.pathname,
+        navigate,
         setIsYjsConnected,
         setYjsResources,
+        username,
         yjsResources.wsProvider,
+        yjsResources.yDoc?.clientID,
     ]);
 
     return {
