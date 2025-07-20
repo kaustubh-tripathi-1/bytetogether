@@ -6,6 +6,7 @@ import authReducer from './slices/authSlice';
 import uiReducer from './slices/uiSlice';
 import editorReducer from './slices/editorSlice';
 import filesReducer from './slices/filesSlice';
+import userReducer from './slices/userSlice';
 
 /**
  * Persistence configuration for the auth slice.
@@ -52,12 +53,23 @@ const filesPersistConfig = {
     whitelist: ['files'], // Persist only files
 };
 
+/**
+ * Persistence configuration for the user slice.
+ * @type {Object}
+ */
+const userPersistConfig = {
+    key: 'user',
+    storage,
+    whitelist: ['profile', 'preferences'], // Persist only profile and preferences
+};
+
 // Combined reducers
 const rootReducer = combineReducers({
     auth: persistReducer(authPersistConfig, authReducer),
     ui: persistReducer(uiPersistConfig, uiReducer),
     editor: persistReducer(editorPersistConfig, editorReducer),
     files: persistReducer(filesPersistConfig, filesReducer),
+    user: persistReducer(userPersistConfig, userReducer),
 });
 
 // Redux Store config
