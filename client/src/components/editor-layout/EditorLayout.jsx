@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AnimatePresence } from 'framer-motion';
+import { useLocation, useNavigate } from 'react-router';
 
 import { getFilesByProject } from '../../store/slices/filesSlice.js';
 import {
@@ -67,6 +68,9 @@ export default function EditorLayout({ projectId, isNewProject }) {
 
     // Store the currently active file ID that Yjs is connected to.
     const currentConnectedFileIdRef = useRef(null);
+
+    const navigate = useNavigate();
+    const location = useLocation();
 
     useInitialFileStup({ files, selectedFile });
 
@@ -136,6 +140,8 @@ export default function EditorLayout({ projectId, isNewProject }) {
         setYjsResources,
         currentConnectedFileIdRef,
         username,
+        navigate,
+        location,
     });
 
     //TODO remove this when deploying, only for dev cuz of strict mode
