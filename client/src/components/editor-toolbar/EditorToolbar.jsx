@@ -149,7 +149,7 @@ function EditorToolbar({
                     </button>
                 </Tooltip>
                 <AnimatePresence>
-                    {isAdmin && isAdminPanelOpen ? (
+                    {isAdmin && isAdminPanelOpen && (
                         <InviteAdminPanel
                             isOpen={isAdminPanelOpen}
                             key={'InviteAdminPanel'}
@@ -159,7 +159,8 @@ function EditorToolbar({
                             onCopyLink={handleInvite}
                             anchorRef={inviteButtonRef}
                         />
-                    ) : (
+                    )}{' '}
+                    {!isAdmin && isAdminPanelOpen && (
                         <InvitePanel
                             isOpen={isAdminPanelOpen}
                             key={'InvitePanel'}
