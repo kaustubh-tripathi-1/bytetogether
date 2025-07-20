@@ -23,13 +23,15 @@ import { addNotification } from '../../store/slices/uiSlice';
 export function useRealTimeSync({
     selectedFile,
     isYjsConnected,
+    setIsYjsConnected,
     isAdmin,
+    setIsAdmin,
     yjsResources,
     currentConnectedFileIdRef,
     setYjsResources,
     // isNewProject,
     // projectId,
-    // setIsYjsConnected,
+    username,
 }) {
     const dispatch = useDispatch();
 
@@ -71,16 +73,19 @@ export function useRealTimeSync({
             );
             setIsYjsConnected(false);
             return;
-        } */
+            } */
 
-            const { yDoc, yText, awareness, wsProvider } =
-                getOrCreateYDoc(newFileId);
+            const { yDoc, yText, awareness, wsProvider } = getOrCreateYDoc(
+                newFileId,
+                username,
+                isAdmin
+            );
             // Update yjs resources
             setYjsResources({ yDoc, yText, awareness, wsProvider });
 
             // Connect to room for the new file if not already connected or if invited
             if (isYjsConnected) {
-                connectYjsForFile(newFileId);
+                connectYjsForFile(newFileId, username);
                 currentConnectedFileIdRef.current = newFileId; // Mark this file as currently connected
             } else {
                 // Ensure disconnect for the current file if yjs is not connected
@@ -98,12 +103,15 @@ export function useRealTimeSync({
                 yText.insert(0, selectedFile.content);
             }
 
-            /* const { yDoc, yText, awareness, wsProvider } = getOrCreateYDoc(
+            /* // The isFresh: true flag ensures a new yDoc is created on reconnect, avoiding server-side persisted state.
+            // Clearing yText and inserting selectedFile.content ensures the editor starts with the current file content.
+            const { yDoc, yText, awareness, wsProvider } = getOrCreateYDoc(
                 newFileId,
-                true
+                username,
+                isAdmin
             ); // Fresh yDoc
             setYjsResources({ yDoc, yText, awareness, wsProvider });
-            connectYjsForFile(newFileId);
+            connectYjsForFile(newFileId, username);
             currentConnectedFileIdRef.current = newFileId;
 
             yText.delete(0, yText.length);
@@ -116,15 +124,72 @@ export function useRealTimeSync({
             );
 
             // Observer for Y.Text changes to keep Redux in sync
-            const observer = () => {
+            function observer() {
                 if (yjsResources.yText && isYjsConnected) {
                     dispatch(setCodeContent(yjsResources.yText.toString()));
                 }
-            };
+            }
 
             yText.observe(observer);
+
+            // Handle server messages
+            function handleMessage(event) {
+                if (event.data instanceof ArrayBuffer) {
+                    return; // Skip Yjs protocol messages
+                }
+                try {
+                    const message = JSON.parse(event.data);
+                    console.log(message);
+                    if (message.type === 'room-ended') {
+                        dispatch(
+                            addNotification({
+                                message: message.message,
+                                type: 'info',
+                                timeout: 4000,
+                            })
+                        );
+                        disconnectYjsForFile(newFileId);
+                        setYjsResources({
+                            yDoc: null,
+                            yText: null,
+                            awareness: null,
+                            wsProvider: null,
+                        });
+                        setIsYjsConnected(false);
+                        setIsAdmin(true);
+                    } else if (message.type === 'client-left') {
+                        dispatch(
+                            addNotification({
+                                message: message.message,
+                                type: 'info',
+                                timeout: 4000,
+                            })
+                        );
+                    } else if (message.type === 'client-update') {
+                        // Update UI if needed
+                        console.log(
+                            'Connected clients:',
+                            message.connectedClients
+                        );
+                    }
+                } catch (error) {
+                    console.error(`WebSocket error: ${error.message}`);
+
+                    dispatch(
+                        addNotification({
+                            message: `WebSocket error: ${error.message}`,
+                            type: 'error',
+                            timeout: 4000,
+                        })
+                    );
+                }
+            }
+
+            wsProvider.ws?.addEventListener('message', handleMessage);
+
             return () => {
                 yText.unobserve(observer);
+                wsProvider.ws?.removeEventListener('message', handleMessage);
             };
         } catch (error) {
             dispatch(
@@ -142,8 +207,8 @@ export function useRealTimeSync({
         yjsResources.yText,
         currentConnectedFileIdRef,
         setYjsResources,
-        // isNewProject,
-        // projectId,
-        // setIsYjsConnected,
+        username,
+        setIsYjsConnected,
+        setIsAdmin,
     ]);
 }
