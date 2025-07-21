@@ -205,17 +205,24 @@ httpServer.on('upgrade', (request, socket, head) => {
             console.log(
                 `WebSocket client ${username} (ID: ${clientId}) disconnected from room: ${room}`
             );
-            roomClients.get(room).delete(wsInstance);
-            if (roomAdmins.get(room) === wsInstance) {
-                roomAdmins.delete(room);
-            }
-            notifyClients();
-            if (roomClients.get(room)?.size === 0) {
-                const yDoc = getYDoc(room);
-                yDoc.destroy();
-                roomClients.delete(room);
-                docs.delete(room);
-                console.log(`Room ${room} destroyed (no clients left)`);
+            try {
+                const roomMap = roomClients.get(room);
+                if (roomMap) {
+                    roomMap?.delete(wsInstance);
+                }
+                if (roomAdmins.get(room) === wsInstance) {
+                    roomAdmins.delete(room);
+                }
+                notifyClients();
+                if (roomClients.get(room)?.size === 0) {
+                    const yDoc = getYDoc(room);
+                    yDoc.destroy();
+                    roomClients.delete(room);
+                    docs.delete(room);
+                    console.log(`Room ${room} destroyed (no clients left)`);
+                }
+            } catch (error) {
+                console.error(`Error in ws close event :`, error);
             }
         });
         wsInstance.on('error', (error) => {
