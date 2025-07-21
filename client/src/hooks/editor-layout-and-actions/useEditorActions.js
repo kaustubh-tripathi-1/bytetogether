@@ -437,22 +437,15 @@ export function useEditorActions({
                 setIsYjsConnected(true);
                 setIsAdmin(true);
                 connectYjsForFile(selectedFile.$id, username);
-                dispatch(
-                    addNotification({
-                        message: '✅ Invite Link copied',
-                        type: 'success',
-                        timeout: 4000,
-                    })
-                );
-            } else {
-                dispatch(
-                    addNotification({
-                        message: '✅ Invite Link copied',
-                        type: 'success',
-                        timeout: 4000,
-                    })
-                );
-            } */
+            } 
+            dispatch(
+                addNotification({
+                    message: '✅ Invite Link copied',
+                    type: 'success',
+                    timeout: 4000,
+                })
+            );
+            */
         } catch (error) {
             dispatch(
                 addNotification({
@@ -541,13 +534,13 @@ export function useEditorActions({
         currentConnectedFileIdRef,
         dispatch,
         isAdmin,
-        location.pathname,
+        location,
         navigate,
         setIsYjsConnected,
         setYjsResources,
         username,
         yjsResources.wsProvider,
-        yjsResources.yDoc?.clientID,
+        yjsResources.yDoc,
     ]);
 
     return {
