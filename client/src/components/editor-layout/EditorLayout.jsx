@@ -86,6 +86,8 @@ export default function EditorLayout({ projectId, isNewProject }) {
         isNewProject,
         projectId,
         username,
+        navigate,
+        location,
     });
 
     const { handleHorizontalMouseDown, handleVerticalMouseDown } =
