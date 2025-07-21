@@ -65,7 +65,7 @@ export default function InviteAdminPanel({
         return [...(awareness?.getStates()?.entries() || [])].map(
             ([clientId, state]) => ({
                 clientId,
-                name: state.user?.name || `User ${clientId}`,
+                name: state.user?.name || `User${clientId}`,
             })
         );
     }, [awareness]);
