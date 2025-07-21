@@ -32,6 +32,8 @@ export function useRealTimeSync({
     // isNewProject,
     // projectId,
     username,
+    navigate,
+    location,
 }) {
     const dispatch = useDispatch();
 
@@ -171,6 +173,27 @@ export function useRealTimeSync({
                             'Connected clients:',
                             message.connectedClients
                         );
+                    } else if (message.type === 'room-full') {
+                        dispatch(
+                            addNotification({
+                                message: message.error,
+                                type: 'error',
+                                timeout: 4000,
+                            })
+                        );
+                        disconnectYjsForFile(newFileId);
+                        setYjsResources({
+                            yDoc: null,
+                            yText: null,
+                            awareness: null,
+                            wsProvider: null,
+                        });
+                        setIsYjsConnected(false);
+                        setIsAdmin(true);
+                        if (!isAdmin) {
+                            const path = location.pathname;
+                            navigate(`${path}`);
+                        }
                     }
                 } catch (error) {
                     console.error(`WebSocket error: ${error.message}`);
@@ -210,5 +233,7 @@ export function useRealTimeSync({
         username,
         setIsYjsConnected,
         setIsAdmin,
+        location,
+        navigate,
     ]);
 }
