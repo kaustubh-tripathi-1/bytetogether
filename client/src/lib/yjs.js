@@ -20,8 +20,8 @@ const wsProvidersMap = new Map();
 /**
  * Gets or creates a Y.Doc for a given fileId.
  * @param {string} fileId - Unique identifier for the file.
- * @param {boolean} [isFresh=false] - Whether to force a new Y.Doc.
  * @param {string} [username=User ${yDoc.clientID}] - Username for awareness.
+ * @param {boolean} isAdmin - Whether the client is room admin
  * @returns {{yDoc: Doc, yText: import('yjs').Text, wsProvider: WebsocketProvider, awareness: import('y-protocols/awareness').Awareness, clientId: number}}
  */
 //TODO add room name as projectId
@@ -77,6 +77,7 @@ function getOrCreateYDoc(/* room, */ fileId, username, isAdmin) {
 /**
  * Connects the WebsocketProvider for a given fileId.
  * @param {string} fileId - The ID of the file to connect.
+ * @param {string} username - Username of the user.
  */
 function connectYjsForFile(fileId, username) {
     const provider = wsProvidersMap.get(fileId);
@@ -99,19 +100,6 @@ function connectYjsForFile(fileId, username) {
 function disconnectYjsForFile(fileId) {
     const provider = wsProvidersMap.get(fileId);
     if (provider && provider.shouldConnect) {
-        /* const awareness = provider.awareness;
-        const clientId =
-            awareness.getLocalState()?.clientId ||
-            yDocsMap.get(fileId).clientID;
-        const username =
-            awareness.getLocalState()?.user?.name || `User${clientId}`;
-        provider.ws.send(
-            JSON.stringify({
-                type: 'client-left',
-                clientId,
-                username,
-            })
-        ); */
         console.log(`Disconnecting Yjs provider for file: ${fileId}`);
         provider.disconnect();
     }
@@ -119,26 +107,12 @@ function disconnectYjsForFile(fileId) {
 
 /**
  * Disconnects all Yjs providers and clears all Y.Docs.
- * This can be useful on a full application unmount or project change.
  */
 function disconnectAllYjs() {
     wsProvidersMap.forEach((provider, fileId) => {
         console.log(
             `Disconnecting all Yjs ws providers from room ${provider.roomname} with file id - ${fileId}.`
         );
-        /* const awareness = provider.awareness;
-        const clientId =
-            awareness.getLocalState()?.clientId ||
-            yDocsMap.get(fileId).clientID;
-        const username =
-            awareness.getLocalState()?.user?.name || `User${clientId}`;
-        provider.ws.send(
-            JSON.stringify({
-                type: 'end-room',
-                clientId,
-                username,
-            })
-        ); */
         provider.disconnect();
         provider.destroy();
     });
