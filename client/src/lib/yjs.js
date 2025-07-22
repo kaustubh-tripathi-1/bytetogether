@@ -65,18 +65,18 @@ function getOrCreateYDoc(/* room, */ fileId, username, isAdmin) {
             }
         );
 
-        wsProvider.on('status', (event) => {
+        function onStatus(event) {
             console.log(
-                `Connection status for room ${roomName}:`,
-                event.status
+                `Connection status for room ${roomName}: ${event.status}`
             );
-        });
+        }
+        wsProvider.on('status', onStatus);
 
         wsProvider.awareness.setLocalStateField('user', {
             name: username || `User${clientId}`,
             clientId,
         });
-        wsProvidersMap.set(fileId, wsProvider);
+        wsProvidersMap.set(fileId, { wsProvider, onStatus });
     }
 
     const yDoc = yDocsMap.get(fileId);
@@ -91,7 +91,6 @@ function getOrCreateYDoc(/* room, */ fileId, username, isAdmin) {
 /**
  * Connects the WebsocketProvider for a given fileId.
  * @param {string} fileId - The ID of the file to connect.
- * @param {string} username - Username of the user.
  */
 function connectYjsForFile(fileId) {
     validateParameters(fileId, 'string', 'fileId');
@@ -108,10 +107,11 @@ function connectYjsForFile(fileId) {
  */
 function disconnectYjsForFile(fileId) {
     validateParameters(fileId, 'string', 'fileId');
-    const provider = wsProvidersMap.get(fileId);
-    if (provider && provider.shouldConnect) {
+    const { wsProvider, onStatus } = wsProvidersMap.get(fileId);
+    if (wsProvider && wsProvider.shouldConnect) {
         console.log(`Disconnecting Yjs provider for file: ${fileId}`);
-        provider.disconnect();
+        wsProvider.off('status', onStatus);
+        wsProvider.disconnect();
     }
 }
 
@@ -119,12 +119,13 @@ function disconnectYjsForFile(fileId) {
  * Disconnects all Yjs providers and clears all Y.Docs.
  */
 function disconnectAllYjs() {
-    wsProvidersMap.forEach((provider, fileId) => {
+    wsProvidersMap.forEach(({ wsProvider, onStatus }, fileId) => {
         console.log(
-            `Disconnecting all Yjs ws providers from room ${provider.roomname} with file id - ${fileId}.`
+            `Disconnecting all Yjs ws providers from room ${wsProvider.roomname} with file id - ${fileId}.`
         );
-        provider.disconnect();
-        provider.destroy();
+        wsProvider.off('status', onStatus);
+        wsProvider.disconnect();
+        wsProvider.destroy();
     });
     yDocsMap.forEach((yDoc, fileId) => {
         console.log(
