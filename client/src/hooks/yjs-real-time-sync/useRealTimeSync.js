@@ -96,16 +96,18 @@ export function useRealTimeSync({
             }
 
             setTimeout(() => {
-                wsProvider?.ws?.send(
-                    JSON.stringify({
-                        type: 'client-joined',
-                        //TODO replace this with projectId
-                        room: `bytetogether-${currentConnectedFileIdRef.current}`,
-                        clientId: yjsResources.yDoc?.clientID,
-                        username,
-                    })
-                );
-            }, 600);
+                if (wsProvider?.ws?.readyState === wsProvider?.ws?.OPEN) {
+                    wsProvider?.ws?.send(
+                        JSON.stringify({
+                            type: 'client-joined',
+                            //TODO replace this with projectId
+                            room: `bytetogether-${currentConnectedFileIdRef.current}`,
+                            clientId: yjsResources.yDoc?.clientID,
+                            username,
+                        })
+                    );
+                }
+            }, 800);
 
             // Set initial content for the Y.Text if it's empty, otherwise use Yjs content
             //TODO fix this condition for duplicate code insertion
@@ -153,7 +155,6 @@ export function useRealTimeSync({
                 }
                 try {
                     const message = JSON.parse(event.data);
-                    console.log(message);
                     if (message.type === 'room-ended') {
                         dispatch(
                             addNotification({
@@ -228,11 +229,28 @@ export function useRealTimeSync({
                 }
             }
 
-            wsProvider.ws?.addEventListener('message', handleMessage);
+            // wsProvider.ws?.addEventListener('message', handleMessage);
+
+            // Override WebSocket onmessage to filter messages
+            const originalOnMessage = wsProvider.ws?.onmessage;
+            if (wsProvider.ws) {
+                wsProvider.ws.onmessage = (event) => {
+                    if (!(event.data instanceof ArrayBuffer)) {
+                        handleMessage(event); // Process JSON messages
+                        return; // Prevent Yjs from processing JSON
+                    }
+                    if (originalOnMessage) {
+                        originalOnMessage.call(wsProvider.ws, event); // Pass ArrayBuffer to Yjs
+                    }
+                };
+            }
 
             return () => {
                 yText.unobserve(observer);
-                wsProvider.ws?.removeEventListener('message', handleMessage);
+                // wsProvider.ws?.removeEventListener('message', handleMessage);
+                if (wsProvider.ws) {
+                    wsProvider.ws.onmessage = originalOnMessage; // Restore original handler
+                }
             };
         } catch (error) {
             dispatch(
