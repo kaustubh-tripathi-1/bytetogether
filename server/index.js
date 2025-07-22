@@ -123,35 +123,66 @@ httpServer.on('upgrade', (request, socket, head) => {
         );
 
         // Notify all clients of current connected users
-        function notifyClients() {
-            const clients = [...roomClients.get(room).entries()];
-            const connectedClients = clients.map(
-                ([_, { clientId, username }]) => ({ clientId, username })
-            );
-            roomClients.get(room).forEach((_, client) => {
-                if (client.readyState === client.OPEN) {
-                    client.send(
-                        JSON.stringify({
-                            type: 'client-update',
-                            connectedClients,
+        function notifyClients(
+            sendMessage = false,
+            type,
+            clientId,
+            username,
+            message
+        ) {
+            try {
+                if (roomClients.get(room)) {
+                    const clients = [...roomClients.get(room).entries()];
+                    const connectedClients = clients.map(
+                        ([_, { clientId, username }]) => ({
+                            clientId,
+                            username,
                         })
                     );
+                    roomClients.get(room).forEach((_, client) => {
+                        if (client.readyState === client.OPEN) {
+                            client.send(
+                                JSON.stringify({
+                                    type: 'client-update',
+                                    connectedClients,
+                                })
+                            );
+                        }
+                    });
+
+                    if (sendMessage) {
+                        roomClients.get(room)?.forEach((_, client) => {
+                            if (
+                                client !== wsInstance &&
+                                client.readyState === client.OPEN
+                            ) {
+                                client.send(
+                                    JSON.stringify({
+                                        type: type,
+                                        clientId,
+                                        username,
+                                        message: message,
+                                    })
+                                );
+                            }
+                        });
+                    }
                 }
-            });
+            } catch (error) {
+                console.error(`Error in notifying clients :`, error);
+            }
         }
 
         wsInstance.on('message', (data, isBinary) => {
             if (isBinary || data instanceof ArrayBuffer) return;
             try {
                 const message = JSON.parse(data);
-                console.log(message);
                 if (
                     message.type === 'end-room' &&
                     isAdmin &&
                     roomAdmins.get(room) === wsInstance
                 ) {
                     // Destroy yDoc and disconnect all clients
-                    console.log(`inside end room`);
                     const yDoc = getYDoc(room);
                     yDoc.destroy();
                     docs.delete(room);
@@ -173,25 +204,24 @@ httpServer.on('upgrade', (request, socket, head) => {
                     roomAdmins.delete(room);
                     console.log(`Room ${room} destroyed by admin`);
                 } else if (message.type === 'client-left') {
-                    console.log(`inside client left`);
                     const { clientId, username } = message;
                     roomClients.get(room).delete(wsInstance);
-                    notifyClients();
-                    roomClients.get(room).forEach((_, client) => {
-                        if (
-                            client !== wsInstance &&
-                            client.readyState === client.OPEN
-                        ) {
-                            client.send(
-                                JSON.stringify({
-                                    type: 'client-left',
-                                    clientId,
-                                    username,
-                                    message: `${username} left the room`,
-                                })
-                            );
-                        }
-                    });
+                    notifyClients(
+                        true,
+                        'client-left',
+                        clientId,
+                        username,
+                        `${username} left the room`
+                    );
+                } else if (message.type === 'client-joined') {
+                    const { clientId, username } = message;
+                    notifyClients(
+                        true,
+                        'client-joined',
+                        clientId,
+                        username,
+                        `${username} joined the room`
+                    );
                 }
             } catch (error) {
                 console.error(
@@ -208,12 +238,19 @@ httpServer.on('upgrade', (request, socket, head) => {
             try {
                 const roomMap = roomClients.get(room);
                 if (roomMap) {
+                    notifyClients(
+                        true,
+                        'client-left',
+                        clientId,
+                        username,
+                        `${username} left the room`
+                    );
                     roomMap?.delete(wsInstance);
                 }
                 if (roomAdmins.get(room) === wsInstance) {
                     roomAdmins.delete(room);
                 }
-                notifyClients();
+
                 if (roomClients.get(room)?.size === 0) {
                     const yDoc = getYDoc(room);
                     yDoc.destroy();
@@ -230,7 +267,7 @@ httpServer.on('upgrade', (request, socket, head) => {
         });
 
         // Initial notification of connected clients
-        notifyClients();
+        notifyClients(false);
     });
 });
 
