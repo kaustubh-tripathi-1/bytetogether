@@ -17,6 +17,16 @@ const yDocsMap = new Map();
 // Map to store WebsocketProvider instances for each file
 const wsProvidersMap = new Map();
 
+function validateParameters(param, type, name) {
+    if (typeof param !== type) {
+        throw new Error(`Invalid ${name}`);
+    }
+
+    if (typeof param === 'string' && !param.length) {
+        throw new Error(`${name} must be a non-empty string`);
+    }
+}
+
 /**
  * Gets or creates a Y.Doc for a given fileId.
  * @param {string} fileId - Unique identifier for the file.
@@ -26,6 +36,10 @@ const wsProvidersMap = new Map();
  */
 //TODO add room name as projectId
 function getOrCreateYDoc(/* room, */ fileId, username, isAdmin) {
+    validateParameters(fileId, 'string', 'fileId');
+    validateParameters(username, 'string', 'username');
+    validateParameters(isAdmin, 'boolean');
+
     if (!yDocsMap.has(fileId)) {
         const yDoc = new Doc();
         yDocsMap.set(fileId, yDoc);
@@ -79,16 +93,11 @@ function getOrCreateYDoc(/* room, */ fileId, username, isAdmin) {
  * @param {string} fileId - The ID of the file to connect.
  * @param {string} username - Username of the user.
  */
-function connectYjsForFile(fileId, username) {
+function connectYjsForFile(fileId) {
+    validateParameters(fileId, 'string', 'fileId');
     const provider = wsProvidersMap.get(fileId);
     if (provider && !provider.shouldConnect) {
         console.log(`Connecting Yjs provider for file: ${fileId}`);
-        if (username) {
-            provider.awareness.setLocalStateField('user', {
-                name: username,
-                clientId: yDocsMap.get(fileId).clientID,
-            });
-        }
         provider.connect();
     }
 }
@@ -98,6 +107,7 @@ function connectYjsForFile(fileId, username) {
  * @param {string} fileId - The ID of the file to disconnect.
  */
 function disconnectYjsForFile(fileId) {
+    validateParameters(fileId, 'string', 'fileId');
     const provider = wsProvidersMap.get(fileId);
     if (provider && provider.shouldConnect) {
         console.log(`Disconnecting Yjs provider for file: ${fileId}`);
