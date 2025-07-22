@@ -81,7 +81,6 @@ export function useEditorActions({
     setIsSettingsOpen,
     setIsShortcutsOpen,
     isAdmin,
-    setIsAdmin,
     yjsResources,
     setYjsResources,
     currentConnectedFileIdRef,
@@ -412,13 +411,12 @@ export function useEditorActions({
             }
 
             setIsYjsConnected(true);
-            setIsAdmin(true);
             const currentProjectId = projectId || 'bytetogether'; // Fallback to default
 
             // Connect Yjs for the current room
             connectYjsForFile(selectedFile.$id, username);
 
-            const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&admin=${!isAdmin}&room=${currentProjectId}&file=${selectedFile.$id}&username=${username}&clientId=${yjsResources.yDoc?.clientID || Date.now()}`;
+            const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&admin=${!isAdmin}&room=${currentProjectId}`;
 
             window.navigator.clipboard.writeText(inviteUrl);
 
@@ -457,11 +455,9 @@ export function useEditorActions({
     }, [
         isAdmin,
         setIsYjsConnected,
-        setIsAdmin,
         projectId,
         selectedFile,
         username,
-        yjsResources,
         dispatch,
     ]);
 
