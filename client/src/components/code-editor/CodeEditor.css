@@ -1,0 +1,113 @@
+/* Specific selection colors (using inlineClassName for colorIndex) */
+.collaborator-selection-0 {
+    background-color: rgba(255, 0, 0, 0.2);
+}
+.collaborator-selection-1 {
+    background-color: rgba(0, 255, 0, 0.2);
+}
+.collaborator-selection-2 {
+    background-color: rgba(0, 0, 255, 0.2);
+}
+.collaborator-selection-3 {
+    background-color: rgba(255, 0, 255, 0.2);
+}
+.collaborator-selection-4 {
+    background-color: rgba(0, 255, 255, 0.2);
+}
+
+/* Cursor line */
+.collaborator-cursor {
+    /* Monaco decorations are essentially inline elements.
+       Use a pseudo-element to create the visual cursor line. */
+    position: relative; /* Needed for pseudo-element positioning */
+    height: 0;
+    width: 0;
+    pointer-events: none; /* Crucial */
+    box-sizing: border-box;
+    z-index: 500; /* Ensure cursors are above text, but below tooltips */
+}
+
+.collaborator-cursor::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0; /* Position at the left edge of the decoration span */
+    width: 2px; /* Thickness of the cursor */
+    transform: translateX(-1.5px);
+    height: 100%; /* Span the full line height */
+    pointer-events: none;
+    animation: cursorBlink 500ms ease-in-out 500ms 20 alternate;
+}
+
+@keyframes cursorBlink {
+    0%,
+    20% {
+        opacity: 1;
+    }
+    60%,
+    100% {
+        opacity: 0;
+    }
+}
+
+/* Specific cursor colors by overriding background-color of the pseudo-element */
+.collaborator-cursor-0::before {
+    background-color: #ff0000;
+}
+.collaborator-cursor-1::before {
+    background-color: #00ff00;
+}
+.collaborator-cursor-2::before {
+    background-color: #0000ff;
+}
+.collaborator-cursor-3::before {
+    background-color: #ff00ff;
+}
+.collaborator-cursor-4::before {
+    background-color: #00ffff;
+}
+
+/* Tooltip styling */
+.collaborator-tooltip {
+    color: white;
+    position: absolute;
+    padding: 2px 6px;
+    transform: translateX(-128%);
+    font-size: 0.75rem;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 10px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Collaborators Cursors Tooltip */
+.collaborator-tooltip-0 {
+    background-color: #b40000;
+}
+.collaborator-tooltip-1 {
+    background-color: #00b100;
+}
+.collaborator-tooltip-2 {
+    background-color: #000061;
+}
+.collaborator-tooltip-3 {
+    background-color: #9c009c;
+}
+.collaborator-tooltip-4 {
+    background-color: #009191;
+}
+
+/* AFK User Tooltip style*/
+.tooltip-afk {
+    opacity: 0.7;
+    filter: grayscale(40%);
+    transition: opacity 0.3s ease;
+
+    &::after {
+        content: ' (AFK)';
+        color: #ffffff;
+    }
+}

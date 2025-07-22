@@ -1,1 +1,9 @@
-npx lint-staged 
+# Check for staged files in client directory
+if git diff --cached --name-only | grep -E "^client/" > /dev/null; then
+  cd client && npx lint-staged
+fi
+
+# Check for staged files in server directory
+if git diff --cached --name-only | grep -E "^server/" > /dev/null; then
+  cd server && npx lint-staged
+fi
