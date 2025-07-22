@@ -449,7 +449,6 @@ export default function CodeEditor({
             if (awarenessTimerRef.current) {
                 clearTimeout(awarenessTimerRef.current);
             }
-            awareness.off('update', updateDecorations);
         };
     }
 
@@ -485,7 +484,6 @@ export default function CodeEditor({
 
         return () => {
             clearInterval(afkCheckInterval);
-            awareness.off('change', updateAfkStatus);
         };
     }, [awareness]);
 
