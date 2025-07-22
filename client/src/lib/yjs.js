@@ -9,13 +9,16 @@ const initialRoom = urlParams.get('room') || DEFAULT_ROOM_NAME; // Get 'room' fr
 const isProduction = import.meta.env.PROD; // Vite sets this by default
 const WS_PROTOCOL = isProduction ? 'wss://' : 'ws://';
 const WS_HOST = isProduction
-    ? 'your-heroku-app-name.herokuapp.com' //TODO Replace server url after deployment
+    ? 'heroku-app-name.herokuapp.com' //TODO Replace server url after deployment
     : 'localhost:3000';
 
 // Map to store Y.Doc instances for each file
 const yDocsMap = new Map();
 // Map to store WebsocketProvider instances for each file
 const wsProvidersMap = new Map();
+
+// Map to store status event listener callbacks for cleanup
+const statusCallbacks = new Map();
 
 function validateParameters(param, type, name) {
     if (typeof param !== type) {
@@ -60,7 +63,7 @@ function getOrCreateYDoc(/* room, */ fileId, username, isAdmin) {
                     username: username || `User${clientId}`,
                     admin: isAdmin,
                 },
-                maxRetries: 2,
+                maxRetries: 10,
                 WebSocketPolyfill: WebSocket, // Ensure compatibility
             }
         );
@@ -76,7 +79,8 @@ function getOrCreateYDoc(/* room, */ fileId, username, isAdmin) {
             name: username || `User${clientId}`,
             clientId,
         });
-        wsProvidersMap.set(fileId, { wsProvider, onStatus });
+        wsProvidersMap.set(fileId, wsProvider);
+        statusCallbacks.set(fileId, onStatus);
     }
 
     const yDoc = yDocsMap.get(fileId);
@@ -107,25 +111,29 @@ function connectYjsForFile(fileId) {
  */
 function disconnectYjsForFile(fileId) {
     validateParameters(fileId, 'string', 'fileId');
-    const { wsProvider, onStatus } = wsProvidersMap.get(fileId);
-    if (wsProvider && wsProvider.shouldConnect) {
+    const provider = wsProvidersMap.get(fileId);
+    if (provider && provider.shouldConnect && provider.ws?.readyState === 1) {
         console.log(`Disconnecting Yjs provider for file: ${fileId}`);
-        wsProvider.off('status', onStatus);
-        wsProvider.disconnect();
+        provider.disconnect();
     }
+    const onStatus = statusCallbacks.get(fileId);
+    provider.off('status', onStatus);
 }
 
 /**
  * Disconnects all Yjs providers and clears all Y.Docs.
  */
 function disconnectAllYjs() {
-    wsProvidersMap.forEach(({ wsProvider, onStatus }, fileId) => {
+    wsProvidersMap.forEach((provider, fileId) => {
         console.log(
-            `Disconnecting all Yjs ws providers from room ${wsProvider.roomname} with file id - ${fileId}.`
+            `Disconnecting all Yjs ws providers from room ${provider.roomname} with file id - ${fileId}.`
         );
-        wsProvider.off('status', onStatus);
-        wsProvider.disconnect();
-        wsProvider.destroy();
+        const onStatus = statusCallbacks.get(fileId);
+        if (provider && provider.ws?.readyState === 1) {
+            provider.off('status', onStatus);
+            provider.disconnect();
+            provider.destroy();
+        }
     });
     yDocsMap.forEach((yDoc, fileId) => {
         console.log(
