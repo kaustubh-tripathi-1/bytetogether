@@ -129,23 +129,15 @@ export default function CodeEditor({
         // Ensure yText and awareness are available before attempting binding
         // This check is crucial if props can be null/undefined initially
         if (!yText || !awareness) {
-            console.warn(
-                'yText or awareness is not available on editor mount. Skipping MonacoBinding.',
-                yText,
-                awareness
-            );
-            return;
-        }
-
-        if (awareness.getStates().size > 5) {
-            dispatch(
-                addNotification({
-                    message:
-                        "Can't join the collaborative room as it's full. Please try again after some time...",
-                    type: 'error',
-                    timeout: 10000,
-                })
-            );
+            if (isYjsConnected) {
+                dispatch(
+                    addNotification({
+                        message: 'Collaboration resources unavailable',
+                        type: 'error',
+                        timeout: 4000,
+                    })
+                );
+            }
             return;
         }
 
@@ -156,7 +148,7 @@ export default function CodeEditor({
         if (model) {
             // Destroy any existing binding before creating a new one
             if (bindingRef.current) {
-                bindingRef.current.destroy();
+                bindingRef.current?.destroy();
                 bindingRef.current = null;
             }
 
@@ -215,9 +207,10 @@ export default function CodeEditor({
 
         function sendThrottledHeartbeat() {
             const now = Date.now();
-            if (now - lastHeartbeatTimeRef.current >= 5000) {
-                // 5 seconds
+            if (now - lastHeartbeatTimeRef.current >= 10 * 1000) {
+                // 10 seconds
                 awareness.setLocalStateField('heartbeat', now);
+                awareness.setLocalStateField('isAfk', false);
                 lastHeartbeatTimeRef.current = now;
             }
         }
@@ -227,8 +220,8 @@ export default function CodeEditor({
         });
 
         let decorationUpdateScheduled = false;
-        // --- Yjs Awareness (Cursor & Selection Sync) ---
-        awareness.on('update', ({ added, updated, removed }) => {
+        // --- Yjs Awareness (Cursor, Tooltip & Selection Sync) ---
+        const updateDecorations = ({ added, updated, removed }) => {
             if (!decorationUpdateScheduled) {
                 decorationUpdateScheduled = true;
                 if (awarenessTimerRef.current) {
@@ -239,11 +232,7 @@ export default function CodeEditor({
                     requestAnimationFrame(() => {
                         const editorDomNode = editor.getDomNode();
                         const model = editor.getModel();
-                        if (
-                            !model ||
-                            !editorDomNode /* || !editor.hasTextFocus() */
-                        )
-                            return;
+                        if (!model || !editorDomNode) return;
 
                         // Collect decorations for all active clients
                         const batchedDecorationsMap = new Map();
@@ -452,8 +441,53 @@ export default function CodeEditor({
                     });
                 }, 30); // debounce awareness update 1 frame
             }
-        });
+        };
+
+        awareness.on('update', updateDecorations);
+
+        return () => {
+            if (awarenessTimerRef.current) {
+                clearTimeout(awarenessTimerRef.current);
+            }
+            awareness.off('update', updateDecorations);
+        };
     }
+
+    // AFK effect
+    useEffect(() => {
+        if (!awareness) return;
+
+        const updateAfkStatus = () => {
+            const now = Date.now();
+            const states = awareness.getStates();
+            states.forEach((state, clientId) => {
+                if (clientId === awareness.clientID) {
+                    if (now - lastHeartbeatTimeRef.current >= 2 * 60 * 1000) {
+                        awareness.setLocalStateField('isAfk', true);
+                    }
+                    return;
+                }
+                if (!state.user || !state.heartbeat) return;
+                const tooltip = document.querySelector(
+                    `.collaborator-tooltip-${clientId}`
+                );
+                if (tooltip) {
+                    const isAfk = (now - state.heartbeat) / (60 * 1000) >= 2;
+                    tooltip.classList.toggle('tooltip-afk', isAfk);
+                }
+            });
+        };
+
+        updateAfkStatus(); // Run immediately for initial state
+        const afkCheckInterval = setInterval(updateAfkStatus, 60 * 1000);
+
+        awareness.on('change', updateAfkStatus); // Update on client join/leave/heartbeat
+
+        return () => {
+            clearInterval(afkCheckInterval);
+            awareness.off('change', updateAfkStatus);
+        };
+    }, [awareness]);
 
     // Effect to clean up the MonacoBinding and awareness listeners when CodeEditor unmounts
     // or when yText/awareness props change (indicating a file switch, requiring re-binding)
@@ -467,7 +501,8 @@ export default function CodeEditor({
                 // Clear local awareness state when editor unmounts or file changes
                 awareness.setLocalStateField('selection', null);
                 awareness.setLocalStateField('user', null);
-                awareness.setLocalStateField('usedColorIndices', []);
+                awareness.setLocalStateField('heartbeat', null);
+                awareness.setLocalStateField('isAfk', null);
                 awareness.setLocalState(null);
                 awareness.getStates()?.delete(awareness.clientID);
             }
@@ -487,32 +522,6 @@ export default function CodeEditor({
                 .forEach((el) => el.remove());
         };
     }, [yText, awareness, editorRef]); // Re-run effect on file switches
-
-    useEffect(() => {
-        if (!awareness || awareness.getStates()?.size < 2) return;
-
-        const afkCheckInterval = setInterval(() => {
-            const states = awareness.getStates();
-
-            states.forEach((state, clientId) => {
-                if (clientId === awareness.clientID) return; // skip self
-
-                const tooltip = document.querySelector(
-                    `.collaborator-tooltip-${clientId}`
-                );
-                if (!tooltip || !state.user || !state.heartbeat) return;
-
-                const minutesIdle =
-                    (Date.now() - state.heartbeat) / (60 * 1000);
-
-                tooltip.classList.toggle('tooltip-afk', minutesIdle >= 2);
-            });
-        }, 30 * 1000); // check AFK every 30 sec
-
-        return () => {
-            clearInterval(afkCheckInterval);
-        };
-    }, [awareness]);
 
     const editorSectionProps = {
         className:
