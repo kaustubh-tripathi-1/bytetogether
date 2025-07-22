@@ -95,6 +95,18 @@ export function useRealTimeSync({
                 currentConnectedFileIdRef.current = null; // No file is actively connected via Yjs
             }
 
+            setTimeout(() => {
+                wsProvider?.ws?.send(
+                    JSON.stringify({
+                        type: 'client-joined',
+                        //TODO replace this with projectId
+                        room: `bytetogether-${currentConnectedFileIdRef.current}`,
+                        clientId: yjsResources.yDoc?.clientID,
+                        username,
+                    })
+                );
+            }, 600);
+
             // Set initial content for the Y.Text if it's empty, otherwise use Yjs content
             //TODO fix this condition for duplicate code insertion
             if (
@@ -194,6 +206,14 @@ export function useRealTimeSync({
                             const path = location.pathname;
                             navigate(`${path}`);
                         }
+                    } else if (message.type === 'client-joined') {
+                        dispatch(
+                            addNotification({
+                                message: message.message,
+                                type: 'info',
+                                timeout: 4000,
+                            })
+                        );
                     }
                 } catch (error) {
                     console.error(`WebSocket error: ${error.message}`);
@@ -228,6 +248,7 @@ export function useRealTimeSync({
         isYjsConnected,
         isAdmin,
         yjsResources.yText,
+        yjsResources.yDoc,
         currentConnectedFileIdRef,
         setYjsResources,
         username,
