@@ -18,12 +18,13 @@ export function useDebounce(callback, delay) {
     }, []);
 
     return (...args) => {
+        const preservedThis = this;
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
         }
 
         timeoutRef.current = setTimeout(() => {
-            callback(...args);
+            callback.apply(preservedThis, args);
         }, delay);
     };
 }
