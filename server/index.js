@@ -140,7 +140,10 @@ httpServer.on('upgrade', (request, socket, head) => {
                         })
                     );
                     roomClients.get(room).forEach((_, client) => {
-                        if (client.readyState === client.OPEN) {
+                        if (
+                            client !== wsInstance &&
+                            client.readyState === client.OPEN
+                        ) {
                             client.send(
                                 JSON.stringify({
                                     type: 'client-update',
@@ -204,15 +207,7 @@ httpServer.on('upgrade', (request, socket, head) => {
                     roomAdmins.delete(room);
                     console.log(`Room ${room} destroyed by admin`);
                 } else if (message.type === 'client-left') {
-                    const { clientId, username } = message;
                     roomClients.get(room).delete(wsInstance);
-                    notifyClients(
-                        true,
-                        'client-left',
-                        clientId,
-                        username,
-                        `${username} left the room`
-                    );
                 } else if (message.type === 'client-joined') {
                     const { clientId, username } = message;
                     notifyClients(
@@ -251,7 +246,7 @@ httpServer.on('upgrade', (request, socket, head) => {
                     roomAdmins.delete(room);
                 }
 
-                if (roomClients.get(room)?.size === 0) {
+                if (getRoomClientCount(room) === 0) {
                     const yDoc = getYDoc(room);
                     yDoc.destroy();
                     roomClients.delete(room);
@@ -262,6 +257,7 @@ httpServer.on('upgrade', (request, socket, head) => {
                 console.error(`Error in ws close event :`, error);
             }
         });
+
         wsInstance.on('error', (error) => {
             console.log(`WebSocket error in room ${room}:`, error);
         });
@@ -271,9 +267,13 @@ httpServer.on('upgrade', (request, socket, head) => {
     });
 });
 
-httpServer.listen(PORT, () => console.log('Server running on port 3000'));
+httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 //TODO Remove these before pushing to prod
+wsServer.on('error', (error) => {
+    console.error('WebSocket server error:', error);
+});
+
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
 });
