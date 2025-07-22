@@ -303,8 +303,10 @@ export function useEditorActions({
                 isAdmin
             );
             const defaultCode = getDefaultCodeForLanguage(language);
-            yText.delete(0, yText.length);
-            yText.insert(0, defaultCode);
+            if (yjsResources.yText && isYjsConnected) {
+                yText.delete(0, yText.length);
+                yText.insert(0, defaultCode);
+            }
             dispatch(setCodeContent(defaultCode));
         } catch (error) {
             dispatch(
@@ -314,7 +316,15 @@ export function useEditorActions({
                 })
             );
         }
-    }, [dispatch, isAdmin, language, selectedFile, username]);
+    }, [
+        dispatch,
+        isAdmin,
+        isYjsConnected,
+        language,
+        selectedFile,
+        username,
+        yjsResources,
+    ]);
 
     /**
      * Handler for font size increment
