@@ -142,8 +142,6 @@ export default function EditorLayout({ projectId, isNewProject }) {
         setYjsResources,
         currentConnectedFileIdRef,
         username,
-        navigate,
-        location,
     });
 
     //TODO remove this when deploying, only for dev cuz of strict mode

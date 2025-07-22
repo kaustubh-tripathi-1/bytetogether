@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router';
 
 import {
     connectYjsForFile,
@@ -42,8 +43,10 @@ import { setPreferences } from '../../store/slices/userSlice';
  * @param {React.SetStateAction} options.setIsShortcutsOpen Setter to control shortcuts modal visibility.
  * @param {React.SetStateAction} options.setIsYjsConnected Setter to enable/disable Yjs collaboration.
  * @param {React.SetStateAction} options.setIsInvited Setter to mark user as invited in a session.
- * @param {React.SetStateAction} options.setIsAdmin Setter to mark user as admin of a room.
  * @param {React.ComponentState<Object>} options.yjsResources Contains yText, yDoc, and awareness instances.
+ * @param {React.SetStateAction} options.setYjsResources Setter of Yjs resources.
+ * @param {React.RefObject} options.currentConnectedFileIdRef Ref object containing current connected file id.
+ * @param {string} options.username Username of the user.
  *
  * @returns {Object} Memoized Editor action handlers
  * @returns {Function} handleFileChange - Changes the selected file.
@@ -85,10 +88,10 @@ export function useEditorActions({
     setYjsResources,
     currentConnectedFileIdRef,
     username,
-    navigate,
-    location,
 }) {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const location = useLocation();
 
     /**
      * Handler to switch between files by their ID.
@@ -426,24 +429,6 @@ export function useEditorActions({
                     type: 'success',
                 })
             );
-
-            /* const currentProjectId = projectId || 'bytetogether';
-            const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&room=${currentProjectId}&file=${selectedFile.$id}&admin=${isAdmin}&username=${username}&clientId=${yjsResources.yDoc?.clientID || Date.now()}`;
-            window.navigator.clipboard.writeText(inviteUrl);
-
-            if (!yjsResources.wsProvider) {
-                setIsYjsConnected(true);
-                setIsAdmin(true);
-                connectYjsForFile(selectedFile.$id, username);
-            } 
-            dispatch(
-                addNotification({
-                    message: '✅ Invite Link copied',
-                    type: 'success',
-                    timeout: 4000,
-                })
-            );
-            */
         } catch (error) {
             dispatch(
                 addNotification({
