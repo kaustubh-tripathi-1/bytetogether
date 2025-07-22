@@ -119,20 +119,6 @@ export function useRealTimeSync({
                 yText.insert(0, selectedFile.content);
             }
 
-            /* // The isFresh: true flag ensures a new yDoc is created on reconnect, avoiding server-side persisted state.
-            // Clearing yText and inserting selectedFile.content ensures the editor starts with the current file content.
-            const { yDoc, yText, awareness, wsProvider } = getOrCreateYDoc(
-                newFileId,
-                username,
-                isAdmin
-            ); // Fresh yDoc
-            setYjsResources({ yDoc, yText, awareness, wsProvider });
-            connectYjsForFile(newFileId);
-            currentConnectedFileIdRef.current = newFileId;
-
-            yText.delete(0, yText.length);
-            yText.insert(0, selectedFile.content || ''); */
-
             // Dispatch the content from yText to Redux.
             dispatch(setCodeContent(yText.toString()));
             dispatch(
