@@ -13,6 +13,7 @@ import {
 } from '../../store/slices/editorSlice';
 import { Spinner } from '../componentsIndex';
 import { addNotification } from '../../store/slices/uiSlice';
+import { useDebounce } from '../../hooks/useDebounce';
 
 import nightOwlTheme from './themes/night-owl.json';
 import vsLight from './themes/custom-light.json';
@@ -62,6 +63,8 @@ export default function CodeEditor({
             dispatch(setSelectedFileContent(value));
         }
     }
+
+    const debouncedHandleContentChange = useDebounce(handleContentChange, 400);
 
     /**
      * Defines custom themes and compiler options before the editor mounts.
@@ -523,7 +526,7 @@ export default function CodeEditor({
         width: '100%',
         language,
         value: !yText ? codeContent : undefined,
-        onChange: handleContentChange,
+        onChange: debouncedHandleContentChange,
         theme: theme === 'dark' ? 'night-owl' : 'vs-light',
         beforeMount: handleEditorWillMount,
         onMount: handleEditorDidMount,
