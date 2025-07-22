@@ -87,7 +87,7 @@ export function useRealTimeSync({
 
             // Connect to room for the new file if not already connected or if invited
             if (isYjsConnected) {
-                connectYjsForFile(newFileId, username);
+                connectYjsForFile(newFileId);
                 currentConnectedFileIdRef.current = newFileId; // Mark this file as currently connected
             } else {
                 // Ensure disconnect for the current file if yjs is not connected
@@ -125,7 +125,7 @@ export function useRealTimeSync({
                 isAdmin
             ); // Fresh yDoc
             setYjsResources({ yDoc, yText, awareness, wsProvider });
-            connectYjsForFile(newFileId, username);
+            connectYjsForFile(newFileId);
             currentConnectedFileIdRef.current = newFileId;
 
             yText.delete(0, yText.length);

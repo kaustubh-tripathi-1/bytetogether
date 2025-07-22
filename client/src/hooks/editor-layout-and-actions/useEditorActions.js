@@ -417,7 +417,7 @@ export function useEditorActions({
             const currentProjectId = projectId || 'bytetogether'; // Fallback to default
 
             // Connect Yjs for the current room
-            connectYjsForFile(selectedFile.$id, username);
+            connectYjsForFile(selectedFile.$id);
 
             const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=true&admin=${!isAdmin}&room=${currentProjectId}`;
 
@@ -437,14 +437,7 @@ export function useEditorActions({
                 })
             );
         }
-    }, [
-        isAdmin,
-        setIsYjsConnected,
-        projectId,
-        selectedFile,
-        username,
-        dispatch,
-    ]);
+    }, [isAdmin, setIsYjsConnected, projectId, selectedFile, dispatch]);
 
     const handleEndRoom = useCallback(() => {
         if (yjsResources.wsProvider) {
