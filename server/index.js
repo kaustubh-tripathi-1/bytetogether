@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import {
@@ -7,6 +8,7 @@ import {
     setPersistence,
     docs,
 } from '@y/websocket-server/utils';
+import judge0Routes from './routes/judge0.js';
 
 if (process.env.NODE_ENV !== 'production') {
     const dotenv = await import('dotenv');
@@ -42,6 +44,24 @@ const roomAdmins = new Map(); // room -> wsInstance (admin client)
 
 const app = express();
 const httpServer = createServer(app);
+
+// Native CORS middleware
+/* app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (ALLOWED_ORIGINS.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    }
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
+}); */
+// Cors package middleware
+app.use(cors({ origin: ALLOWED_ORIGINS }));
+app.use(express.json());
+app.use('/api', judge0Routes); // Mount Judge0 routes
 
 // WebSocket server instance.
 // Attach it to the HTTP server and keep noServer to handle custom ws upgrade logic
