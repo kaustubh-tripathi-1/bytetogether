@@ -27,3 +27,16 @@ export const defaultsSnippets = {
     html: '<!DOCTYPE html>\n<html lang="en">\n<head>\n\t<meta charset="UTF-8">\n\t<meta name="viewport" content="width=device-width, initial-scale=1.0">\n\t<title>Hello</title>\n</head>\n<body>\n\t<h1>Hello, World!</h1>\n</body>\n</html>',
     css: 'body {\n    background-color: #ffffff;\n}',
 };
+
+/**
+ * Map of Judge0 supported programming languages with language Ids.
+ * @type {Object}
+ */
+export const judge0LanguagesIds = {
+    c: 50,
+    cpp: 54,
+    java: 62,
+    js: 63,
+    py: 71,
+    ts: 74,
+};
