@@ -9,6 +9,7 @@ const executionSlice = createSlice({
         output: '',
         error: '',
         isRunning: false,
+        executionMode: 'judge0', // or "preview"
     },
     reducers: {
         /**
@@ -40,8 +41,18 @@ const executionSlice = createSlice({
         setIsRunning(state, action) {
             state.isRunning = action.payload;
         },
+        /**
+         * Sets the execution mode state.
+         * @param {Object} state
+         * @param {Object} action
+         * @param {boolean} action.payload
+         */
+        setExecutionMode(state, action) {
+            state.executionMode = action.payload;
+        },
     },
 });
 
-export const { setOutput, setError, setIsRunning } = executionSlice.actions;
+export const { setOutput, setError, setIsRunning, setExecutionMode } =
+    executionSlice.actions;
 export default executionSlice.reducer;
