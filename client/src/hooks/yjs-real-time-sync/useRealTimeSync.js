@@ -136,8 +136,11 @@ export function useRealTimeSync({
 
             // Handle server messages
             function handleMessage(event) {
-                if (event.data instanceof ArrayBuffer) {
-                    return; // Skip Yjs protocol messages
+                if (
+                    event.data instanceof ArrayBuffer ||
+                    ArrayBuffer.isView(event.data)
+                ) {
+                    return; // Skip Yjs protocol sync messages. Skip parsing as JSON
                 }
                 try {
                     const message = JSON.parse(event.data);
