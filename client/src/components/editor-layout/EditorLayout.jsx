@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router';
+import DOMPurify from 'dompurify';
 
 import { getFilesByProject } from '../../store/slices/filesSlice.js';
 import {
@@ -10,6 +11,7 @@ import {
     InputPanel,
     Modal,
     OutputPanel,
+    PreviewPanel,
 } from '../componentsIndex.js';
 import { modalConfig } from '../../conf/modalConfig.jsx';
 import { disconnectAllYjs } from '../../lib/yjs.js';
@@ -32,16 +34,23 @@ export default function EditorLayout({ projectId, isNewProject }) {
         (state) => state.editor
     );
     const { profile } = useSelector((state) => state.user);
-
-    if (profile) {
-        var { username } = profile;
-    }
+    const { username } = profile || {};
+    const { output, error, isRunning } = useSelector(
+        (state) => state.execution
+    );
 
     // Layout and UI related States
-    const [output, setOutput] = useState('');
+    const [previewOutput, setPreviewOutput] = useState({
+        html: '',
+        css: '',
+        js: '',
+        consoleLogs: [],
+    });
     const [input, setInput] = useState('');
+    const [showPreview, setShowPreview] = useState(false);
     const [editorWidth, setEditorWidth] = useState(66.67); // 2/3 of screen
     const [inputHeight, setInputHeight] = useState(50); // 50% of right panel
+    const [consoleHeight, setConsoleHeight] = useState(200);
     const [isResizing, setIsResizing] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
@@ -93,13 +102,16 @@ export default function EditorLayout({ projectId, isNewProject }) {
     const { handleHorizontalMouseDown, handleVerticalMouseDown } =
         usePanelsResize({
             editorWidth,
-            inputHeight,
-            isDraggingHorizontal,
-            containerRef,
             setEditorWidth,
-            setIsResizing,
-            isDraggingVertical,
+            inputHeight,
             setInputHeight,
+            containerRef,
+            isDraggingHorizontal,
+            isDraggingVertical,
+            setIsResizing,
+            consoleHeight,
+            setConsoleHeight,
+            showPreview,
         });
 
     const {
@@ -130,7 +142,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
         codeContent,
         language,
         settings,
-        setOutput,
+        setPreviewOutput,
         input,
         isYjsConnected,
         setIsYjsConnected,
@@ -143,6 +155,11 @@ export default function EditorLayout({ projectId, isNewProject }) {
         currentConnectedFileIdRef,
         username,
     });
+
+    //TODO move this in its right place
+    const handleInputChange = (e) => {
+        setInput(DOMPurify.sanitize(e.target.value));
+    };
 
     //TODO remove this when deploying, only for dev cuz of strict mode
     const isMountedRef = useRef(false);
@@ -221,6 +238,8 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         isYjsConnected={isYjsConnected}
                         setIsYjsConnected={setIsYjsConnected}
                         isInvited={isInvitedSession}
+                        showPreview={showPreview}
+                        setShowPreview={setShowPreview}
                     />
                 </div>
                 <CodeEditor
@@ -276,20 +295,41 @@ export default function EditorLayout({ projectId, isNewProject }) {
             ></div>
 
             {/* Input/Output Section */}
-            <section className="flex w-full flex-col md:w-[calc(100%-var(--editor-width))] md:min-w-64 md:flex-1">
-                <section className="max-h-full min-h-40 md:h-[var(--input-height)]">
-                    <InputPanel input={input} onInputChange={setInput} />
+            {showPreview ? (
+                <section className="flex w-full flex-col md:w-[calc(100%-var(--editor-width))] md:min-w-64 md:flex-1">
+                    <PreviewPanel
+                        html={previewOutput.html}
+                        css={previewOutput.css}
+                        js={previewOutput.js}
+                        consoleLogs={previewOutput.consoleLogs}
+                        consoleHeight={consoleHeight}
+                        handleVerticalMouseDown={handleVerticalMouseDown}
+                        setPreviewOutput={setPreviewOutput}
+                    />
                 </section>
-                <div
-                    className="hidden h-1 cursor-ns-resize bg-gray-300 hover:bg-blue-600 active:bg-blue-600 md:block dark:bg-gray-500"
-                    onMouseDown={handleVerticalMouseDown}
-                    role="separator"
-                    aria-label="Resize Output and Input Panels"
-                ></div>
-                <section className="max-h-full min-h-42 flex-1 md:h-[calc(100%-var(--input-height))]">
-                    <OutputPanel output={output} />
+            ) : (
+                <section className="flex w-full flex-col md:w-[calc(100%-var(--editor-width))] md:min-w-64 md:flex-1">
+                    <section className="max-h-full min-h-40 md:h-[var(--input-height)]">
+                        <InputPanel
+                            input={input}
+                            onInputChange={handleInputChange}
+                        />
+                    </section>
+                    <div
+                        className="hidden h-1 cursor-ns-resize bg-gray-300 hover:bg-blue-600 active:bg-blue-600 md:block dark:bg-gray-500"
+                        onMouseDown={handleVerticalMouseDown}
+                        role="separator"
+                        aria-label="Resize Output and Input Panels"
+                    />
+                    <section className="max-h-full min-h-42 flex-1 md:h-[calc(100%-var(--input-height))]">
+                        <OutputPanel
+                            output={output}
+                            error={error}
+                            isRunning={isRunning}
+                        />
+                    </section>
                 </section>
-            </section>
+            )}
         </section>
     );
 }
