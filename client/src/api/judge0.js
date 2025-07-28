@@ -12,13 +12,12 @@ import {
 const API_URL = '/api'; // Proxied to backend or Vercel function
 
 /**
- * Executes code using Judge0 CE API via backend proxy and dispatches results to Redux. Fetch variant
+ * Executes code using Judge0 CE API via backend proxy in dev mode or via vercel functions in prod. Fetch variant
  * @param {Object} params
  * @param {number} params.language - Language ID (50 for C, 54 for C++, 71 for Python).
  * @param {string} params.sourceCode - Code to execute.
  * @param {string} params.stdin - User-provided input.
- * @param {Function} params.dispatch - Redux dispatch function.
- * @returns {Promise<{ stdout: string, stderr: string }>}
+ * @returns {Object} stdout and stderr - Program output and errors if any
  */
 export async function executeCodeFetch({ language, sourceCode, stdin }) {
     try {
@@ -66,13 +65,12 @@ export async function executeCodeFetch({ language, sourceCode, stdin }) {
 }
 
 /**
- * Executes code using Judge0 CE API via backend proxy and dispatches results to Redux. Axios variant
+ * Executes code using Judge0 CE API via backend proxy in dev mode or via vercel functions in prod. Axios variant
  * @param {Object} params
  * @param {number} params.language - Language ID (50 for C, 54 for C++, 71 for Python).
  * @param {string} params.sourceCode - Code to execute.
  * @param {string} params.stdin - User-provided input.
- * @param {Function} params.dispatch - Redux dispatch function.
- * @returns {Promise<{ stdout: string, stderr: string }>}
+ * @returns {Object} stdout and stderr - Program output and errors if any
  */
 export async function executeCodeAxios({ language, sourceCode, stdin }) {
     try {
