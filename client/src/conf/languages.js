@@ -36,7 +36,7 @@ export const judge0LanguagesIds = {
     c: 50,
     cpp: 54,
     java: 62,
-    js: 63,
-    py: 71,
-    ts: 74,
+    javascript: 63,
+    python: 71,
+    typescript: 74,
 };
