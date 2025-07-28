@@ -22,6 +22,8 @@ import {
     setSelectedFile,
 } from '../../store/slices/editorSlice';
 import { setPreferences } from '../../store/slices/userSlice';
+import { executeCodeFetch } from '../../api/judge0';
+import { getJudge0LanguageId } from '../../utils/getJudge0LanguageId';
 
 /**
  * Custom hook that provides reusable editor-related actions such as formatting,
@@ -77,7 +79,7 @@ export function useEditorActions({
     codeContent,
     language,
     settings,
-    setOutput,
+    setPreviewOutput,
     input,
     isYjsConnected,
     setIsYjsConnected,
@@ -164,43 +166,70 @@ export function useEditorActions({
     }, [editorRef]);
 
     /**
-     * Placeholder for running code (to be implemented in Phase 6)
+     * Runs code in the editor
      */
-    const handleRunCode = useCallback(() => {
+    const handleRunCode = useCallback(async () => {
         try {
-            if (isYjsConnected) {
-                const { yText } = getOrCreateYDoc(
-                    selectedFile.$id,
-                    username,
-                    isAdmin
-                );
-                // Simulate output for now
-                setOutput(
-                    `Simulated output for:\n${yText ? yText.toString() : codeContent}\nInput:\n${input}`
-                );
-                return;
-            }
+            if (!selectedFile?.$id) throw new Error('No file selected');
+            const content = isYjsConnected
+                ? yjsResources.yText?.toString()
+                : codeContent;
+            if (!content) throw new Error('No code to execute');
 
-            setOutput(
-                `Simulated output for:\n${codeContent}\nInput:\n${input}`
-            );
+            if (language === 'html' || language === 'javascript') {
+                const htmlFile =
+                    files.find((f) => f.fileName.endsWith('.html'))?.content ||
+                    '';
+                const cssFile =
+                    files.find((f) => f.fileName.endsWith('.css'))?.content ||
+                    '';
+                const jsFile =
+                    files.find((f) => f.fileName.endsWith('.js'))?.content ||
+                    '';
+                setPreviewOutput((prev) => ({
+                    ...prev,
+                    html: htmlFile,
+                    css: cssFile,
+                    js: jsFile,
+                }));
+            } else if (
+                [
+                    'c',
+                    'cpp',
+                    'python',
+                    'java',
+                    'javascript',
+                    'typescript',
+                ].includes(language)
+            ) {
+                const languageId = getJudge0LanguageId(language);
+                const { _stdout, _stderr } = await executeCodeFetch({
+                    language: languageId,
+                    sourceCode: content,
+                    stdin: input,
+                });
+            } else {
+                throw new Error('Unsupported language');
+            }
         } catch (error) {
             dispatch(
                 addNotification({
-                    message: `Failed to retrieve shared code! with error${error} Please try again...`,
+                    message: `Failed to run code: ${error.message}`,
                     type: 'error',
+                    timeout: 4000,
                 })
             );
         }
     }, [
         codeContent,
         dispatch,
+        files,
         input,
-        isAdmin,
         isYjsConnected,
+        language,
         selectedFile,
-        setOutput,
-        username,
+        setPreviewOutput,
+        yjsResources.yText,
     ]);
 
     /**
