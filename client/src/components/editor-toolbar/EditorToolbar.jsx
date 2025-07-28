@@ -47,6 +47,8 @@ function EditorToolbar({
     // collaborators,
     yjsResources,
     setIsYjsConnected,
+    showPreview,
+    setShowPreview,
 }) {
     const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
     const inviteButtonRef = useRef(null);
@@ -92,6 +94,24 @@ function EditorToolbar({
                         aria-label="Run code"
                     >
                         <Run />
+                    </button>
+                </Tooltip>
+                <Tooltip
+                    content={
+                        <div className="flex flex-col items-center justify-center">
+                            <p>Preview Mode</p>
+                            <p>HTML/CSS/JS</p>
+                        </div>
+                    }
+                >
+                    <button
+                        onClick={() => setShowPreview((prev) => !prev)}
+                        className="cursor-pointer rounded-full px-3 pt-2 pb-1.5 text-xs hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-green-400 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                        aria-label={
+                            showPreview ? 'Hide preview' : 'Show preview'
+                        }
+                    >
+                        {showPreview ? 'Hide Preview' : 'Show Preview'}
                     </button>
                 </Tooltip>
                 <Tooltip content={'Reset code'}>
