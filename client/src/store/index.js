@@ -8,6 +8,7 @@ import editorReducer from './slices/editorSlice';
 import filesReducer from './slices/filesSlice';
 import userReducer from './slices/userSlice';
 import executionReducer from './slices/executionSlice';
+import previewReducer from './slices/previewSlice';
 
 /**
  * Persistence configuration for the auth slice.
@@ -72,6 +73,7 @@ const rootReducer = combineReducers({
     files: persistReducer(filesPersistConfig, filesReducer),
     user: persistReducer(userPersistConfig, userReducer),
     execution: executionReducer,
+    preview: previewReducer,
 });
 
 // Redux Store config
