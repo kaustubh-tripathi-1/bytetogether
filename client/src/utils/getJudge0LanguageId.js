@@ -5,6 +5,6 @@ import { judge0LanguagesIds } from '../conf/languages';
  * @param {string} languageExtension - The programming language extension.
  * @returns {number} Judge0 language id or id of plain text if undefined.
  */
-export function getJudge0LanguageId(languageExtension) {
-    return judge0LanguagesIds[languageExtension] || 43;
+export function getJudge0LanguageId(language) {
+    return judge0LanguagesIds[language] || 43;
 }
