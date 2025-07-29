@@ -1,5 +1,6 @@
 import { memo, useCallback, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { useSelector } from 'react-redux';
 
 import {
     Format,
@@ -8,6 +9,7 @@ import {
     InvitePanel,
     Keyboard,
     LanguageSelector,
+    ModeSelector,
     Reset,
     Run,
     Save,
@@ -47,9 +49,9 @@ function EditorToolbar({
     // collaborators,
     yjsResources,
     setIsYjsConnected,
-    showPreview,
-    setShowPreview,
 }) {
+    const { executionMode } = useSelector((state) => state.execution);
+
     const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
     const inviteButtonRef = useRef(null);
 
@@ -69,7 +71,7 @@ function EditorToolbar({
 
     return (
         <div
-            className="flex w-full flex-grow justify-center pb-4"
+            className="flex w-full flex-grow justify-center gap-1 pb-4"
             role="toolbar"
             aria-label="Editor toolbar"
         >
@@ -77,6 +79,7 @@ function EditorToolbar({
                 selectedLanguage={language}
                 onLanguageChange={handleLanguageChange}
             />
+            <ModeSelector />
             <div className="flex w-full items-center justify-center gap-1 sm:gap-8 md:justify-end md:gap-1.5">
                 <Tooltip content={'Format code'}>
                     <button
@@ -87,33 +90,17 @@ function EditorToolbar({
                         <Format width={1.6} height={1.6} />
                     </button>
                 </Tooltip>
-                <Tooltip content={'Run code'}>
-                    <button
-                        onClick={handleRunCode}
-                        className="cursor-pointer rounded-full px-3 pt-2 pb-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-green-400 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
-                        aria-label="Run code"
-                    >
-                        <Run />
-                    </button>
-                </Tooltip>
-                <Tooltip
-                    content={
-                        <div className="flex flex-col items-center justify-center">
-                            <p>Preview Mode</p>
-                            <p>HTML/CSS/JS</p>
-                        </div>
-                    }
-                >
-                    <button
-                        onClick={() => setShowPreview((prev) => !prev)}
-                        className="cursor-pointer rounded-full px-3 pt-2 pb-1.5 text-xs hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-green-400 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
-                        aria-label={
-                            showPreview ? 'Hide preview' : 'Show preview'
-                        }
-                    >
-                        {showPreview ? 'Hide Preview' : 'Show Preview'}
-                    </button>
-                </Tooltip>
+                {executionMode === 'judge0' && (
+                    <Tooltip content={'Run code'}>
+                        <button
+                            onClick={handleRunCode}
+                            className="cursor-pointer rounded-full px-3 pt-2 pb-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-green-400 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                            aria-label="Run code"
+                        >
+                            <Run />
+                        </button>
+                    </Tooltip>
+                )}
                 <Tooltip content={'Reset code'}>
                     <button
                         onClick={handleResetCode}
