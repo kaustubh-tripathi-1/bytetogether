@@ -1,5 +1,7 @@
 import { useCallback, useEffect } from 'react';
 
+import { useThrottle } from '../useThrottle';
+
 /**
  * Custom hook to enable panel resizing (horizontal and vertical) using mouse events.
  *
@@ -30,40 +32,80 @@ export function usePanelsResize({
     setEditorWidth,
     setInputHeight,
     setIsResizing,
+    consoleHeight,
+    setConsoleHeight,
+    isPreviewVisible,
+    previewContainerRef,
 }) {
+    const throttledSetConsoleHeight = useThrottle(setConsoleHeight, 16, {
+        leading: true,
+        trailing: false,
+    });
+    const throttledSetEditorWidth = useThrottle(setEditorWidth, 16, {
+        leading: true,
+        trailing: false,
+    });
+    const throttledSetInputHeight = useThrottle(setInputHeight, 16, {
+        leading: true,
+        trailing: false,
+    });
+
     /**
      * Horizontal resize (CodeEditor vs Right Panel)
      */
-    const handleHorizontalMouseDown = useCallback(() => {
-        if (window.innerWidth < 768) return; // Disable resizing on mobile
+    const handleHorizontalMouseDown = useCallback(
+        (event) => {
+            if (window.innerWidth < 768) return; // Disable resizing on mobile
 
-        isDraggingHorizontal.current = true;
-        setIsResizing(true);
-    }, [isDraggingHorizontal, setIsResizing]);
+            isDraggingHorizontal.current = true;
+            setIsResizing(true);
+            event.stopPropagation();
+            event.preventDefault();
+        },
+        [isDraggingHorizontal, setIsResizing]
+    );
 
     /**
-     * Vertical resize (OutputPanel vs InputPanel)
+     * Vertical resize (OutputPanel vs InputPanel or Preview Panel vs Console Panel)
      */
-    const handleVerticalMouseDown = useCallback(() => {
-        if (window.innerWidth < 768) return; // Disable resizing on mobile
+    const handleVerticalMouseDown = useCallback(
+        (event) => {
+            if (window.innerWidth < 768) return; // Disable resizing on mobile
 
-        isDraggingVertical.current = true;
-        setIsResizing(true);
-    }, [isDraggingVertical, setIsResizing]);
+            isDraggingVertical.current = true;
+            setIsResizing(true);
+            event.stopPropagation();
+            event.preventDefault();
+        },
+        [isDraggingVertical, setIsResizing]
+    );
 
     // Update container styles dynamically
     useEffect(() => {
         if (containerRef.current) {
-            containerRef.current.style.setProperty(
+            containerRef.current?.style.setProperty(
                 '--editor-width',
                 `${editorWidth}%`
             );
-            containerRef.current.style.setProperty(
-                '--input-height',
-                `${inputHeight}%`
+            if (!isPreviewVisible) {
+                containerRef.current?.style.setProperty(
+                    '--input-height',
+                    `${inputHeight}%`
+                );
+            }
+
+            containerRef.current?.style.setProperty(
+                '--console-height',
+                `${consoleHeight}%`
             );
         }
-    }, [containerRef, editorWidth, inputHeight]);
+    }, [
+        consoleHeight,
+        containerRef,
+        editorWidth,
+        inputHeight,
+        isPreviewVisible,
+    ]);
 
     // Add global event listeners for dragging
     useEffect(() => {
@@ -73,15 +115,19 @@ export function usePanelsResize({
             }
 
             const containerWidth = containerRef.current.offsetWidth;
-            const newX = event.clientX;
+            const containerLeft =
+                containerRef.current.getBoundingClientRect().left; // Get container's left edge
+            const newX = event.clientX - containerLeft;
             const newWidth = (newX / containerWidth) * 100;
 
-            setEditorWidth(Math.max(20, Math.min(80, newWidth))); // Min 20%, Max 80%
+            throttledSetEditorWidth(Math.max(20, Math.min(80, newWidth))); // Min 20%, Max 80%
         }
 
         function handleHorizontalMouseUp() {
-            isDraggingHorizontal.current = false;
-            setIsResizing(false);
+            if (isDraggingHorizontal.current) {
+                isDraggingHorizontal.current = false;
+                setIsResizing(false);
+            }
         }
 
         function handleVerticalMouseMove(e) {
@@ -89,15 +135,38 @@ export function usePanelsResize({
                 return;
             }
 
-            const containerHeight = containerRef.current.offsetHeight;
-            const newY =
-                e.clientY - containerRef.current.getBoundingClientRect().top;
-            const newHeight = (newY / containerHeight) * 100;
+            if (isPreviewVisible) {
+                const containerRect =
+                    previewContainerRef.current.getBoundingClientRect();
+                const containerHeight = containerRect.height;
+                const newY = e.clientY - containerRect.top + 40;
 
-            setInputHeight(Math.max(20, Math.min(80, newHeight))); // Min 20%, Max 80%
+                const newHeight =
+                    ((containerHeight - newY) / containerHeight) * 100;
+
+                throttledSetConsoleHeight(
+                    Math.max(20, Math.min(50, newHeight))
+                );
+            } else {
+                const containerRect =
+                    containerRef.current?.getBoundingClientRect();
+                const containerHeight = containerRect.height;
+                const newY = e.clientY - containerRect.top;
+                const newHeight = (newY / containerHeight) * 100;
+
+                throttledSetInputHeight(Math.max(20, Math.min(80, newHeight)));
+            }
         }
 
         function handleVerticalMouseUp() {
+            if (isDraggingVertical.current) {
+                isDraggingVertical.current = false;
+                setIsResizing(false);
+            }
+        }
+
+        function handleMouseLeave() {
+            isDraggingHorizontal.current = false;
             isDraggingVertical.current = false;
             setIsResizing(false);
         }
@@ -119,6 +188,7 @@ export function usePanelsResize({
             'mouseup',
             handleVerticalMouseUp
         );
+        containerRef.current?.addEventListener('mouseleave', handleMouseLeave);
 
         const containerRefCopy = containerRef.current;
 
@@ -140,14 +210,24 @@ export function usePanelsResize({
                 'mouseup',
                 handleVerticalMouseUp
             );
+            containerRefCopy?.removeEventListener(
+                'mouseleave',
+                handleMouseLeave
+            );
         };
     }, [
         containerRef,
         isDraggingHorizontal,
         isDraggingVertical,
+        isPreviewVisible,
+        previewContainerRef,
+        setConsoleHeight,
         setEditorWidth,
         setInputHeight,
         setIsResizing,
+        throttledSetConsoleHeight,
+        throttledSetEditorWidth,
+        throttledSetInputHeight,
     ]);
 
     return { handleHorizontalMouseDown, handleVerticalMouseDown };
