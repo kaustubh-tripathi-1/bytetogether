@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import MonacoEditor from '@monaco-editor/react';
 import { MonacoBinding } from 'y-monaco';
@@ -57,12 +57,15 @@ export default function CodeEditor({
         '#009191',
     ];
 
-    function handleContentChange(value) {
-        if (!yText) {
-            dispatch(setCodeContent(value));
-            dispatch(setSelectedFileContent(value));
-        }
-    }
+    const handleContentChange = useCallback(
+        (value) => {
+            if (!yText) {
+                dispatch(setCodeContent(value));
+                dispatch(setSelectedFileContent(value));
+            }
+        },
+        [dispatch, yText]
+    );
 
     const debouncedHandleContentChange = useDebounce(handleContentChange, 400);
 
