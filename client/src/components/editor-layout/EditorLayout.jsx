@@ -35,27 +35,22 @@ export default function EditorLayout({ projectId, isNewProject }) {
     );
     const { profile } = useSelector((state) => state.user);
     const { username } = profile || {};
-    const { output, error, isRunning } = useSelector(
+    const { output, error, isRunning, executionMode } = useSelector(
         (state) => state.execution
     );
+    const { isPreviewVisible } = useSelector((state) => state.preview);
 
     // Layout and UI related States
-    const [previewOutput, setPreviewOutput] = useState({
-        html: '',
-        css: '',
-        js: '',
-        consoleLogs: [],
-    });
     const [input, setInput] = useState('');
-    const [showPreview, setShowPreview] = useState(false);
     const [editorWidth, setEditorWidth] = useState(66.67); // 2/3 of screen
     const [inputHeight, setInputHeight] = useState(50); // 50% of right panel
-    const [consoleHeight, setConsoleHeight] = useState(200);
+    const [consoleHeight, setConsoleHeight] = useState(20); // 20% of right panel
     const [isResizing, setIsResizing] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
     const editorRef = useRef(null);
     const containerRef = useRef(null);
+    const previewContainerRef = useRef(null);
     const isDraggingHorizontal = useRef(false);
     const isDraggingVertical = useRef(false);
 
@@ -111,7 +106,8 @@ export default function EditorLayout({ projectId, isNewProject }) {
             setIsResizing,
             consoleHeight,
             setConsoleHeight,
-            showPreview,
+            isPreviewVisible,
+            previewContainerRef,
         });
 
     const {
@@ -142,14 +138,12 @@ export default function EditorLayout({ projectId, isNewProject }) {
         codeContent,
         language,
         settings,
-        setPreviewOutput,
         input,
         isYjsConnected,
         setIsYjsConnected,
         setIsSettingsOpen,
         setIsShortcutsOpen,
         isAdmin,
-        setIsAdmin,
         yjsResources,
         setYjsResources,
         currentConnectedFileIdRef,
@@ -186,7 +180,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
 
     return (
         <section
-            className={`editor-layout-container flex h-dvh flex-col bg-white text-gray-800 md:flex-row dark:bg-[#222233] dark:text-gray-200 ${isResizing ? 'select-none' : ''} `}
+            className={`editor-layout-container relative flex h-dvh flex-col bg-white text-gray-800 md:flex-row dark:bg-[#222233] dark:text-gray-200 ${isResizing ? 'select-none' : ''} `}
             ref={containerRef}
         >
             {/* Editor Section */}
@@ -238,8 +232,6 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         isYjsConnected={isYjsConnected}
                         setIsYjsConnected={setIsYjsConnected}
                         isInvited={isInvitedSession}
-                        showPreview={showPreview}
-                        setShowPreview={setShowPreview}
                     />
                 </div>
                 <CodeEditor
@@ -295,16 +287,11 @@ export default function EditorLayout({ projectId, isNewProject }) {
             ></div>
 
             {/* Input/Output Section */}
-            {showPreview ? (
-                <section className="flex w-full flex-col md:w-[calc(100%-var(--editor-width))] md:min-w-64 md:flex-1">
+            {executionMode === 'preview' && isPreviewVisible ? (
+                <section className="w-full md:w-[calc(100%-var(--editor-width))] md:min-w-64">
                     <PreviewPanel
-                        html={previewOutput.html}
-                        css={previewOutput.css}
-                        js={previewOutput.js}
-                        consoleLogs={previewOutput.consoleLogs}
-                        consoleHeight={consoleHeight}
                         handleVerticalMouseDown={handleVerticalMouseDown}
-                        setPreviewOutput={setPreviewOutput}
+                        ref={previewContainerRef}
                     />
                 </section>
             ) : (
@@ -329,6 +316,22 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         />
                     </section>
                 </section>
+            )}
+
+            {/* The Transparent Overlay to stop iframe from capturing resize events */}
+            {isResizing && (
+                <div
+                    className={`bg absolute inset-0 z-50 ${
+                        isDraggingHorizontal.current ? 'cursor-ew-resize' : ''
+                    } ${isDraggingVertical.current ? 'cursor-ns-resize' : ''}`}
+                    style={{
+                        cursor: isDraggingHorizontal.current
+                            ? 'ew-resize'
+                            : isDraggingVertical.current
+                              ? 'ns-resize'
+                              : 'default',
+                    }} // Explicitly set cursor type
+                />
             )}
         </section>
     );
