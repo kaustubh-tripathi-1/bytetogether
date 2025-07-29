@@ -43,6 +43,7 @@ export { default as PreviewPanel } from './preview-panel/PreviewPanel.jsx';
 export { default as EditorToolbar } from './editor-toolbar/EditorToolbar.jsx';
 export { default as InviteAdminPanel } from './invite-panels/InviteAdminPanel.jsx';
 export { default as InvitePanel } from './invite-panels/InvitePanel.jsx';
+export { default as ModeSelector } from './mode-selector/ModeSelector.jsx';
 
 //UI Components
 export { default as Modal } from './modal/Modal.jsx';
