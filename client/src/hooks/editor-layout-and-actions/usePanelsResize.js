@@ -5,8 +5,8 @@ import { useThrottle } from '../useThrottle';
 /**
  * Custom hook to enable panel resizing (horizontal and vertical) using mouse events.
  *
- * - Horizontal: Resizes between the CodeEditor and the Input/Output panel.
- * - Vertical: Resizes between InputPanel and OutputPanel within the right panel.
+ * - Horizontal: Resizes between the CodeEditor and the Input/Output or Preview panel.
+ * - Vertical: Resizes between InputPanel and OutputPanel or Preview Iframe and Console within the right panel.
  *
  * Attaches `mousemove` and `mouseup` event listeners to handle live resizing and cleanup on unmount.
  *
@@ -16,12 +16,16 @@ import { useThrottle } from '../useThrottle';
  * @param {React.RefObject<HTMLElement|null>} params.containerRef Ref to the container used for resizing calculations.
 
  * @param {React.RefObject<boolean>} params.isDraggingHorizontal Ref indicating horizontal drag state.
- * @param {React.RefObject<boolean>} params.isDraggingVertical Ref indicating vertical drag state.
- * @param {React.SetStateAction<Function>} params.setEditorWidth State setter to update editor width in percentage (20% - 80%).
- * @param {React.SetStateAction<Function>} params.setInputHeight State setter to update input panel height in percentage (20% - 80%).
- * @param {React.SetStateAction<Function>} params.setIsResizing State setter to toggle the resizing UI state.
- *
- */
+* @param {React.RefObject<boolean>} params.isDraggingVertical Ref indicating vertical drag state.
+* @param {React.SetStateAction<Function>} params.setEditorWidth State setter to update editor width in percentage (20% - 80%).
+* @param {React.SetStateAction<Function>} params.setInputHeight State setter to update input panel height in percentage (20% - 80%).
+* @param {React.SetStateAction<Function>} params.setIsResizing State setter to toggle the resizing UI state.
+* @param {number} params.consoleHeight - Console Height in percentage.
+* @param {React.SetStateAction<Function>} params.setConsoleHeight State setter for console height.
+* @param {React.ComponentState<boolean>} params.isPreviewVisible - Preview panel visibility.
+*
+* @param {React.RefObject<HTMLElement | null>} params.previewContainerRef Ref containing the preview panel wrapper DOM node.
+*/
 
 export function usePanelsResize({
     editorWidth,
