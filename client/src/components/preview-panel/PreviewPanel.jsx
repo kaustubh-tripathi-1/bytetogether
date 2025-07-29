@@ -1,35 +1,33 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import DOMPurify from 'dompurify';
 
 import { addNotification } from '../../store/slices/uiSlice';
+import {
+    setConsoleLogs,
+    setIsConsoleVisible,
+} from '../../store/slices/previewSlice';
 
 export default function PreviewPanel({
-    html,
-    css,
-    js,
-    consoleLogs,
-    consoleHeight,
     handleVerticalMouseDown,
-    setPreviewOutput,
+    ref: previewContainerRef,
 }) {
     const dispatch = useDispatch();
-    const { codeContent, language } = useSelector((state) => state.editor);
-
-    const [showConsole, setShowConsole] = useState(false);
+    const { codeContent } = useSelector((state) => state.editor);
+    const { html, css, js, consoleLogs, isConsoleVisible } = useSelector(
+        (state) => state.preview
+    );
     const iframeRef = useRef(null);
 
     useEffect(() => {
-        if (language !== 'html' && language !== 'javascript') return;
-
         const iframe = iframeRef.current;
         if (!iframe) return;
 
-        const sanitizedHTML = DOMPurify.sanitize(/* html */ codeContent || '');
+        const sanitizedHTML = DOMPurify.sanitize(html || '');
         const sanitizedCSS = DOMPurify.sanitize(css || '');
         const sanitizedJS = DOMPurify.sanitize(js || '');
 
-        const content = `
+        const _content = `
                     <!DOCTYPE html>
                     <html>
                         <head>
@@ -58,9 +56,9 @@ export default function PreviewPanel({
 
         // Set srcdoc to avoid cross-origin issues
         if (iframeRef.current) {
-            iframeRef.current.srcdoc = content;
+            iframeRef.current.srcdoc = codeContent;
         }
-    }, [html, css, js, language, codeContent]);
+    }, [html, css, js, codeContent]);
 
     useEffect(() => {
         function handleMessage(event) {
@@ -82,79 +80,69 @@ export default function PreviewPanel({
                         timeout: 4000,
                     })
                 );
-                setPreviewOutput((prev) => ({
-                    ...prev,
-                    consoleLogs: [
-                        ...(prev.consoleLogs || []),
-                        `Error: ${event.data.message}`,
-                    ],
-                }));
+                dispatch(setConsoleLogs(`Error: ${event.data.message}`));
             } else if (event.data.type === 'console') {
-                setPreviewOutput((prev) => ({
-                    ...prev,
-                    consoleLogs: [
-                        ...(prev.consoleLogs || []),
-                        event.data.message,
-                    ],
-                }));
+                dispatch(setConsoleLogs(event.data.message));
             }
         }
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
-    }, [dispatch, setPreviewOutput]);
+    }, [dispatch]);
 
     return (
-        <div
-            className={`flex h-full w-full flex-col border-l border-gray-300 bg-white md:w-[calc(100%-var(--editor-width))] md:min-w-64 dark:border-gray-500`}
+        <section
+            className={`flex h-full w-full flex-col bg-white md:min-w-64 dark:bg-[#222233]`}
             aria-label="Code preview output"
+            ref={previewContainerRef}
         >
-            {(language === 'html' || language === 'javascript') && (
+            <div className="w-full flex-1 rounded-md border-none p-1 md:h-[calc(100%-var(--console-height))] md:p-0">
+                <iframe
+                    ref={iframeRef}
+                    title="Live Preview"
+                    sandbox="allow-scripts"
+                    className="h-screen w-full flex-1 rounded-md border-none md:h-full md:rounded-none"
+                    aria-label="Live code preview"
+                />
+            </div>
+            {isConsoleVisible && (
                 <>
-                    <iframe
-                        ref={iframeRef}
-                        title="Live Preview"
-                        sandbox="allow-scripts"
-                        className="w-full flex-1 border-none"
-                        aria-label="Live code preview"
+                    {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
+                    <div
+                        className="hidden h-1 cursor-ns-resize bg-gray-300 hover:bg-blue-600 active:bg-blue-600 md:block dark:bg-gray-500"
+                        onMouseDown={handleVerticalMouseDown}
+                        role="separator"
+                        aria-label="Resize console panel"
                     />
-                    {showConsole && (
-                        <>
-                            {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
-                            <div
-                                className="h-1 cursor-ns-resize bg-gray-300 hover:bg-blue-600 active:bg-blue-600 dark:bg-gray-500"
-                                onMouseDown={handleVerticalMouseDown}
-                                role="separator"
-                                aria-label="Resize console panel"
-                            />
-                            <div
-                                className="w-full overflow-auto bg-gray-100 p-2 dark:bg-[#2b2b44]"
-                                style={{ height: `${consoleHeight}px` }}
-                                aria-label="JavaScript console output"
-                                aria-live="polite"
-                            >
-                                <p className="text-sm font-bold">Console:</p>
-                                {consoleLogs.map((log, index) => (
-                                    <p
-                                        key={index} //TODO optimize this
-                                        className="font-mono text-gray-800 dark:text-gray-200"
-                                    >
-                                        {log}
-                                    </p>
-                                ))}
-                            </div>
-                        </>
-                    )}
-                    <button
-                        className="bg- m-2 cursor-pointer rounded bg-blue-600 p-2 text-white hover:bg-blue-700"
-                        onClick={() => setShowConsole((prev) => !prev)}
-                        aria-label={
-                            showConsole ? 'Hide console' : 'Show console'
-                        }
+                    <div
+                        className="min-h-20 w-full overflow-auto bg-gray-100 p-2 md:h-[calc(var(--console-height))] md:min-h-10 dark:bg-[#222233]"
+                        aria-label="JavaScript console output"
+                        aria-live="polite"
                     >
-                        {showConsole ? 'Hide Console' : 'Show Console'}
-                    </button>
+                        <p className="text-sm font-bold">Console:</p>
+                        {consoleLogs.map((log, index) => (
+                            <p
+                                key={index} //TODO optimize this
+                                className="font-mono text-gray-800 dark:text-gray-200"
+                            >
+                                {log}
+                            </p>
+                        ))}
+                    </div>
                 </>
             )}
-        </div>
+            <div className="flex w-full justify-center bg-inherit p-1">
+                <button
+                    className="cursor-pointer rounded bg-blue-600 px-2 py-1 text-white hover:bg-blue-700 md:w-full"
+                    onClick={() =>
+                        dispatch(setIsConsoleVisible(!isConsoleVisible))
+                    }
+                    aria-label={
+                        isConsoleVisible ? 'Hide console' : 'Show console'
+                    }
+                >
+                    {isConsoleVisible ? 'Hide Console' : 'Show Console'}
+                </button>
+            </div>
+        </section>
     );
 }
