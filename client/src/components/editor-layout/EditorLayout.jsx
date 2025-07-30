@@ -235,8 +235,6 @@ export default function EditorLayout({ projectId, isNewProject }) {
                     />
                 </div>
                 <CodeEditor
-                    language={language}
-                    codeContent={codeContent}
                     ref={editorRef}
                     yjsResources={yjsResources}
                     isYjsConnected={isYjsConnected}
