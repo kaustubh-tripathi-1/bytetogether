@@ -108,7 +108,7 @@ export default function ModeSelector() {
                                     setIsOpen(false);
                                 }
                             }}
-                            className={`cursor-pointer px-3 py-2 text-sm focus:outline-1 focus:-outline-offset-1 focus:outline-gray-800 dark:hover:bg-[#1A1B26] dark:focus:outline-white ${executionMode === 'judge0' ? 'bg-gray-400 dark:bg-[#2e3044]' : ''}`}
+                            className={`cursor-pointer px-3 py-2 text-sm focus:outline-1 focus:-outline-offset-1 focus:outline-gray-800 dark:hover:bg-[#1A1B26] dark:focus:outline-white ${executionMode === 'judge0' ? '' : 'bg-gray-400 dark:bg-[#2e3044]'}`}
                             role="option"
                             aria-selected={executionMode === 'judge0'}
                             tabIndex={0}
@@ -129,7 +129,7 @@ export default function ModeSelector() {
                                     setIsOpen(false);
                                 }
                             }}
-                            className={`cursor-pointer px-3 py-2 text-sm focus:outline-1 focus:-outline-offset-1 focus:outline-gray-800 dark:hover:bg-[#1A1B26] dark:focus:outline-white ${executionMode === 'preview' ? 'bg-gray-400 dark:bg-[#2e3044]' : ''}`}
+                            className={`cursor-pointer px-3 py-2 text-sm focus:outline-1 focus:-outline-offset-1 focus:outline-gray-800 dark:hover:bg-[#1A1B26] dark:focus:outline-white ${executionMode === 'preview' ? '' : 'bg-gray-400 dark:bg-[#2e3044]'}`}
                             role="option"
                             aria-selected={executionMode === 'preview'}
                             tabIndex={0}
