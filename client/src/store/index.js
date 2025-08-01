@@ -65,6 +65,25 @@ const userPersistConfig = {
     whitelist: ['profile', 'preferences'], // Persist only profile and preferences
 };
 
+/**
+ * Persistence configuration for the execution slice.
+ * @type {Object}
+ */
+const executionPersistConfig = {
+    key: 'execution',
+    storage,
+    whitelist: ['executionMode'], // Persist only exeuctionMode
+};
+
+/**
+ * Persistence configuration for the preview slice.
+ * @type {Object}
+ */
+const previewPersistConfig = {
+    key: 'preview',
+    storage,
+};
+
 // Combined reducers
 const rootReducer = combineReducers({
     auth: persistReducer(authPersistConfig, authReducer),
@@ -72,8 +91,8 @@ const rootReducer = combineReducers({
     editor: persistReducer(editorPersistConfig, editorReducer),
     files: persistReducer(filesPersistConfig, filesReducer),
     user: persistReducer(userPersistConfig, userReducer),
-    execution: executionReducer,
-    preview: previewReducer,
+    execution: persistReducer(executionPersistConfig, executionReducer),
+    preview: persistReducer(previewPersistConfig, previewReducer),
 });
 
 // Redux Store config
