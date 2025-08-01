@@ -18,6 +18,7 @@ export default function PreviewPanel({
         (state) => state.preview
     );
     const iframeRef = useRef(null);
+    const iframeToken = useRef(null); // stores latest token
 
     useEffect(() => {
         const iframe = iframeRef.current;
@@ -29,6 +30,9 @@ export default function PreviewPanel({
         ];
 
         const isProduction = import.meta.env.PROD;
+
+        const newToken = crypto.randomUUID();
+        iframeToken.current = newToken;
 
         const parser = new DOMParser();
         const htmlDoc = parser.parseFromString(html, 'text/html');
@@ -67,18 +71,18 @@ export default function PreviewPanel({
 
                                         return arg;
                                     });
-                                    window.parent.postMessage({ customType: 'CONSOLE', payload: {id: crypto.randomUUID() , message: newArgs.join(' '), logLevel: method} }, "${isProduction ? allowedOrigins[1] : allowedOrigins[0]}");
+                                    window.parent.postMessage({ token: "${newToken}", customType: 'CONSOLE', payload: {id: crypto.randomUUID(), message: newArgs.join(' '), logLevel: method} }, "${isProduction ? allowedOrigins[1] : allowedOrigins[0]}");
                                     originalConsoleMethod.apply(console, args);
                                 };
                             });
                             window.onerror = (msg) => {
-                                window.parent.postMessage({ customType: 'ERROR', payload: {id: crypto.randomUUID() , message: msg, logLevel: 'error'} }, "${isProduction ? allowedOrigins[1] : allowedOrigins[0]}");
+                                window.parent.postMessage({ token: "${newToken}", customType: 'ERROR', payload: {id: crypto.randomUUID(), message: msg, logLevel: 'error'} }, "${isProduction ? allowedOrigins[1] : allowedOrigins[0]}");
                             };
                             try {
                                 ${sanitizedJS}
                                 ${sanitizedJsInScripts}
                             } catch (e) {
-                                window.parent.postMessage({ customType: 'ERROR', payload: {id: crypto.randomUUID(), message: e.message, logLevel: 'error'} }, "${isProduction ? allowedOrigins[1] : allowedOrigins[0]}");
+                                window.parent.postMessage({ token: "${newToken}", customType: 'ERROR', payload: {id: crypto.randomUUID(), message: e.message, logLevel: 'error'} }, "${isProduction ? allowedOrigins[1] : allowedOrigins[0]}");
                             }
                         </script>
                         </body>
@@ -100,6 +104,7 @@ export default function PreviewPanel({
 
         return () => {
             clearTimeout(timerId);
+            iframeToken.current = null;
         };
     }, [html, css, js, dispatch]);
 
@@ -107,10 +112,13 @@ export default function PreviewPanel({
         function handleMessage(event) {
             if (event.origin !== 'null' || !iframeRef.current?.srcdoc) return;
 
+            const { data } = event;
+
             if (
-                !event.data ||
-                typeof event.data !== 'object' ||
-                !event.data?.customType
+                !data ||
+                typeof data !== 'object' ||
+                !data?.customType ||
+                data.token !== iframeToken.current
             )
                 return;
 
@@ -160,6 +168,7 @@ export default function PreviewPanel({
                         aria-live="polite"
                     >
                         <p className="pb-2 text-sm font-bold">Console:</p>
+                        <div className="h-0.25 w-full bg-gray-500"></div>
                         <div className="flex flex-col gap-1">
                             {consoleLogs.map((log) => {
                                 return (
