@@ -20,6 +20,7 @@ export { default as SaveAll } from './svg/SaveAll.jsx';
 export { default as Keyboard } from './svg/Keyboard.jsx';
 export { default as Reset } from './svg/Reset.jsx';
 export { default as Invite } from './svg/Invite.jsx';
+export { default as Clear } from './svg/Clear.jsx';
 
 // Auth Components
 export { default as AuthLayout } from '../components/auth-layout/AuthLayout.jsx';
