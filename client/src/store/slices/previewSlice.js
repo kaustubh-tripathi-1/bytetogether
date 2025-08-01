@@ -67,7 +67,11 @@ const previewSlice = createSlice({
          * @param {string} action.payload
          */
         setConsoleLogs(state, action) {
-            state.consoleLogs.push(action.payload);
+            if (
+                !state.consoleLogs.some((log) => log.id === action.payload?.id)
+            ) {
+                state.consoleLogs.push(action.payload);
+            }
         },
         /**
          * Clears the console logs for the iframe doc.
