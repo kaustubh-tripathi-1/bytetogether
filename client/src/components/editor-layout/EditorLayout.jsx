@@ -150,11 +150,6 @@ export default function EditorLayout({ projectId, isNewProject }) {
         username,
     });
 
-    //TODO move this in its right place
-    const handleInputChange = (e) => {
-        setInput(DOMPurify.sanitize(e.target.value));
-    };
-
     //TODO remove this when deploying, only for dev cuz of strict mode
     const isMountedRef = useRef(false);
 
@@ -295,10 +290,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
             ) : (
                 <section className="flex w-full flex-col md:w-[calc(100%-var(--editor-width))] md:min-w-64 md:flex-1">
                     <section className="max-h-full min-h-40 md:h-[var(--input-height)]">
-                        <InputPanel
-                            input={input}
-                            onInputChange={handleInputChange}
-                        />
+                        <InputPanel input={input} setInput={setInput} />
                     </section>
                     <div
                         className="hidden h-1 cursor-ns-resize bg-gray-300 hover:bg-blue-600 active:bg-blue-600 md:block dark:bg-gray-500"
