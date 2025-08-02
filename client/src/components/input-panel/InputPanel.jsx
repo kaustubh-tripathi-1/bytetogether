@@ -21,7 +21,7 @@ function InputPanel({ input, setInput }) {
             role="region"
             aria-label="Input panel"
         >
-            <label htmlFor="stdin" className="mb-2 text-lg font-semibold">
+            <label htmlFor="stdin" className="mb-2 text-sm font-semibold">
                 Input
             </label>
             <textarea
