@@ -7,8 +7,6 @@ import { setIsPreviewVisible } from '../../store/slices/previewSlice';
 
 /**
  * ModeSelector component for selecting execution mode between Judge0 and Web(HTML, CSS and JS)Preview.
- * @param {string} selectedLanguage - The currently selected language.
- * @param {Function} onLanguageChange - Callback to handle language changes.
  * @returns {JSX.Element} The mode selection dropdown.
  */
 export default function ModeSelector() {
