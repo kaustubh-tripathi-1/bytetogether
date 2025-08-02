@@ -35,9 +35,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
     );
     const { profile } = useSelector((state) => state.user);
     const { username } = profile || {};
-    const { output, error, isRunning, executionMode } = useSelector(
-        (state) => state.execution
-    );
+    const { executionMode } = useSelector((state) => state.execution);
     const { isPreviewVisible } = useSelector((state) => state.preview);
 
     // Layout and UI related States
@@ -299,11 +297,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         aria-label="Resize Output and Input Panels"
                     />
                     <section className="max-h-full min-h-42 flex-1 md:h-[calc(100%-var(--input-height))]">
-                        <OutputPanel
-                            output={output}
-                            error={error}
-                            isRunning={isRunning}
-                        />
+                        <OutputPanel />
                     </section>
                 </section>
             )}
