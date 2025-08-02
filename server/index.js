@@ -61,7 +61,7 @@ const httpServer = createServer(app);
 // Cors package middleware
 app.use(cors({ origin: ALLOWED_ORIGINS }));
 app.use(express.json());
-app.use('/api', judge0Routes); // Mount Judge0 routes
+app.use('/', judge0Routes); // Mount Judge0 routes
 
 // WebSocket server instance.
 // Attach it to the HTTP server and keep noServer to handle custom ws upgrade logic
