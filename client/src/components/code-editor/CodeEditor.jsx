@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import MonacoEditor from '@monaco-editor/react';
 import { MonacoBinding } from 'y-monaco';
@@ -29,11 +29,7 @@ import './CodeEditor.css';
  * @param {boolean} props.isInvited - Whether the session is invited for collaboration.
  * @returns {JSX.Element} The Monaco Editor.
  */
-export default function CodeEditor({
-    ref: editorRef,
-    yjsResources,
-    isYjsConnected,
-}) {
+function CodeEditor({ ref: editorRef, yjsResources, isYjsConnected }) {
     const dispatch = useDispatch();
     const { language, codeContent, settings } = useSelector(
         (state) => state.editor
@@ -608,3 +604,5 @@ export default function CodeEditor({
         </section>
     );
 }
+
+export default memo(CodeEditor);
