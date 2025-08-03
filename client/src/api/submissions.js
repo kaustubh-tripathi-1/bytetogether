@@ -10,17 +10,6 @@ const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
  */
 export default async function handler(req, res) {
     try {
-        // Decode Base64 body if needed
-        const body = req.body;
-        if (body.source_code) {
-            body.source_code = Buffer.from(body.source_code, 'base64').toString(
-                'base64'
-            ); // Ensure valid Base64
-        }
-        if (body.stdin) {
-            body.stdin = Buffer.from(body.stdin, 'base64').toString('base64');
-        }
-
         const response = await fetch(
             `${JUDGE0_URL}/submissions${req.query.base64_encoded ? '?base64_encoded=true' : ''}&wait=false&fields=*`,
             {
@@ -47,6 +36,8 @@ export default async function handler(req, res) {
         const data = await response.json();
         return res.status(response.status).json(data);
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        return res
+            .status(error.response?.status || 500)
+            .json({ error: error.message });
     }
 }
