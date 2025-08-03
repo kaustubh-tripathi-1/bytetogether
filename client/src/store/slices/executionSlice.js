@@ -9,6 +9,9 @@ const executionSlice = createSlice({
         output: '',
         input: '',
         error: '',
+        status: null,
+        time: '',
+        memory: null,
         isRunning: false,
         executionMode: 'judge0', // or "preview"
     },
@@ -43,6 +46,33 @@ const executionSlice = createSlice({
             state.output = '';
         },
         /**
+         * Sets the status after execution.
+         * @param {Object} state
+         * @param {Object} action
+         * @param {string} action.payload
+         */
+        setStatus(state, action) {
+            state.status = action.payload;
+        },
+        /**
+         * Sets the time taken to execute.
+         * @param {Object} state
+         * @param {Object} action
+         * @param {string} action.payload
+         */
+        setTime(state, action) {
+            state.time = action.payload;
+        },
+        /**
+         * Sets the status after execution.
+         * @param {Object} state
+         * @param {Object} action
+         * @param {string} action.payload
+         */
+        setMemory(state, action) {
+            state.memory = action.payload;
+        },
+        /**
          * Sets the running state.
          * @param {Object} state
          * @param {Object} action
@@ -60,9 +90,30 @@ const executionSlice = createSlice({
         setExecutionMode(state, action) {
             state.executionMode = action.payload;
         },
+        /**
+         * Clears Judge0 states.
+         * @param {Object} state
+         */
+        clearJudge0States(state) {
+            state.output = '';
+            state.input = '';
+            state.error = '';
+            state.status = null;
+            state.time = '';
+            state.memory = null;
+        },
     },
 });
 
-export const { setOutput, setError, setIsRunning, setExecutionMode, setInput } =
-    executionSlice.actions;
+export const {
+    setOutput,
+    setError,
+    setIsRunning,
+    setExecutionMode,
+    setInput,
+    setMemory,
+    setStatus,
+    setTime,
+    clearJudge0States,
+} = executionSlice.actions;
 export default executionSlice.reducer;
