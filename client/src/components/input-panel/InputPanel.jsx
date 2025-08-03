@@ -1,18 +1,21 @@
 import { memo } from 'react';
 import DOMPurify from 'dompurify';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { setInput } from '../../store/slices/executionSlice';
 
 /**
  * InputPanel component for providing stdin for code execution.
- * @param {Object} props - The component props.
- * @param {React.ComponentState<string>} props.input - The current input state value.
- * @param {React.SetStateAction<Function>} props.setInput - State setter for input.
  * @returns {JSX.Element} The input panel.
  */
-function InputPanel({ input, setInput }) {
+function InputPanel() {
+    const dispatch = useDispatch();
+    const { input } = useSelector((state) => state.execution);
+
     function handleInputChange(event) {
         const sanitizedInput = DOMPurify.sanitize(event.target.value);
 
-        setInput(sanitizedInput);
+        dispatch(setInput(sanitizedInput));
     }
 
     return (

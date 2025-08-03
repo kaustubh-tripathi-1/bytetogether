@@ -35,11 +35,10 @@ export default function EditorLayout({ projectId, isNewProject }) {
     );
     const { profile } = useSelector((state) => state.user);
     const { username } = profile || {};
-    const { executionMode } = useSelector((state) => state.execution);
+    const { input, executionMode } = useSelector((state) => state.execution);
     const { isPreviewVisible } = useSelector((state) => state.preview);
 
     // Layout and UI related States
-    const [input, setInput] = useState('');
     const [editorWidth, setEditorWidth] = useState(66.67); // 2/3 of screen
     const [inputHeight, setInputHeight] = useState(50); // 50% of right panel
     const [consoleHeight, setConsoleHeight] = useState(20); // 20% of right panel
@@ -288,7 +287,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
             ) : (
                 <section className="flex w-full flex-col md:w-[calc(100%-var(--editor-width))] md:min-w-64 md:flex-1">
                     <section className="max-h-full min-h-40 md:h-[var(--input-height)]">
-                        <InputPanel input={input} setInput={setInput} />
+                        <InputPanel />
                     </section>
                     <div
                         className="hidden h-1 cursor-ns-resize bg-gray-300 hover:bg-blue-600 active:bg-blue-600 md:block dark:bg-gray-500"
