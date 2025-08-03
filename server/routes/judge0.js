@@ -18,8 +18,6 @@ const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
  */
 router.post('/submissions', async (req, res) => {
     try {
-        console.log(req.body.source_code, typeof req.body.source_code);
-
         const response = await axios.post(
             `${JUDGE0_URL}/submissions${req.query.base64_encoded ? '?base64_encoded=true' : ''}&wait=false&fields=*`,
             req.body,
