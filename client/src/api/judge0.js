@@ -1,13 +1,18 @@
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
-import DOMPurify from 'dompurify';
 
 import { addNotification } from '../store/slices/uiSlice';
 import {
     setOutput,
     setError,
     setIsRunning,
+    setStatus,
+    setTime,
+    setMemory,
+    clearJudge0States,
 } from '../store/slices/executionSlice';
+import { decodeFromBase64, encodeToBase64 } from '../utils/base64';
+import { judge0Limits } from '../conf/judge0Config';
 
 const API_URL = '/api'; // Proxied to backend or Vercel function
 
@@ -21,24 +26,31 @@ const API_URL = '/api'; // Proxied to backend or Vercel function
  */
 export async function executeCodeFetch({ language, sourceCode, stdin }) {
     try {
-        const sanitizedCode = DOMPurify.sanitize(sourceCode);
-        const sanitizedStdin = DOMPurify.sanitize(stdin || '');
-
         const response = await fetch(
             `${API_URL}/submissions?base64_encoded=true`,
             {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify({
-                    source_code: btoa(sanitizedCode),
+                    source_code: encodeToBase64(sourceCode),
                     language_id: language,
-                    stdin: btoa(sanitizedStdin),
+                    stdin: encodeToBase64(stdin),
+                    ...judge0Limits,
                 }),
             }
         );
 
-        if (!response.ok)
-            throw new Error(`Judge0 API error: ${response.status}`);
+        if (!response.ok) {
+            if (response.status === 429) {
+                throw new Error(
+                    `Too many requests. Please try after some time...`
+                );
+            }
+            throw new Error(
+                `Judge0 API error: Status - ${response.status}, StatusText - ${response.statusText}`
+            );
+        }
+
         const { token } = await response.json();
 
         let result;
@@ -51,15 +63,32 @@ export async function executeCodeFetch({ language, sourceCode, stdin }) {
             if (result.status.id > 2) break;
         }
 
-        const output = result.stdout ? atob(result.stdout) : '';
-        const error = result.stderr
-            ? atob(result.stderr)
-            : result.compile_output
-              ? atob(result.compile_output)
+        console.log(result);
+
+        let {
+            stdout,
+            stderr,
+            compile_output,
+            time,
+            memory,
+            status,
+            wall_time,
+        } = result || {};
+
+        if (status?.id === 5) {
+            time = wall_time;
+        }
+
+        const output = stdout ? decodeFromBase64(stdout) : '';
+        const error = stderr
+            ? decodeFromBase64(stderr)
+            : compile_output
+              ? decodeFromBase64(compile_output)
               : '';
 
-        return { stdout: output, stderr: error };
+        return { stdout: output, stderr: error, time, memory, status };
     } catch (error) {
+        console.error(`Execution failed error: ${error.message}`);
         throw new Error(`Execution failed: ${error.message}`);
     }
 }
@@ -74,15 +103,13 @@ export async function executeCodeFetch({ language, sourceCode, stdin }) {
  */
 export async function executeCodeAxios({ language, sourceCode, stdin }) {
     try {
-        const sanitizedCode = DOMPurify.sanitize(sourceCode);
-        const sanitizedStdin = DOMPurify.sanitize(stdin || '');
-
         const response = await axios.post(
             `${API_URL}/submissions?base64_encoded=true`,
             {
-                source_code: btoa(sanitizedCode),
+                source_code: encodeToBase64(sourceCode),
                 language_id: language,
-                stdin: btoa(sanitizedStdin),
+                stdin: encodeToBase64(stdin),
+                ...judge0Limits,
             }
         );
 
@@ -98,15 +125,33 @@ export async function executeCodeAxios({ language, sourceCode, stdin }) {
             if (result.status.id > 2) break;
         }
 
-        const output = result.stdout ? atob(result.stdout) : '';
-        const error = result.stderr
-            ? atob(result.stderr)
-            : result.compile_output
-              ? atob(result.compile_output)
+        let {
+            stdout,
+            stderr,
+            compile_output,
+            time,
+            memory,
+            status,
+            wall_time,
+        } = result || {};
+
+        if (status?.id === 5) {
+            time = wall_time;
+        }
+
+        const output = stdout ? decodeFromBase64(stdout) : '';
+        const error = stderr
+            ? decodeFromBase64(stderr)
+            : compile_output
+              ? decodeFromBase64(compile_output)
               : '';
 
-        return { stdout: output, stderr: error };
+        return { stdout: output, stderr: error, time, memory, status };
     } catch (error) {
+        console.error(`Execution failed error: ${error.message}`);
+        if (error.response.status === 429) {
+            throw new Error(`Too many requests. Please try after some time...`);
+        }
         throw new Error(`Execution failed: ${error.message}`);
     }
 }
@@ -119,24 +164,29 @@ export async function executeCodeAxios({ language, sourceCode, stdin }) {
 export function useExecuteCode(dispatch) {
     return useMutation({
         mutationFn: async ({ language, sourceCode, stdin }) => {
-            const sanitizedCode = DOMPurify.sanitize(sourceCode);
-            const sanitizedStdin = DOMPurify.sanitize(stdin || '');
-
             const response = await fetch(
                 `${API_URL}/submissions?base64_encoded=true`,
                 {
                     method: 'POST',
                     headers: { 'content-type': 'application/json' },
                     body: JSON.stringify({
-                        source_code: btoa(sanitizedCode),
+                        source_code: encodeToBase64(sourceCode),
                         language_id: language,
-                        stdin: btoa(sanitizedStdin),
+                        stdin: encodeToBase64(stdin),
+                        ...judge0Limits,
                     }),
                 }
             );
 
-            if (!response.ok)
+            if (!response.ok) {
+                if (response.status === 429) {
+                    throw new Error(
+                        `Too many requests. Please try after some time...`
+                    );
+                }
                 throw new Error(`Judge0 API error: ${response.status}`);
+            }
+
             const { token } = await response.json();
 
             let result;
@@ -149,20 +199,38 @@ export function useExecuteCode(dispatch) {
                 if (result.status.id > 2) break;
             }
 
-            return {
-                stdout: result.stdout ? atob(result.stdout) : '',
-                stderr: result.stderr
-                    ? atob(result.stderr)
-                    : result.compile_output
-                      ? atob(result.compile_output)
-                      : '',
-            };
+            let {
+                stdout,
+                stderr,
+                compile_output,
+                time,
+                memory,
+                status,
+                wall_time,
+            } = result || {};
+
+            if (status?.id === 5) {
+                time = wall_time;
+            }
+
+            const output = stdout ? decodeFromBase64(stdout) : '';
+            const error = stderr
+                ? decodeFromBase64(stderr)
+                : compile_output
+                  ? decodeFromBase64(compile_output)
+                  : '';
+
+            return { stdout: output, stderr: error, time, memory, status };
         },
+
         onMutate: () => {
             dispatch(setIsRunning(true));
+            dispatch(clearJudge0States());
         },
         onSuccess: (data) => {
-            dispatch(setOutput(data.stdout));
+            if (data.stdout) {
+                dispatch(setOutput(data.stdout));
+            }
             if (data.stderr) {
                 dispatch(setError(data.stderr));
                 dispatch(
@@ -173,8 +241,15 @@ export function useExecuteCode(dispatch) {
                     })
                 );
             }
+
+            if (!data.stderr) {
+                dispatch(setTime(data.time));
+                dispatch(setMemory(data.memory));
+            }
+            dispatch(setStatus(data.status));
         },
         onError: (error) => {
+            console.error(`Execution failed error: ${error.message}`);
             dispatch(setError(error.message));
             dispatch(
                 addNotification({
