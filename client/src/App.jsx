@@ -39,6 +39,7 @@ export default function App() {
     useEffect(() => {
         const html = document.documentElement;
         html.setAttribute('data-theme', theme);
+        html.style.colorScheme = theme;
     }, [theme]);
 
     return (
