@@ -24,6 +24,15 @@ import {
 import { setPreferences } from '../../store/slices/userSlice';
 import { executeCodeFetch } from '../../api/judge0';
 import { getJudge0LanguageId } from '../../utils/getJudge0LanguageId';
+import {
+    clearJudge0States,
+    setError,
+    setIsRunning,
+    setMemory,
+    setOutput,
+    setStatus,
+    setTime,
+} from '../../store/slices/executionSlice';
 
 /**
  * Custom hook that provides reusable editor-related actions such as formatting,
@@ -38,7 +47,6 @@ import { getJudge0LanguageId } from '../../utils/getJudge0LanguageId';
  * @param {string} options.codeContent Current code content of the editor.
  * @param {string} options.language Currently selected programming language.
  * @param {Object} options.settings Current editor settings from Redux.
- * @param {React.SetStateAction} options.setOutput Setter to update output (used in run simulation).
  * @param {string} options.input Custom input provided by user for code execution.
  * @param {React.ComponentState<boolean>} options.isYjsConnected Whether Yjs collaboration is active.
  * @param {React.SetStateAction} options.setIsSettingsOpen Setter to control settings modal visibility.
@@ -79,7 +87,6 @@ export function useEditorActions({
     codeContent,
     language,
     settings,
-    setPreviewOutput,
     input,
     isYjsConnected,
     setIsYjsConnected,
@@ -176,42 +183,35 @@ export function useEditorActions({
                 : codeContent;
             if (!content) throw new Error('No code to execute');
 
-            if (language === 'html' || language === 'javascript') {
-                const htmlFile =
-                    files.find((f) => f.fileName.endsWith('.html'))?.content ||
-                    '';
-                const cssFile =
-                    files.find((f) => f.fileName.endsWith('.css'))?.content ||
-                    '';
-                const jsFile =
-                    files.find((f) => f.fileName.endsWith('.js'))?.content ||
-                    '';
-                setPreviewOutput((prev) => ({
-                    ...prev,
-                    html: htmlFile,
-                    css: cssFile,
-                    js: jsFile,
-                }));
-            } else if (
-                [
-                    'c',
-                    'cpp',
-                    'python',
-                    'java',
-                    'javascript',
-                    'typescript',
-                ].includes(language)
-            ) {
-                const languageId = getJudge0LanguageId(language);
-                const { _stdout, _stderr } = await executeCodeFetch({
+            dispatch(setIsRunning(true));
+            dispatch(clearJudge0States());
+
+            const languageId = getJudge0LanguageId(language);
+            const { stdout, stderr, status, time, memory } =
+                await executeCodeFetch({
                     language: languageId,
                     sourceCode: content,
                     stdin: input,
                 });
-            } else {
-                throw new Error('Unsupported language');
+
+            console.log(stdout, stderr, status, time, memory);
+
+            if (stdout) {
+                dispatch(setOutput(stdout));
+            } else if (stderr) {
+                dispatch(setError(stderr));
             }
+
+            if (!stderr) {
+                dispatch(setTime(time));
+                dispatch(setMemory(memory));
+            }
+            dispatch(setStatus(status));
         } catch (error) {
+            console.error(
+                `Error: Error in compiling/running code - ${(error, error.message)}`
+            );
+
             dispatch(
                 addNotification({
                     message: `Failed to run code: ${error.message}`,
@@ -219,16 +219,16 @@ export function useEditorActions({
                     timeout: 4000,
                 })
             );
+        } finally {
+            dispatch(setIsRunning(false));
         }
     }, [
         codeContent,
         dispatch,
-        files,
         input,
         isYjsConnected,
         language,
         selectedFile,
-        setPreviewOutput,
         yjsResources.yText,
     ]);
 
