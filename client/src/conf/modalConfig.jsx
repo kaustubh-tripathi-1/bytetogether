@@ -276,7 +276,8 @@ export const modalConfig = {
                     For more shortcuts, press{' '}
                     <span className="rounded-md bg-gray-300 px-2 py-1 dark:bg-gray-600">
                         F1
-                    </span>
+                    </span>{' '}
+                    while in editor
                 </p>
             </div>
         ),
