@@ -107,7 +107,7 @@ export default function LanguageSelector({
                                         setIsOpen(false);
                                     }
                                 }}
-                                className={`cursor-pointer px-3 py-2 text-sm focus:outline-1 focus:-outline-offset-1 focus:outline-gray-800 dark:hover:bg-[#1A1B26] dark:focus:outline-white ${selectedLanguage === language.value ? 'bg-gray-400 dark:bg-[#2e3044]' : ''}`}
+                                className={`cursor-pointer px-3 py-2 text-sm focus:outline-1 focus:-outline-offset-1 focus:outline-gray-800 dark:hover:bg-[#1A1B26] dark:focus:outline-white ${selectedLanguage === language.value ? '' : 'bg-gray-400 dark:bg-[#2e3044]'}`}
                                 role="option"
                                 aria-selected={
                                     selectedLanguage === language.value

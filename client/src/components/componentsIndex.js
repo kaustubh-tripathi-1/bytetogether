@@ -20,6 +20,7 @@ export { default as SaveAll } from './svg/SaveAll.jsx';
 export { default as Keyboard } from './svg/Keyboard.jsx';
 export { default as Reset } from './svg/Reset.jsx';
 export { default as Invite } from './svg/Invite.jsx';
+export { default as Clear } from './svg/Clear.jsx';
 
 // Auth Components
 export { default as AuthLayout } from '../components/auth-layout/AuthLayout.jsx';
@@ -39,9 +40,11 @@ export { default as NewProject } from '../pages/new-project/NewProject.jsx';
 export { default as LanguageSelector } from './language-selector/LanguageSelector.jsx';
 export { default as InputPanel } from './input-panel/InputPanel.jsx';
 export { default as OutputPanel } from './output-panel/OutputPanel.jsx';
+export { default as PreviewPanel } from './preview-panel/PreviewPanel.jsx';
 export { default as EditorToolbar } from './editor-toolbar/EditorToolbar.jsx';
 export { default as InviteAdminPanel } from './invite-panels/InviteAdminPanel.jsx';
 export { default as InvitePanel } from './invite-panels/InvitePanel.jsx';
+export { default as ModeSelector } from './mode-selector/ModeSelector.jsx';
 
 //UI Components
 export { default as Modal } from './modal/Modal.jsx';

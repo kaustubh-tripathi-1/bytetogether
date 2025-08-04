@@ -1,25 +1,36 @@
 import { memo } from 'react';
+import DOMPurify from 'dompurify';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { setInput } from '../../store/slices/executionSlice';
 
 /**
  * InputPanel component for providing stdin for code execution.
- * @param {string} input - The current input vaue.
- * @param {Function} onInputChange - Callback for input changes.
  * @returns {JSX.Element} The input panel.
  */
-function InputPanel({ input, onInputChange }) {
+function InputPanel() {
+    const dispatch = useDispatch();
+    const { input } = useSelector((state) => state.execution);
+
+    function handleInputChange(event) {
+        const sanitizedInput = DOMPurify.sanitize(event.target.value);
+
+        dispatch(setInput(sanitizedInput));
+    }
+
     return (
         <div
             className="flex h-full max-h-full flex-col gap-1 p-4 text-gray-800 dark:bg-[#222233] dark:text-gray-200"
             role="region"
             aria-label="Input panel"
         >
-            <label htmlFor="stdin" className="mb-2 text-lg font-semibold">
+            <label htmlFor="stdin" className="mb-2 text-sm font-semibold">
                 Input
             </label>
             <textarea
                 id="stdin"
                 value={input}
-                onChange={(e) => onInputChange(e.target.value)}
+                onChange={handleInputChange}
                 className="h-24 min-h-11 w-full rounded border border-gray-500 bg-gray-100 p-2 transition-shadow duration-300 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-[#2b2b44] dark:text-white"
                 placeholder="Enter input for your code (stdin)..."
                 aria-label="Enter input for code execution"

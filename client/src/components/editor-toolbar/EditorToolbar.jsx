@@ -1,5 +1,6 @@
 import { memo, useCallback, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { useSelector } from 'react-redux';
 
 import {
     Format,
@@ -8,6 +9,7 @@ import {
     InvitePanel,
     Keyboard,
     LanguageSelector,
+    ModeSelector,
     Reset,
     Run,
     Save,
@@ -48,6 +50,8 @@ function EditorToolbar({
     yjsResources,
     setIsYjsConnected,
 }) {
+    const { executionMode } = useSelector((state) => state.execution);
+
     const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
     const inviteButtonRef = useRef(null);
 
@@ -67,7 +71,7 @@ function EditorToolbar({
 
     return (
         <div
-            className="flex w-full flex-grow justify-center pb-4"
+            className="flex w-full flex-grow justify-center gap-1 pb-4"
             role="toolbar"
             aria-label="Editor toolbar"
         >
@@ -75,6 +79,7 @@ function EditorToolbar({
                 selectedLanguage={language}
                 onLanguageChange={handleLanguageChange}
             />
+            <ModeSelector />
             <div className="flex w-full items-center justify-center gap-1 sm:gap-8 md:justify-end md:gap-1.5">
                 <Tooltip content={'Format code'}>
                     <button
@@ -85,15 +90,17 @@ function EditorToolbar({
                         <Format width={1.6} height={1.6} />
                     </button>
                 </Tooltip>
-                <Tooltip content={'Run code'}>
-                    <button
-                        onClick={handleRunCode}
-                        className="cursor-pointer rounded-full px-3 pt-2 pb-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-green-400 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
-                        aria-label="Run code"
-                    >
-                        <Run />
-                    </button>
-                </Tooltip>
+                {executionMode === 'judge0' && (
+                    <Tooltip content={'Run code'}>
+                        <button
+                            onClick={handleRunCode}
+                            className="cursor-pointer rounded-full px-3 pt-2 pb-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-green-400 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                            aria-label="Run code"
+                        >
+                            <Run />
+                        </button>
+                    </Tooltip>
+                )}
                 <Tooltip content={'Reset code'}>
                     <button
                         onClick={handleResetCode}
@@ -138,40 +145,44 @@ function EditorToolbar({
                         <Keyboard width={1.7} height={1.7} />
                     </button>
                 </Tooltip>
-                <Tooltip content={'Invite'}>
-                    <button
-                        ref={inviteButtonRef}
-                        onClick={handleInviteClick}
-                        className="cursor-pointer rounded-full px-2.5 py-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
-                        aria-label="Invite collaborators"
-                    >
-                        <Invite width={1.8} height={1.8} />
-                    </button>
-                </Tooltip>
-                <AnimatePresence>
-                    {isAdmin && isAdminPanelOpen && (
-                        <InviteAdminPanel
-                            isOpen={isAdminPanelOpen}
-                            key={'InviteAdminPanel'}
-                            onClose={closeAdminPanel}
-                            awareness={yjsResources.awareness}
-                            onEndSession={handleEndSession}
-                            onCopyLink={handleInvite}
-                            anchorRef={inviteButtonRef}
-                        />
-                    )}{' '}
-                    {!isAdmin && isAdminPanelOpen && (
-                        <InvitePanel
-                            isOpen={isAdminPanelOpen}
-                            key={'InvitePanel'}
-                            onClose={closeAdminPanel}
-                            awareness={yjsResources.awareness}
-                            onEndSession={handleEndSession}
-                            onCopyLink={handleInvite}
-                            anchorRef={inviteButtonRef}
-                        />
-                    )}
-                </AnimatePresence>
+                {executionMode === 'judge0' && (
+                    <>
+                        <Tooltip content={'Invite'}>
+                            <button
+                                ref={inviteButtonRef}
+                                onClick={handleInviteClick}
+                                className="cursor-pointer rounded-full px-2.5 py-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                                aria-label="Invite collaborators"
+                            >
+                                <Invite width={1.8} height={1.8} />
+                            </button>
+                        </Tooltip>
+                        <AnimatePresence>
+                            {isAdmin && isAdminPanelOpen && (
+                                <InviteAdminPanel
+                                    isOpen={isAdminPanelOpen}
+                                    key={'InviteAdminPanel'}
+                                    onClose={closeAdminPanel}
+                                    awareness={yjsResources.awareness}
+                                    onEndSession={handleEndSession}
+                                    onCopyLink={handleInvite}
+                                    anchorRef={inviteButtonRef}
+                                />
+                            )}{' '}
+                            {!isAdmin && isAdminPanelOpen && (
+                                <InvitePanel
+                                    isOpen={isAdminPanelOpen}
+                                    key={'InvitePanel'}
+                                    onClose={closeAdminPanel}
+                                    awareness={yjsResources.awareness}
+                                    onEndSession={handleEndSession}
+                                    onCopyLink={handleInvite}
+                                    anchorRef={inviteButtonRef}
+                                />
+                            )}
+                        </AnimatePresence>
+                    </>
+                )}
             </div>
         </div>
     );

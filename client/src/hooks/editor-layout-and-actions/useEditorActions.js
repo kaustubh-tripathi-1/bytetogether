@@ -22,6 +22,17 @@ import {
     setSelectedFile,
 } from '../../store/slices/editorSlice';
 import { setPreferences } from '../../store/slices/userSlice';
+import { /* executeCodeFetch, */ useExecuteCode } from '../../api/judge0';
+import { getJudge0LanguageId } from '../../utils/getJudge0LanguageId';
+/* import {
+    clearJudge0States,
+    setIsRunning,
+    setError,
+    setMemory,
+    setOutput,
+    setStatus,
+    setTime,
+} from '../../store/slices/executionSlice'; */
 
 /**
  * Custom hook that provides reusable editor-related actions such as formatting,
@@ -36,7 +47,6 @@ import { setPreferences } from '../../store/slices/userSlice';
  * @param {string} options.codeContent Current code content of the editor.
  * @param {string} options.language Currently selected programming language.
  * @param {Object} options.settings Current editor settings from Redux.
- * @param {React.SetStateAction} options.setOutput Setter to update output (used in run simulation).
  * @param {string} options.input Custom input provided by user for code execution.
  * @param {React.ComponentState<boolean>} options.isYjsConnected Whether Yjs collaboration is active.
  * @param {React.SetStateAction} options.setIsSettingsOpen Setter to control settings modal visibility.
@@ -77,7 +87,6 @@ export function useEditorActions({
     codeContent,
     language,
     settings,
-    setOutput,
     input,
     isYjsConnected,
     setIsYjsConnected,
@@ -92,6 +101,8 @@ export function useEditorActions({
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
+
+    const executeCodeTanstack = useExecuteCode();
 
     /**
      * Handler to switch between files by their ID.
@@ -164,43 +175,82 @@ export function useEditorActions({
     }, [editorRef]);
 
     /**
-     * Placeholder for running code (to be implemented in Phase 6)
+     * Runs code in the editor
      */
-    const handleRunCode = useCallback(() => {
-        try {
-            if (isYjsConnected) {
-                const { yText } = getOrCreateYDoc(
-                    selectedFile.$id,
-                    username,
-                    isAdmin
-                );
-                // Simulate output for now
-                setOutput(
-                    `Simulated output for:\n${yText ? yText.toString() : codeContent}\nInput:\n${input}`
-                );
-                return;
+    const handleRunCode = useCallback(async () => {
+        if (!selectedFile?.$id) throw new Error('No file selected');
+        const content = isYjsConnected
+            ? yjsResources.yText?.toString()
+            : codeContent;
+        if (!content) throw new Error('No code to execute');
+
+        const languageId = getJudge0LanguageId(language);
+        executeCodeTanstack.mutate({
+            language: languageId,
+            sourceCode: content,
+            stdin: input,
+        });
+
+        /* try {
+            if (!selectedFile?.$id) throw new Error('No file selected');
+            const content = isYjsConnected
+                ? yjsResources.yText?.toString()
+                : codeContent;
+            if (!content) throw new Error('No code to execute');
+
+            dispatch(setIsRunning(true));
+            dispatch(clearJudge0States());
+
+            const languageId = getJudge0LanguageId(language);
+            executeCodeTanstack({
+                language: languageId,
+                sourceCode: content,
+                stdin: input,
+            });
+
+            const { stdout, stderr, status, time, memory } =
+                await executeCodeFetch({
+                    language: languageId,
+                    sourceCode: content,
+                    stdin: input,
+                });
+
+            console.log(stdout, stderr, status, time, memory);
+
+            if (stdout) {
+                dispatch(setOutput(stdout));
+            } else if (stderr) {
+                dispatch(setError(stderr));
             }
 
-            setOutput(
-                `Simulated output for:\n${codeContent}\nInput:\n${input}`
-            );
+            if (!stderr) {
+                dispatch(setTime(time));
+                dispatch(setMemory(memory));
+            }
+            dispatch(setStatus(status));
         } catch (error) {
+            console.error(
+                `Error: Error in compiling/running code - ${(error, error.message)}`
+            );
+
             dispatch(
                 addNotification({
-                    message: `Failed to retrieve shared code! with error${error} Please try again...`,
+                    message: `Failed to run code: ${error.message}`,
                     type: 'error',
+                    timeout: 4000,
                 })
             );
-        }
+        } finally {
+            dispatch(setIsRunning(false));
+        } */
     }, [
         codeContent,
-        dispatch,
         input,
-        isAdmin,
         isYjsConnected,
+        language,
         selectedFile,
-        setOutput,
-        username,
+        executeCodeTanstack,
+        yjsResources,
     ]);
 
     /**

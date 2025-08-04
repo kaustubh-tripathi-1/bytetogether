@@ -273,8 +273,11 @@ export const modalConfig = {
                     </span>
                 </p>
                 <p className="text-xs text-pretty">
-                    Most of the VSCode shortcuts work in this editor. For more
-                    shortcuts, search VS Code shortcuts
+                    For more shortcuts, press{' '}
+                    <span className="rounded-md bg-gray-300 px-2 py-1 dark:bg-gray-600">
+                        F1
+                    </span>{' '}
+                    while in editor
                 </p>
             </div>
         ),

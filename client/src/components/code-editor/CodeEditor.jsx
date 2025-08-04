@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import MonacoEditor from '@monaco-editor/react';
 import { MonacoBinding } from 'y-monaco';
@@ -14,6 +14,7 @@ import {
 import { Spinner } from '../componentsIndex';
 import { addNotification } from '../../store/slices/uiSlice';
 import { useDebounce } from '../../hooks/useDebounce';
+import { setCss, setHtml, setJs } from '../../store/slices/previewSlice';
 
 import nightOwlTheme from './themes/night-owl.json';
 import vsLight from './themes/custom-light.json';
@@ -22,24 +23,19 @@ import './CodeEditor.css';
 /**
  * CodeEditor component for rendering Monaco Editor with file selection.
  * @param {Object} props The props object for CodeEditor component
- * @param {string} props.language The programming language for the editor.
- * @param {string} props.codeContent The current code content to display.
  * @param {React.RefObject} editorRef The react ref for monaco editor.
  * @param {import('yjs').Text} props.yText - The Y.Text instance for the current file.
  * @param {import('y-websocket').Awareness} props.awareness - The Awareness instance for the current provider.
  * @param {boolean} props.isInvited - Whether the session is invited for collaboration.
  * @returns {JSX.Element} The Monaco Editor.
  */
-export default function CodeEditor({
-    language,
-    codeContent,
-    ref: editorRef,
-    yjsResources,
-    isYjsConnected,
-}) {
+function CodeEditor({ ref: editorRef, yjsResources, isYjsConnected }) {
     const dispatch = useDispatch();
-    const { settings } = useSelector((state) => state.editor);
+    const { language, codeContent, settings } = useSelector(
+        (state) => state.editor
+    );
     const { theme } = useSelector((state) => state.ui);
+    const { executionMode } = useSelector((state) => state.execution);
     const { yDoc, yText, awareness } = yjsResources;
 
     const bindingRef = useRef(null); // To store the MonacoBinding instance for cleanup
@@ -57,12 +53,32 @@ export default function CodeEditor({
         '#009191',
     ];
 
-    function handleContentChange(value) {
-        if (!yText) {
+    const handleContentChange = useCallback(
+        (value) => {
+            if (yText) return;
+
             dispatch(setCodeContent(value));
             dispatch(setSelectedFileContent(value));
-        }
-    }
+
+            if (executionMode === 'preview') {
+                switch (language) {
+                    case 'html': {
+                        dispatch(setHtml(value));
+                        break;
+                    }
+                    case 'css': {
+                        dispatch(setCss(value));
+                        break;
+                    }
+                    case 'javascript': {
+                        dispatch(setJs(value));
+                        break;
+                    }
+                }
+            }
+        },
+        [dispatch, executionMode, language, yText]
+    );
 
     const debouncedHandleContentChange = useDebounce(handleContentChange, 400);
 
@@ -588,3 +604,5 @@ export default function CodeEditor({
         </section>
     );
 }
+
+export default memo(CodeEditor);
