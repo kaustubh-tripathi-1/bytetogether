@@ -236,10 +236,14 @@ export function useExecuteCode() {
             return { stdout: output, stderr: error, time, memory, status };
         },
 
+        retry: 3,
+        retryDelay: 2000,
+
         onMutate: () => {
             dispatch(setIsRunning(true));
             dispatch(clearJudge0States());
         },
+
         onSuccess: (data) => {
             if (data.stdout) {
                 dispatch(setOutput(data.stdout));
@@ -261,6 +265,7 @@ export function useExecuteCode() {
             }
             dispatch(setStatus(data.status));
         },
+
         onError: (error) => {
             console.error(`Execution failed error: ${error.message}`);
             dispatch(setError(error.message));
@@ -272,6 +277,7 @@ export function useExecuteCode() {
                 })
             );
         },
+
         onSettled: () => {
             dispatch(setIsRunning(false));
         },
