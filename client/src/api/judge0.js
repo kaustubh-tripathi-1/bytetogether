@@ -31,7 +31,9 @@ export async function executeCodeFetch({ language, sourceCode, stdin }) {
             `${API_URL}/submissions?base64_encoded=true`,
             {
                 method: 'POST',
-                headers: { 'content-type': 'application/json' },
+                headers: {
+                    'content-type': 'application/json',
+                },
                 body: JSON.stringify({
                     source_code: encodeToBase64(sourceCode),
                     language_id: language,
@@ -111,6 +113,11 @@ export async function executeCodeAxios({ language, sourceCode, stdin }) {
                 language_id: language,
                 stdin: encodeToBase64(stdin),
                 ...judge0Limits,
+            },
+            {
+                headers: {
+                    'content-type': 'application/json',
+                },
             }
         );
 
@@ -170,7 +177,9 @@ export function useExecuteCode() {
                 `${API_URL}/submissions?base64_encoded=true`,
                 {
                     method: 'POST',
-                    headers: { 'content-type': 'application/json' },
+                    headers: {
+                        'content-type': 'application/json',
+                    },
                     body: JSON.stringify({
                         source_code: encodeToBase64(sourceCode),
                         language_id: language,
