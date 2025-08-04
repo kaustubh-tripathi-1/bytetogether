@@ -13,8 +13,6 @@ function OutputPanel() {
         (state) => state.execution
     );
 
-    //TODO Add green/red bg
-
     if (isRunning) {
         return (
             <div className="flex h-full w-full items-center justify-center">
@@ -35,13 +33,19 @@ function OutputPanel() {
                 <div className="flex flex-col gap-4 rounded-md border border-gray-600 p-2">
                     <p
                         className={`rounded-md p-2 ${output ? 'bg-green-400/40' : error ? 'bg-red-500/40' : 'bg-gray-100 dark:bg-[#2b2b44]'}`}
+                        aria-live={status?.id === 3 ? 'polite' : 'assertive'}
+                        aria-label="Executed code status"
                     >
                         <span className="text-xl font-bold">Status: </span>{' '}
                         {judge0Verdicts[status?.id] ?? status?.description}
                     </p>
 
                     {(output || status) && (
-                        <div className="flex">
+                        <div
+                            className="flex"
+                            aria-live="polite"
+                            aria-label="Executed code parameters"
+                        >
                             {time && (
                                 <div className="flex flex-col border-r border-r-gray-600 px-2">
                                     <p className="font-bold">Time:</p>
@@ -65,6 +69,7 @@ function OutputPanel() {
                             className={`max-h-full min-h-8 flex-1 rounded-md bg-gray-100 p-2 break-words whitespace-pre-wrap dark:bg-[#2b2b44]`}
                             aria-live="polite"
                             aria-label="Code execution output"
+                            lang="en"
                         >
                             {output || error || 'No output to show'}
                         </pre>
