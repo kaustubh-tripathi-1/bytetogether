@@ -145,40 +145,44 @@ function EditorToolbar({
                         <Keyboard width={1.7} height={1.7} />
                     </button>
                 </Tooltip>
-                <Tooltip content={'Invite'}>
-                    <button
-                        ref={inviteButtonRef}
-                        onClick={handleInviteClick}
-                        className="cursor-pointer rounded-full px-2.5 py-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
-                        aria-label="Invite collaborators"
-                    >
-                        <Invite width={1.8} height={1.8} />
-                    </button>
-                </Tooltip>
-                <AnimatePresence>
-                    {isAdmin && isAdminPanelOpen && (
-                        <InviteAdminPanel
-                            isOpen={isAdminPanelOpen}
-                            key={'InviteAdminPanel'}
-                            onClose={closeAdminPanel}
-                            awareness={yjsResources.awareness}
-                            onEndSession={handleEndSession}
-                            onCopyLink={handleInvite}
-                            anchorRef={inviteButtonRef}
-                        />
-                    )}{' '}
-                    {!isAdmin && isAdminPanelOpen && (
-                        <InvitePanel
-                            isOpen={isAdminPanelOpen}
-                            key={'InvitePanel'}
-                            onClose={closeAdminPanel}
-                            awareness={yjsResources.awareness}
-                            onEndSession={handleEndSession}
-                            onCopyLink={handleInvite}
-                            anchorRef={inviteButtonRef}
-                        />
-                    )}
-                </AnimatePresence>
+                {executionMode === 'judge0' && (
+                    <>
+                        <Tooltip content={'Invite'}>
+                            <button
+                                ref={inviteButtonRef}
+                                onClick={handleInviteClick}
+                                className="cursor-pointer rounded-full px-2.5 py-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                                aria-label="Invite collaborators"
+                            >
+                                <Invite width={1.8} height={1.8} />
+                            </button>
+                        </Tooltip>
+                        <AnimatePresence>
+                            {isAdmin && isAdminPanelOpen && (
+                                <InviteAdminPanel
+                                    isOpen={isAdminPanelOpen}
+                                    key={'InviteAdminPanel'}
+                                    onClose={closeAdminPanel}
+                                    awareness={yjsResources.awareness}
+                                    onEndSession={handleEndSession}
+                                    onCopyLink={handleInvite}
+                                    anchorRef={inviteButtonRef}
+                                />
+                            )}{' '}
+                            {!isAdmin && isAdminPanelOpen && (
+                                <InvitePanel
+                                    isOpen={isAdminPanelOpen}
+                                    key={'InvitePanel'}
+                                    onClose={closeAdminPanel}
+                                    awareness={yjsResources.awareness}
+                                    onEndSession={handleEndSession}
+                                    onCopyLink={handleInvite}
+                                    anchorRef={inviteButtonRef}
+                                />
+                            )}
+                        </AnimatePresence>
+                    </>
+                )}
             </div>
         </div>
     );
