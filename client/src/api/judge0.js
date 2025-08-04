@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
+import { useDispatch } from 'react-redux';
 
 import { addNotification } from '../store/slices/uiSlice';
 import {
@@ -157,11 +158,12 @@ export async function executeCodeAxios({ language, sourceCode, stdin }) {
 }
 
 /**
- * Hook to execute code using TanStack Query.
- * @param {Function} dispatch - Redux dispatch function.
- * @returns {Object} Mutation hook with execute function.
+ * Hook to execute code through Judge0 using TanStack Query.
+ * @returns {Object} Mutation hook with execute mutation function and other props.
  */
-export function useExecuteCode(dispatch) {
+export function useExecuteCode() {
+    const dispatch = useDispatch();
+
     return useMutation({
         mutationFn: async ({ language, sourceCode, stdin }) => {
             const response = await fetch(
@@ -198,6 +200,8 @@ export function useExecuteCode(dispatch) {
                 result = await statusResponse.json();
                 if (result.status.id > 2) break;
             }
+
+            console.log(result);
 
             let {
                 stdout,
