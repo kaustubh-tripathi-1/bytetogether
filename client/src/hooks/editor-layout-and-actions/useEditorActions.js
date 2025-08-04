@@ -22,17 +22,17 @@ import {
     setSelectedFile,
 } from '../../store/slices/editorSlice';
 import { setPreferences } from '../../store/slices/userSlice';
-import { executeCodeFetch } from '../../api/judge0';
+import { /* executeCodeFetch, */ useExecuteCode } from '../../api/judge0';
 import { getJudge0LanguageId } from '../../utils/getJudge0LanguageId';
-import {
+/* import {
     clearJudge0States,
-    setError,
     setIsRunning,
+    setError,
     setMemory,
     setOutput,
     setStatus,
     setTime,
-} from '../../store/slices/executionSlice';
+} from '../../store/slices/executionSlice'; */
 
 /**
  * Custom hook that provides reusable editor-related actions such as formatting,
@@ -101,6 +101,8 @@ export function useEditorActions({
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
+
+    const executeCodeTanstack = useExecuteCode();
 
     /**
      * Handler to switch between files by their ID.
@@ -176,7 +178,20 @@ export function useEditorActions({
      * Runs code in the editor
      */
     const handleRunCode = useCallback(async () => {
-        try {
+        if (!selectedFile?.$id) throw new Error('No file selected');
+        const content = isYjsConnected
+            ? yjsResources.yText?.toString()
+            : codeContent;
+        if (!content) throw new Error('No code to execute');
+
+        const languageId = getJudge0LanguageId(language);
+        executeCodeTanstack.mutate({
+            language: languageId,
+            sourceCode: content,
+            stdin: input,
+        });
+
+        /* try {
             if (!selectedFile?.$id) throw new Error('No file selected');
             const content = isYjsConnected
                 ? yjsResources.yText?.toString()
@@ -187,6 +202,12 @@ export function useEditorActions({
             dispatch(clearJudge0States());
 
             const languageId = getJudge0LanguageId(language);
+            executeCodeTanstack({
+                language: languageId,
+                sourceCode: content,
+                stdin: input,
+            });
+
             const { stdout, stderr, status, time, memory } =
                 await executeCodeFetch({
                     language: languageId,
@@ -221,15 +242,15 @@ export function useEditorActions({
             );
         } finally {
             dispatch(setIsRunning(false));
-        }
+        } */
     }, [
         codeContent,
-        dispatch,
         input,
         isYjsConnected,
         language,
         selectedFile,
-        yjsResources.yText,
+        executeCodeTanstack,
+        yjsResources,
     ]);
 
     /**
