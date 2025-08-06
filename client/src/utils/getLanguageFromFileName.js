@@ -8,5 +8,5 @@ import { languageMap } from '../conf/languages';
 export function getLanguageFromFileName(fileName) {
     const extension = fileName.split('.').pop().toLowerCase();
 
-    return languageMap[extension]?.value || 'plaintext';
+    return languageMap[extension].value || 'plaintext';
 }
