@@ -5,6 +5,7 @@ import storage from 'redux-persist/lib/storage';
 import authReducer from './slices/authSlice';
 import uiReducer from './slices/uiSlice';
 import editorReducer from './slices/editorSlice';
+import projectReducer from './slices/projectSlice';
 import filesReducer from './slices/filesSlice';
 import userReducer from './slices/userSlice';
 import executionReducer from './slices/executionSlice';
@@ -35,14 +36,8 @@ const uiPersistConfig = {
 const editorPersistConfig = {
     key: 'editor',
     storage,
-    whitelist: [
-        'activeProject',
-        'codeContent',
-        'language',
-        'selectedFile',
-        'settings',
-    ], // Persist only these states
-    throttle: 1000, // Delay storage updates by 1 second
+    whitelist: ['codeContent', 'language', 'selectedFile', 'settings'], // Persist only these states
+    throttle: 1000, // Throttle storage updates by 1 second
 };
 
 /**
@@ -82,6 +77,17 @@ const executionPersistConfig = {
 const previewPersistConfig = {
     key: 'preview',
     storage,
+    throttle: 1000, // Throttle storage updates by 1 second
+};
+
+/**
+ * Persistence configuration for the preview slice.
+ * @type {Object}
+ */
+const projectPersistConfig = {
+    key: 'projects',
+    storage,
+    whitelist: ['activeProject'],
 };
 
 // Combined reducers
@@ -90,6 +96,7 @@ const rootReducer = combineReducers({
     ui: persistReducer(uiPersistConfig, uiReducer),
     editor: persistReducer(editorPersistConfig, editorReducer),
     files: persistReducer(filesPersistConfig, filesReducer),
+    projects: persistReducer(projectPersistConfig, projectReducer),
     user: persistReducer(userPersistConfig, userReducer),
     execution: persistReducer(executionPersistConfig, executionReducer),
     preview: persistReducer(previewPersistConfig, previewReducer),
