@@ -4,6 +4,8 @@
  */
 import { createSlice } from '@reduxjs/toolkit';
 
+import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName';
+
 /**
  * Initial state for the editor slice.
  * @typedef {Object} EditorState
@@ -57,14 +59,16 @@ const editorSlice = createSlice({
          */
         setSelectedFile: (state, action) => {
             state.selectedFile = action.payload;
+            state.language = getLanguageFromFileName(action.payload.fileName);
+            state.codeContent = action.payload.fileName;
         },
         /**
-         * Sets the the selected file.
+         * Sets the the selected file content.
          * @param {EditorState} state - Current state.
          * @param {Object} action - Action with payload containing selected file name.
          */
         setSelectedFileContent: (state, action) => {
-            state.selectedFile.content = action.payload;
+            state.selectedFile.codeContent = action.payload;
         },
         /**
          * Sets the programming language
