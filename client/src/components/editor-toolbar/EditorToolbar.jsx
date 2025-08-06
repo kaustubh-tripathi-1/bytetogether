@@ -1,4 +1,4 @@
-import { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useCallback, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 
@@ -20,7 +20,8 @@ import {
 
 /**
  * Toolbar component for editor controls.
- * @param {object} props Props for the component.
+ * @param {Object} props Props for the component.
+ * @param {React.ComponentState<string>} props.language Current language for code in the editor.
  * @param {Function} props.handleFormatCode Callback to format code in the editor.
  * @param {Function} props.handleRunCode Callback to run the code.
  * @param {Function} props.handleLanguageChange Callback to change language for the editor.
@@ -30,7 +31,11 @@ import {
  * @param {Function} props.handleOpenKeyboardShortcuts Callback to open keyboard shortcuts modal.
  * @param {Function} props.handleResetCode Callback to reset code to language default.
  * @param {Function} props.handleInvite Callback to invite a collaborator.
- * @returns {JSX.Element} The memoized editor toolbar with LanguageSelector and other editor controls.
+ * @param {React.ComponentState<boolean>} props.isAdmin Whether the user is admin or not.
+ * @param {Function} props.handleEndRoom Callback to end the collab room if admin or just leave the room if non-admin.
+ * @param {React.ComponentState<Object>} props.yjsResources Yjs resources liek Ydoc, YText, Awareness and WSPRovider.
+ * @param {React.SetStateAction<Function>} props.setIsYjsConnected State setter for isYjsConnected state.
+ * @returns {JSX.Element} The memoized editor toolbar with editor controls.
  */
 function EditorToolbar({
     language,
@@ -45,8 +50,6 @@ function EditorToolbar({
     handleInvite,
     isAdmin,
     handleEndRoom,
-    // onRemoveCollaborator,
-    // collaborators,
     yjsResources,
     setIsYjsConnected,
 }) {
