@@ -224,7 +224,6 @@ export const completeEmailVerification = createAsyncThunk(
  * @property {boolean} authStatus - Indicates if the user is authenticated.
  * @property {boolean} session - The authenticated user's session data (e.g., { $id, $createdAt, $updatedAt, userId, expire }).
  * @property {boolean} isLoading - Indicates if an auth operation is in progress.
- * @property {boolean} isLoadingInitial - Indicates if the initial auth validation is in progress.
  * @property {string|null} error - Stores error messages from auth operations.
  */
 const initialState = {
@@ -232,7 +231,6 @@ const initialState = {
     authStatus: false,
     session: null,
     isLoading: false,
-    isLoadingInitial: false,
     error: null,
 };
 
@@ -293,15 +291,6 @@ const authSlice = createSlice({
             state.isLoading = action.payload;
         },
         /**
-         * Sets the loading state for initial auth validation.
-         * @param {AuthState} state - The current state.
-         * @param {Object} action - The action with payload.
-         * @param {boolean} action.payload - The initial loading state.
-         */
-        setIsLoadingInitial: (state, action) => {
-            state.isLoadingInitial = action.payload;
-        },
-        /**
          * Sets the error message.
          * @param {AuthState} state - The current state.
          * @param {Object} action - The action with payload.
@@ -347,11 +336,9 @@ const authSlice = createSlice({
             })
             // Fetch Current User (for background validation)
             .addCase(fetchCurrentUser.pending, (state) => {
-                state.isLoadingInitial = true;
                 state.error = null;
             })
             .addCase(fetchCurrentUser.fulfilled, (state, action) => {
-                state.isLoadingInitial = false;
                 if (action.payload) {
                     state.authStatus = true;
                     state.user = action.payload;
@@ -361,7 +348,6 @@ const authSlice = createSlice({
                 }
             })
             .addCase(fetchCurrentUser.rejected, (state, action) => {
-                state.isLoadingInitial = false;
                 state.authStatus = false;
                 state.user = null;
                 state.error = action.payload;
@@ -456,14 +442,7 @@ const authSlice = createSlice({
     },
 });
 
-export const {
-    login,
-    logout,
-    setUser,
-    setAuthStatus,
-    setIsLoading,
-    setIsLoadingInitial,
-    setError,
-} = authSlice.actions;
+export const { login, logout, setUser, setAuthStatus, setIsLoading, setError } =
+    authSlice.actions;
 
 export default authSlice.reducer;
