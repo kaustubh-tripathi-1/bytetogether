@@ -117,7 +117,7 @@ export function useEditorActions({
                     setSelectedFile({
                         $id: file.$id,
                         fileName: file.fileName,
-                        content: file.content, // This content is what Yjs will potentially use to initialize
+                        codeContent: file.codeContent, // This content is what Yjs will potentially use to initialize
                     })
                 );
             }
@@ -256,7 +256,7 @@ export function useEditorActions({
     /**
      * Saves the current file content and metadata to Appwrite.
      */
-    const handleSaveAllFiles = useCallback(() => {
+    const handleSaveAllFiles = useCallback(async () => {
         try {
             const filesToSave = files.map((file) => {
                 const { yText } = getOrCreateYDoc(file.$id, username, isAdmin);
@@ -272,30 +272,32 @@ export function useEditorActions({
             });
 
             if (isNewProject) {
-                dispatch(
+                await dispatch(
                     saveAllFilesForNewProject({
                         projectName: 'default',
                         files: filesToSave.filter((file) => !file.$id), // Only new files
                     })
-                );
+                ).unwrap();
             } else {
-                dispatch(
+                await dispatch(
                     updateAllFilesForExistingProject(
                         filesToSave.filter((file) => file.$id) // Only existing files
                     )
-                );
+                ).unwrap();
             }
 
             dispatch(
                 addNotification({
-                    message: 'Files saved successfully',
+                    message: `${files.length > 1 ? 'Files' : 'File'} saved successfully`,
                     type: 'success',
                 })
             );
         } catch (error) {
+            console.error(error);
+
             dispatch(
                 addNotification({
-                    message: `Failed to save with ${error}! Please try again...`,
+                    message: `Failed to save with error: ${error}! Please try again...`,
                     type: 'error',
                 })
             );

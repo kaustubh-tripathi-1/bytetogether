@@ -1,12 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 
-import {
-    setSelectedFile,
-    setLanguage,
-    setCodeContent,
-} from '../../store/slices/editorSlice';
-import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName';
+import { setSelectedFile } from '../../store/slices/editorSlice';
 
 export function useInitialFileStup({ files, selectedFile }) {
     const dispatch = useDispatch();
@@ -19,13 +14,9 @@ export function useInitialFileStup({ files, selectedFile }) {
                 setSelectedFile({
                     $id: initialFile.$id,
                     fileName: initialFile.fileName,
-                    content: initialFile.content,
+                    codeContent: initialFile.codeContent,
                 })
             );
-            dispatch(
-                setLanguage(getLanguageFromFileName(initialFile.fileName))
-            );
-            dispatch(setCodeContent(initialFile.content));
         }
     }, [dispatch, files, selectedFile]);
 }
