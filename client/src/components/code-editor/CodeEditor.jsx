@@ -26,7 +26,7 @@ import './CodeEditor.css';
  * @param {React.RefObject} editorRef The react ref for monaco editor.
  * @param {import('yjs').Text} props.yText - The Y.Text instance for the current file.
  * @param {import('y-websocket').Awareness} props.awareness - The Awareness instance for the current provider.
- * @param {boolean} props.isInvited - Whether the session is invited for collaboration.
+ * @param {boolean} props.isYjsConnected - Whether yjs is connected or not.
  * @returns {JSX.Element} The Monaco Editor.
  */
 function CodeEditor({ ref: editorRef, yjsResources, isYjsConnected }) {
