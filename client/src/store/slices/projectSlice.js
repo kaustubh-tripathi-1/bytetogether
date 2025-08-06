@@ -11,7 +11,7 @@ export const createProject = createAsyncThunk(
             const { user } = getState().auth;
             return await databaseService.createDocument(
                 appwriteConfig.appwriteProjectsCollectionID,
-                { name, ownerId: user.$id, collaborators: [] }
+                { name, ownerId: user.$id }
             );
         } catch (error) {
             return rejectWithValue(error.message);
