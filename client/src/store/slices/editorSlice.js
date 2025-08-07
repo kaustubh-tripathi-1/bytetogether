@@ -21,7 +21,7 @@ const initialState = {
         wordWrap: 'on',
         tabSize: 4,
         minimap: true,
-        stickyScroll: false,
+        stickyScroll: true,
     },
     selectedFile: null,
     language: 'javascript',
