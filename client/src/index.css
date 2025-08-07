@@ -31,3 +31,13 @@ body,
         --input-height: 50%;
     }
 }
+
+@theme {
+    --animate-spin-fast: spinFast 700ms ease-in-out infinite;
+
+    @keyframes spinFast {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+}
