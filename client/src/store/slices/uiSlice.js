@@ -37,8 +37,8 @@ const uiSlice = createSlice({
          * @param {Object} state - The current state.
          * @param {Object} action - The action with payload.
          * @param {Object} action.payload - The modal details.
-         * @param {string} action.payload.type - The modal type (e.g., "delete-post").
-         * @param {Object} [action.payload.data] - Optional modal data (e.g., { slug: "my-post" }).
+         * @param {string} action.payload.type - The modal type.
+         * @param {Object} [action.payload.data] - Optional modal data.
          */
         openModal: (state, action) => {
             state.isModalOpen = true;
