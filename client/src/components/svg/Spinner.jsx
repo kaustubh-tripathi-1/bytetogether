@@ -5,7 +5,7 @@ export default function Spinner({
 }) {
     return (
         <svg
-            className={`animate-spin ${className}`}
+            className={`animate-spin-fast ${className}`}
             style={{
                 width: `${size}rem`,
                 height: `${size}rem`,
