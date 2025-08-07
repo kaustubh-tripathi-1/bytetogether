@@ -306,14 +306,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                 <div
                     className={`bg absolute inset-0 z-50 ${
                         isDraggingHorizontal.current ? 'cursor-ew-resize' : ''
-                    } ${isDraggingVertical.current ? 'cursor-ns-resize' : ''}`}
-                    style={{
-                        cursor: isDraggingHorizontal.current
-                            ? 'ew-resize'
-                            : isDraggingVertical.current
-                              ? 'ns-resize'
-                              : 'default',
-                    }} // Explicitly set cursor type
+                    } ${isDraggingVertical.current ? 'cursor-ns-resize' : ''}`} // Explicitly set cursor type
                 />
             )}
         </section>
