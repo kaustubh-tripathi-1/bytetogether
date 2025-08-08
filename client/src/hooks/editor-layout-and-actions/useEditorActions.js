@@ -9,17 +9,12 @@ import {
     getOrCreateYDoc,
 } from '../../lib/yjs';
 import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName';
-import {
-    saveAllFilesForNewProject,
-    updateAllFilesForExistingProject,
-} from '../../store/slices/filesSlice';
 import { addNotification, setModalType } from '../../store/slices/uiSlice';
 import { getDefaultCodeForLanguage } from '../../utils/getDefaultCodeForLanguage';
 import {
     setCodeContent,
     setEditorSettings,
     setLanguage,
-    setSelectedFile,
 } from '../../store/slices/editorSlice';
 import { setPreferences } from '../../store/slices/userSlice';
 import { /* executeCodeFetch, */ useExecuteCode } from '../../api/judge0';
@@ -79,7 +74,6 @@ import { getJudge0LanguageId } from '../../utils/getJudge0LanguageId';
  */
 
 export function useEditorActions({
-    isNewProject,
     projectId,
     editorRef,
     files,
@@ -103,27 +97,6 @@ export function useEditorActions({
     const location = useLocation();
 
     const executeCodeTanstack = useExecuteCode();
-
-    /**
-     * Handler to switch between files by their ID.
-     * @param {Event} event - File selection change event.
-     */
-    const handleFileChange = useCallback(
-        (event) => {
-            const fileId = event.target.value;
-            const file = files.find((f) => f.$id === fileId);
-            if (file) {
-                dispatch(
-                    setSelectedFile({
-                        $id: file.$id,
-                        fileName: file.fileName,
-                        codeContent: file.codeContent, // This content is what Yjs will potentially use to initialize
-                    })
-                );
-            }
-        },
-        [dispatch, files]
-    );
 
     /**
      * Handles language change by updating the editor state and loading appropriate code.
@@ -251,65 +224,6 @@ export function useEditorActions({
         selectedFile,
         executeCodeTanstack,
         yjsResources,
-    ]);
-
-    /**
-     * Saves the current file content and metadata to Appwrite.
-     */
-    const handleSaveAllFiles = useCallback(async () => {
-        try {
-            const filesToSave = files.map((file) => {
-                const { yText } = getOrCreateYDoc(file.$id, username, isAdmin);
-                return {
-                    $id: file.$id,
-                    name: file.fileName,
-                    language: getLanguageFromFileName(file.fileName),
-                    content:
-                        file.$id === selectedFile?.$id && isYjsConnected
-                            ? yText.toString()
-                            : file.content || '', // Save yText content for selected file
-                };
-            });
-
-            if (isNewProject) {
-                await dispatch(
-                    saveAllFilesForNewProject({
-                        projectName: 'default',
-                        files: filesToSave.filter((file) => !file.$id), // Only new files
-                    })
-                ).unwrap();
-            } else {
-                await dispatch(
-                    updateAllFilesForExistingProject(
-                        filesToSave.filter((file) => file.$id) // Only existing files
-                    )
-                ).unwrap();
-            }
-
-            dispatch(
-                addNotification({
-                    message: `${files.length > 1 ? 'Files' : 'File'} saved successfully`,
-                    type: 'success',
-                })
-            );
-        } catch (error) {
-            console.error(error);
-
-            dispatch(
-                addNotification({
-                    message: `Failed to save with error: ${error}! Please try again...`,
-                    type: 'error',
-                })
-            );
-        }
-    }, [
-        dispatch,
-        files,
-        isAdmin,
-        isNewProject,
-        isYjsConnected,
-        selectedFile,
-        username,
     ]);
 
     /**
@@ -580,11 +494,9 @@ export function useEditorActions({
     ]);
 
     return {
-        handleFileChange,
         handleLanguageChange,
         handleFormatCode,
         handleRunCode,
-        handleSaveAllFiles,
         handleOpenSettings,
         handleOpenKeyboardShortcuts,
         handleCloseSettings,
