@@ -24,6 +24,10 @@ export { default as Clear } from './svg/Clear.jsx';
 export { default as Rename } from './svg/Rename.jsx';
 export { default as Delete } from './svg/Delete.jsx';
 export { default as BounceLoader } from './loaders/BounceLoader.jsx';
+export { default as Hamburger } from './svg/Hamburger.jsx';
+export { default as Cross } from './svg/Cross.jsx';
+export { default as Files } from './svg/Files.jsx';
+export { default as AddFile } from './svg/AddFile.jsx';
 
 // Auth Components
 export { default as AuthLayout } from '../components/auth-layout/AuthLayout.jsx';
@@ -53,3 +57,6 @@ export { default as ModeSelector } from './mode-selector/ModeSelector.jsx';
 export { default as Modal } from './modal/Modal.jsx';
 export { default as Notifications } from './notifications/Notifications.jsx';
 export { default as Tooltip } from './tooltip/Tooltip.jsx';
+
+// File Explorer
+export { default as FileExplorer } from './file-explorer/FileExplorer.jsx';
