@@ -1,4 +1,4 @@
-import DeleteIcon from '../../assets/icons/format.svg?react';
+import DeleteIcon from '../../assets/icons/trash.svg?react';
 
 /**
  * Delete Icon component for delete file action.
