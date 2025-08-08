@@ -33,7 +33,7 @@ body,
 }
 
 @theme {
-    --animate-spin-fast: spinFast 700ms ease-in-out infinite;
+    --animate-spin-fast: spinFast 300ms linear infinite;
 
     @keyframes spinFast {
         to {
