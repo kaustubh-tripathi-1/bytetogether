@@ -43,26 +43,6 @@ export function useFileActions({
     }, [setIsFileExplorerOpen]);
 
     /**
-     * Handler to switch between files by their ID.
-     * @param {string} fileId - File ID of the clicked file.
-     */
-    const handleFileChange = useCallback(
-        (fileId) => {
-            const file = files.find((f) => f.$id === fileId);
-            if (file) {
-                dispatch(
-                    setSelectedFile({
-                        $id: file.$id,
-                        fileName: file.fileName,
-                        codeContent: file.codeContent, // This content is what Yjs will potentially use to initialize
-                    })
-                );
-            }
-        },
-        [dispatch, files]
-    );
-
-    /**
      * Saves the current file content and metadata to Appwrite.
      */
     const handleSaveAllFiles = useCallback(async () => {
@@ -122,7 +102,6 @@ export function useFileActions({
     ]);
 
     return {
-        handleFileChange,
         handleSaveAllFiles,
         toggleFileExplorer,
     };
