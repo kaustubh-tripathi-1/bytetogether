@@ -223,7 +223,6 @@ export default function FileExplorer({ toggleFileExplorer }) {
                 </div>
                 <ul className={`flex flex-col gap-0.5 p-1`}>
                     {files.map((file) => (
-                        // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
                         <li
                             key={file.$id}
                             className={`group flex w-full cursor-pointer items-center justify-between rounded px-2 py-1 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-1 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44] ${
@@ -244,8 +243,9 @@ export default function FileExplorer({ toggleFileExplorer }) {
                                     dispatch(setSelectedFile(file));
                                 }
                             }}
-                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
                             tabIndex={0}
+                            // eslint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role
+                            role="button"
                             aria-label={`${file.fileName}`}
                         >
                             <span
