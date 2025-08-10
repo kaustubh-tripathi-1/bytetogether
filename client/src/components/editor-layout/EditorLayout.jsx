@@ -12,8 +12,8 @@ import {
     Modal,
     OutputPanel,
     PreviewPanel,
+    SettingsContent,
 } from '../componentsIndex.js';
-import { modalConfig } from '../../conf/modalConfig.jsx';
 import { disconnectAllYjs } from '../../lib/yjs.js';
 import { useRealTimeSync } from '../../hooks/yjs-real-time-sync/useRealTimeSync.js';
 import { usePanelsResize } from '../../hooks/editor-layout-and-actions/usePanelsResize.js';
@@ -186,31 +186,6 @@ export default function EditorLayout({ projectId, isNewProject }) {
             <section className="w-full p-4 md:w-[var(--editor-width)] md:min-w-112">
                 {/* File Selector */}
                 <div className="flex flex-col justify-between gap-4 md:flex-row">
-                    {/* <div className="">
-                        <select
-                            value={selectedFile?.fileName || 'index.js'}
-                            onChange={handleFileChange}
-                            className="w-full min-w-25 rounded border border-gray-300 bg-gray-100 p-1.5 text-gray-800 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
-                            aria-label="Select file to edit"
-                        >
-                            <option
-                                value=""
-                                disabled
-                                className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-                            >
-                                Select a file
-                            </option>
-                            {files.map((file) => (
-                                <option
-                                    key={file.$id}
-                                    value={file.$id}
-                                    className=""
-                                >
-                                    {file.fileName}
-                                </option>
-                            ))}
-                        </select>
-                    </div> */}
                     <AnimatePresence>
                         {isFileExplorerOpen && (
                             <FileExplorer
@@ -256,19 +231,19 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         isOpen={isSettingsOpen}
                         onClose={handleCloseSettings}
                     >
-                        {modalConfig.settings.content({
-                            fontSize: settings.fontSize,
-                            onFontSizeIncrement: handleFontSizeIncrement,
-                            onFontSizeDecrement: handleFontSizeDecrement,
-                            wordWrap: settings.wordWrap,
-                            onWordWrapChange: handleWordWrapChange,
-                            minimapEnabled: settings.minimap,
-                            onMinimapChange: handleMinimapChange,
-                            stickyScrollEnabled: settings.stickyScroll,
-                            onStickyScrollChange: handleStickyScrollChange,
-                            tabSize: settings.tabSize,
-                            onTabSizeChange: handleTabSizeChange,
-                        })}
+                        <SettingsContent
+                            fontSize={settings.fontSize}
+                            onFontSizeIncrement={handleFontSizeIncrement}
+                            onFontSizeDecrement={handleFontSizeDecrement}
+                            wordWrap={settings.wordWrap}
+                            onWordWrapChange={handleWordWrapChange}
+                            minimapEnabled={settings.minimap}
+                            onMinimapChange={handleMinimapChange}
+                            stickyScrollEnabled={settings.stickyScroll}
+                            onStickyScrollChange={handleStickyScrollChange}
+                            tabSize={settings.tabSize}
+                            onTabSizeChange={handleTabSizeChange}
+                        />
                     </Modal>
                 )}
                 {isShortcutsOpen && (
@@ -276,9 +251,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         key="shortcuts-modal"
                         isOpen={isShortcutsOpen}
                         onClose={handleCloseKeyboardShortcuts}
-                    >
-                        {modalConfig.shortcuts.content}
-                    </Modal>
+                    ></Modal>
                 )}
             </AnimatePresence>
 
