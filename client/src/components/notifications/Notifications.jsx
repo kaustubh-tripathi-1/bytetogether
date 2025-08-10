@@ -11,7 +11,7 @@ export default function Notifications() {
     const { activeNotifications } = useSelector((state) => state.ui);
 
     return (
-        <div className="fixed right-4 bottom-16 z-100 flex w-full max-w-xs flex-col gap-2 sm:max-w-sm">
+        <div className="fixed right-4 bottom-16 z-1200 flex w-full max-w-xs flex-col gap-2 sm:max-w-sm">
             <AnimatePresence>
                 {activeNotifications.map((noti) => (
                     <NotificationItem key={noti.id} notification={noti} />

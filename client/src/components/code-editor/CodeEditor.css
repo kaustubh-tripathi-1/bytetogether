@@ -78,7 +78,7 @@
     border-top-right-radius: 8px;
     border-bottom-right-radius: 8px;
     white-space: nowrap;
-    z-index: 1000;
+    z-index: 600;
     pointer-events: none;
     box-shadow: 0 10px 3px rgba(0, 0, 0, 0.2);
 }
