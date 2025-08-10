@@ -9,6 +9,7 @@ import {
     EditorToolbar,
     FileExplorer,
     InputPanel,
+    KeyboardShortcuts,
     Modal,
     OutputPanel,
     PreviewPanel,
@@ -251,7 +252,9 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         key="shortcuts-modal"
                         isOpen={isShortcutsOpen}
                         onClose={handleCloseKeyboardShortcuts}
-                    ></Modal>
+                    >
+                        <KeyboardShortcuts />
+                    </Modal>
                 )}
             </AnimatePresence>
 
