@@ -1,33 +1,35 @@
-import { useEffect, useRef /* , useState */ } from 'react';
-import { motion } from 'framer-motion';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { createPortal } from 'react-dom';
 
 import { addFile, deleteFile, updateFile } from '../../store/slices/filesSlice';
 import { setSelectedFile } from '../../store/slices/editorSlice';
-import { addNotification } from '../../store/slices/uiSlice';
-import { AddFile, Cross, Delete, Rename } from '../componentsIndex';
+import { addNotification, setModalType } from '../../store/slices/uiSlice';
+import { AddFile, Cross, Delete, Modal, Rename } from '../componentsIndex';
 
 /**
  * FileExplorer component for managing project files.
  * @param {Object} props
- * @param {boolean} props.isOpen - Whether the file explorer is open.
- * @param {Function} props.onClose - Callback to close the explorer.
+ * @param {Function} props.toggleFileExplorer - Function to toggle the file explorer.
  * @returns {JSX.Element} The file explorer UI.
  */
 export default function FileExplorer({ toggleFileExplorer }) {
     const dispatch = useDispatch();
+
     const files = useSelector((state) => state.files.files);
     const selectedFile = useSelector((state) => state.editor.selectedFile);
+
+    const fileExplorerRef = useRef(null);
     const firstFocusableRef = useRef(null);
     const lastFocusableRef = useRef(null);
     const triggerRef = useRef(null);
-    // const [isNewFileModalOpen, setIsNewFileModalOpen] = useState(false);
-    // const [isDeleteFileModalOpen, setIsDeleteFileModalOpen] = useState(false);
 
-    const fileExplorerRef = useRef(null);
+    const [isNewFileModalOpen, setIsNewFileModalOpen] = useState(false);
+    const [isRenameFileModalOpen, setIsRenameFileModalOpen] = useState(false);
+    const [isDeleteFileModalOpen, setIsDeleteFileModalOpen] = useState(false);
 
-    async function handleNewFile() {
+    async function _handleNewFile() {
         const newFile = {
             $id: crypto.randomUUID(),
             fileName: 'newfile.js',
@@ -48,7 +50,7 @@ export default function FileExplorer({ toggleFileExplorer }) {
         }
     }
 
-    async function handleDeleteFile(fileId) {
+    async function _handleDeleteFile(fileId) {
         try {
             dispatch(deleteFile(fileId));
             dispatch(
@@ -71,7 +73,7 @@ export default function FileExplorer({ toggleFileExplorer }) {
         }
     }
 
-    async function handleRenameFile(fileId, newName) {
+    async function _handleRenameFile(fileId, newName) {
         const file = files.find((f) => f.$id === fileId);
         const updatedFile = { ...file, fileName: newName };
 
@@ -175,6 +177,40 @@ export default function FileExplorer({ toggleFileExplorer }) {
         };
     }, [toggleFileExplorer]);
 
+    const openNewFileModal = useCallback(
+        (event) => {
+            event.stopPropagation();
+            dispatch(setModalType('create-new-file'));
+            setIsNewFileModalOpen(true);
+        },
+        [dispatch]
+    );
+
+    const closeNewFileModal = useCallback(() => {
+        dispatch(setModalType(null));
+        setIsNewFileModalOpen(false);
+    }, [dispatch]);
+
+    const openRenameFileModal = useCallback(() => {
+        dispatch(setModalType('rename-file'));
+        setIsRenameFileModalOpen(true);
+    }, [dispatch]);
+
+    const closeRenameFileModal = useCallback(() => {
+        dispatch(setModalType(null));
+        setIsRenameFileModalOpen(false);
+    }, [dispatch]);
+
+    const openDeleteFileModal = useCallback(() => {
+        dispatch(setModalType('delete-file'));
+        setIsDeleteFileModalOpen(true);
+    }, [dispatch]);
+
+    const closeDeleteFileModal = useCallback(() => {
+        dispatch(setModalType(null));
+        setIsDeleteFileModalOpen(false);
+    }, [dispatch]);
+
     return createPortal(
         // Overlay
         <motion.div
@@ -203,10 +239,7 @@ export default function FileExplorer({ toggleFileExplorer }) {
                     <p className="text-sm">EXPLORER</p>
                     <div className="flex gap-1">
                         <button
-                            onClick={() => {
-                                /*open modal*/
-                                handleNewFile();
-                            }}
+                            onClick={openNewFileModal}
                             className="flex cursor-pointer items-center justify-center rounded-xl px-1.5 py-1 text-gray-400 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                             aria-label="Create new file"
                         >
@@ -230,11 +263,13 @@ export default function FileExplorer({ toggleFileExplorer }) {
                                     ? 'bg-gray-200 dark:bg-[#141429]'
                                     : ''
                             }`}
-                            onClick={() => {
+                            onClick={(event) => {
+                                event.stopPropagation();
                                 dispatch(updateFile(selectedFile));
                                 dispatch(setSelectedFile(file));
                             }}
                             onKeyDown={(event) => {
+                                event.stopPropagation();
                                 if (
                                     event.key === 'Enter' ||
                                     event.key === ' '
@@ -262,7 +297,8 @@ export default function FileExplorer({ toggleFileExplorer }) {
                                 <button
                                     onClick={(event) => {
                                         event.stopPropagation();
-                                        handleRenameFile(file.$id);
+                                        openRenameFileModal();
+                                        // handleRenameFile(file.$id);
                                     }}
                                     onKeyDown={(event) => {
                                         event.stopPropagation();
@@ -270,7 +306,8 @@ export default function FileExplorer({ toggleFileExplorer }) {
                                             event.key === 'Enter' ||
                                             event.key === ' '
                                         ) {
-                                            handleRenameFile(file.$id);
+                                            openRenameFileModal();
+                                            // handleRenameFile(file.$id);
                                         }
                                     }}
                                     className="cursor-pointer rounded-md p-1 hover:bg-gray-100 focus:bg-gray-100 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#3e3e52] dark:focus:bg-[#3e3e52]"
@@ -281,7 +318,8 @@ export default function FileExplorer({ toggleFileExplorer }) {
                                 <button
                                     onClick={(event) => {
                                         event.stopPropagation();
-                                        handleDeleteFile(file.$id);
+                                        openDeleteFileModal();
+                                        // handleDeleteFile(file.$id);
                                     }}
                                     onKeyDown={(event) => {
                                         event.stopPropagation();
@@ -289,7 +327,8 @@ export default function FileExplorer({ toggleFileExplorer }) {
                                             event.key === 'Enter' ||
                                             event.key === ' '
                                         ) {
-                                            handleDeleteFile(file.$id);
+                                            openDeleteFileModal();
+                                            // handleDeleteFile(file.$id);
                                         }
                                     }}
                                     className="cursor-pointer rounded-md p-1 hover:bg-gray-100 focus:bg-gray-100 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#3e3e52] dark:focus:bg-[#3e3e52]"
@@ -301,6 +340,26 @@ export default function FileExplorer({ toggleFileExplorer }) {
                         </li>
                     ))}
                 </ul>
+                <AnimatePresence>
+                    {isNewFileModalOpen && (
+                        <Modal
+                            isOpen={isNewFileModalOpen}
+                            onClose={closeNewFileModal}
+                        />
+                    )}
+                    {isRenameFileModalOpen && (
+                        <Modal
+                            isOpen={isRenameFileModalOpen}
+                            onClose={closeRenameFileModal}
+                        />
+                    )}
+                    {isDeleteFileModalOpen && (
+                        <Modal
+                            isOpen={isDeleteFileModalOpen}
+                            onClose={closeDeleteFileModal}
+                        />
+                    )}
+                </AnimatePresence>
             </motion.div>
         </motion.div>,
         document.body
