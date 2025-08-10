@@ -60,7 +60,7 @@ const editorSlice = createSlice({
         setSelectedFile: (state, action) => {
             state.selectedFile = action.payload;
             state.language = getLanguageFromFileName(action.payload.fileName);
-            state.codeContent = action.payload.fileName;
+            state.codeContent = action.payload.codeContent;
         },
         /**
          * Sets the the selected file content.
