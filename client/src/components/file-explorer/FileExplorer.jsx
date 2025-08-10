@@ -302,6 +302,7 @@ export default function FileExplorer({ toggleFileExplorer }) {
                                     }}
                                     onKeyDown={(event) => {
                                         event.stopPropagation();
+                                        event.stopImmediatePropagation();
                                         if (
                                             event.key === 'Enter' ||
                                             event.key === ' '
@@ -323,6 +324,7 @@ export default function FileExplorer({ toggleFileExplorer }) {
                                     }}
                                     onKeyDown={(event) => {
                                         event.stopPropagation();
+                                        event.stopImmediatePropagation();
                                         if (
                                             event.key === 'Enter' ||
                                             event.key === ' '
