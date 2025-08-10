@@ -1,0 +1,308 @@
+import { useEffect, useRef /* , useState */ } from 'react';
+import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { createPortal } from 'react-dom';
+
+import { addFile, deleteFile, updateFile } from '../../store/slices/filesSlice';
+import { setSelectedFile } from '../../store/slices/editorSlice';
+import { addNotification } from '../../store/slices/uiSlice';
+import { AddFile, Cross, Delete, Rename } from '../componentsIndex';
+
+/**
+ * FileExplorer component for managing project files.
+ * @param {Object} props
+ * @param {boolean} props.isOpen - Whether the file explorer is open.
+ * @param {Function} props.onClose - Callback to close the explorer.
+ * @returns {JSX.Element} The file explorer UI.
+ */
+export default function FileExplorer({ toggleFileExplorer }) {
+    const dispatch = useDispatch();
+    const files = useSelector((state) => state.files.files);
+    const selectedFile = useSelector((state) => state.editor.selectedFile);
+    const firstFocusableRef = useRef(null);
+    const lastFocusableRef = useRef(null);
+    const triggerRef = useRef(null);
+    // const [isNewFileModalOpen, setIsNewFileModalOpen] = useState(false);
+    // const [isDeleteFileModalOpen, setIsDeleteFileModalOpen] = useState(false);
+
+    const fileExplorerRef = useRef(null);
+
+    async function handleNewFile() {
+        const newFile = {
+            $id: crypto.randomUUID(),
+            fileName: 'newfile.js',
+            language: 'javascript',
+            content: '',
+        };
+        try {
+            dispatch(addFile(newFile));
+        } catch (error) {
+            console.error(error);
+
+            dispatch(
+                addNotification({
+                    message: `Failed to save with error: ${error}! Please try again...`,
+                    type: 'error',
+                })
+            );
+        }
+    }
+
+    async function handleDeleteFile(fileId) {
+        try {
+            dispatch(deleteFile(fileId));
+            dispatch(
+                addNotification({
+                    message: 'File deleted successfully',
+                    type: 'success',
+                })
+            );
+        } catch (error) {
+            console.error(
+                `Failed to delete file: ${error}! Please try again...`
+            );
+
+            dispatch(
+                addNotification({
+                    message: `Failed to delete file: ${error}! Please try again...`,
+                    type: 'error',
+                })
+            );
+        }
+    }
+
+    async function handleRenameFile(fileId, newName) {
+        const file = files.find((f) => f.$id === fileId);
+        const updatedFile = { ...file, fileName: newName };
+
+        try {
+            dispatch(updatedFile(updatedFile));
+        } catch (error) {
+            console.error(
+                `Failed to update file: ${error}! Please try again...`
+            );
+
+            dispatch(
+                addNotification({
+                    message: `Failed to update file: ${error}! Please try again...`,
+                    type: 'error',
+                })
+            );
+        }
+    }
+
+    useEffect(() => {
+        if (!fileExplorerRef.current) return;
+
+        triggerRef.current = document.activeElement;
+        const explorer = fileExplorerRef.current;
+
+        // Function to update focusable elements
+        function updateFocusableElements() {
+            const activeBeforeUpdate = document.activeElement; // store current focus
+
+            const focusableElements = explorer.querySelectorAll(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+
+            firstFocusableRef.current = focusableElements[0];
+            lastFocusableRef.current =
+                focusableElements[focusableElements.length - 1];
+
+            // Set initial focus only if not already inside the modal
+            if (!explorer.contains(activeBeforeUpdate)) {
+                firstFocusableRef.current?.focus();
+            }
+        }
+
+        // Initial setup of focusable elements
+        updateFocusableElements();
+
+        // Focus trapping and keyboard handling
+        const handleKeydown = (event) => {
+            const isTabPressed = event.key === 'Tab';
+            if (!isTabPressed && event.key !== 'Escape') return;
+
+            const activeElement = document.activeElement;
+
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                toggleFileExplorer();
+                return;
+            }
+
+            if (isTabPressed) {
+                if (
+                    event.shiftKey &&
+                    activeElement === firstFocusableRef.current
+                ) {
+                    event.preventDefault(); // Prevent default tab behavior
+                    lastFocusableRef.current?.focus();
+                } else if (
+                    !event.shiftKey &&
+                    activeElement === lastFocusableRef.current
+                ) {
+                    event.preventDefault(); // Prevent default tab behavior
+                    firstFocusableRef.current?.focus();
+                } else if (!explorer.contains(activeElement)) {
+                    firstFocusableRef.current?.focus();
+                }
+            }
+        };
+
+        explorer.addEventListener('keydown', handleKeydown);
+
+        // Hide background content
+        const mainContent = document.querySelector('main') || document.body;
+        mainContent.setAttribute('aria-hidden', 'true');
+        mainContent.setAttribute('inert', '');
+
+        // Observe changes to the modal content to update focusable elements
+        const observer = new MutationObserver(() => {
+            updateFocusableElements();
+        });
+
+        observer.observe(explorer, { childList: true, subtree: true });
+
+        return () => {
+            explorer.removeEventListener('keydown', handleKeydown);
+            mainContent.removeAttribute('aria-hidden');
+            mainContent.removeAttribute('inert');
+            observer.disconnect();
+            if (triggerRef.current) {
+                triggerRef.current?.focus();
+            }
+        };
+    }, [toggleFileExplorer]);
+
+    return createPortal(
+        // Overlay
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-800 flex items-center justify-center bg-black/60"
+            role="none"
+            onClick={toggleFileExplorer}
+        >
+            <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                ref={fileExplorerRef}
+                className="fixed top-0 left-0 z-700 h-full w-64 bg-white text-gray-900 shadow-lg dark:bg-[#222233] dark:text-white"
+                role="dialog"
+                aria-modal="true"
+                aria-label="File Explorer"
+                onClick={(event) => {
+                    event.stopPropagation();
+                }}
+            >
+                <div className="flex items-center justify-between gap-2 border-b border-gray-700 p-2">
+                    <p className="text-sm">EXPLORER</p>
+                    <div className="flex gap-1">
+                        <button
+                            onClick={() => {
+                                /*open modal*/
+                                handleNewFile();
+                            }}
+                            className="flex cursor-pointer items-center justify-center rounded-xl px-1.5 py-1 text-gray-400 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                            aria-label="Create new file"
+                        >
+                            <AddFile width={1.2} height={1.2} />
+                        </button>
+                        <button
+                            onClick={toggleFileExplorer}
+                            className="flex cursor-pointer items-center justify-center rounded-xl p-1 text-gray-400 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                            aria-label="Close file explorer"
+                        >
+                            <Cross width={1.2} height={1.2} />
+                        </button>
+                    </div>
+                </div>
+                <ul className={`flex flex-col gap-0.5 p-1`}>
+                    {files.map((file) => (
+                        // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                        <li
+                            key={file.$id}
+                            className={`group flex w-full cursor-pointer items-center justify-between rounded px-2 py-1 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-1 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44] ${
+                                selectedFile.fileName === file.fileName
+                                    ? 'bg-gray-200 dark:bg-[#141429]'
+                                    : ''
+                            }`}
+                            onClick={() => {
+                                dispatch(updateFile(selectedFile));
+                                dispatch(setSelectedFile(file));
+                            }}
+                            onKeyDown={(event) => {
+                                if (
+                                    event.key === 'Enter' ||
+                                    event.key === ' '
+                                ) {
+                                    dispatch(updateFile(selectedFile));
+                                    dispatch(setSelectedFile(file));
+                                }
+                            }}
+                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+                            tabIndex={0}
+                            aria-label={`${file.fileName}`}
+                        >
+                            <span
+                                className={
+                                    selectedFile.fileName === file.fileName
+                                        ? 'font-bold'
+                                        : ''
+                                }
+                            >
+                                {file.fileName}
+                            </span>
+                            {/* <span className="hidden gap-2 group-hover:flex group-focus:flex"> */}
+                            <span className="flex gap-2">
+                                <button
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        handleRenameFile(file.$id);
+                                    }}
+                                    onKeyDown={(event) => {
+                                        event.stopPropagation();
+                                        if (
+                                            event.key === 'Enter' ||
+                                            event.key === ' '
+                                        ) {
+                                            handleRenameFile(file.$id);
+                                        }
+                                    }}
+                                    className="cursor-pointer rounded-md p-1 hover:bg-gray-100 focus:bg-gray-100 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#3e3e52] dark:focus:bg-[#3e3e52]"
+                                    aria-label={`Rename ${file.fileName}`}
+                                >
+                                    <Rename width={1.2} height={1.2} />
+                                </button>
+                                <button
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        handleDeleteFile(file.$id);
+                                    }}
+                                    onKeyDown={(event) => {
+                                        event.stopPropagation();
+                                        if (
+                                            event.key === 'Enter' ||
+                                            event.key === ' '
+                                        ) {
+                                            handleDeleteFile(file.$id);
+                                        }
+                                    }}
+                                    className="cursor-pointer rounded-md p-1 hover:bg-gray-100 focus:bg-gray-100 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#3e3e52] dark:focus:bg-[#3e3e52]"
+                                    aria-label={`Delete ${file.fileName}`}
+                                >
+                                    <Delete width={1.2} height={1.2} />
+                                </button>
+                            </span>
+                        </li>
+                    ))}
+                </ul>
+            </motion.div>
+        </motion.div>,
+        document.body
+    );
+}
