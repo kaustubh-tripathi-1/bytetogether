@@ -53,10 +53,14 @@ export { default as InviteAdminPanel } from './invite-panels/InviteAdminPanel.js
 export { default as InvitePanel } from './invite-panels/InvitePanel.jsx';
 export { default as ModeSelector } from './mode-selector/ModeSelector.jsx';
 
-//UI Components
+// UI Components
 export { default as Modal } from './modal/Modal.jsx';
 export { default as Notifications } from './notifications/Notifications.jsx';
 export { default as Tooltip } from './tooltip/Tooltip.jsx';
+
+// Modal Content Components
+export { default as SettingsContent } from './modal-contents/settings/SettingsContent.jsx';
+export { default as KeyboardShortcuts } from './modal-contents/keyboard-shortcuts/KeyboardShortcuts.jsx';
 
 // File Explorer
 export { default as FileExplorer } from './file-explorer/FileExplorer.jsx';
