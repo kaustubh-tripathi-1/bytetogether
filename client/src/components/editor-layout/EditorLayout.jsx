@@ -2,12 +2,12 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router';
-import DOMPurify from 'dompurify';
 
 import { getFilesByProject } from '../../store/slices/filesSlice.js';
 import {
     CodeEditor,
     EditorToolbar,
+    FileExplorer,
     InputPanel,
     Modal,
     OutputPanel,
@@ -16,9 +16,9 @@ import {
 import { modalConfig } from '../../conf/modalConfig.jsx';
 import { disconnectAllYjs } from '../../lib/yjs.js';
 import { useRealTimeSync } from '../../hooks/yjs-real-time-sync/useRealTimeSync.js';
-import { useInitialFileStup } from '../../hooks/editor-layout-and-actions/useInitialFileSetup.js';
 import { usePanelsResize } from '../../hooks/editor-layout-and-actions/usePanelsResize.js';
 import { useEditorActions } from '../../hooks/editor-layout-and-actions/useEditorActions.js';
+import { useFileActions } from '../../hooks/file-actions/useFileActions.js';
 
 /**
  * Layout component for the editor interface.
@@ -45,6 +45,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
     const [isResizing, setIsResizing] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+    const [isFileExplorerOpen, setIsFileExplorerOpen] = useState(false);
     const editorRef = useRef(null);
     const containerRef = useRef(null);
     const previewContainerRef = useRef(null);
@@ -73,7 +74,15 @@ export default function EditorLayout({ projectId, isNewProject }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    useInitialFileStup({ files, selectedFile });
+    const { handleSaveAllFiles, toggleFileExplorer } = useFileActions({
+        files,
+        username,
+        isAdmin,
+        selectedFile,
+        isYjsConnected,
+        isNewProject,
+        setIsFileExplorerOpen,
+    });
 
     useRealTimeSync({
         selectedFile,
@@ -108,11 +117,9 @@ export default function EditorLayout({ projectId, isNewProject }) {
         });
 
     const {
-        handleFileChange,
         handleLanguageChange,
         handleFormatCode,
         handleRunCode,
-        handleSaveAllFiles,
         handleOpenSettings,
         handleOpenKeyboardShortcuts,
         handleCloseSettings,
@@ -179,7 +186,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
             <section className="w-full p-4 md:w-[var(--editor-width)] md:min-w-112">
                 {/* File Selector */}
                 <div className="flex flex-col justify-between gap-4 md:flex-row">
-                    <div className="hidden">
+                    {/* <div className="">
                         <select
                             value={selectedFile?.fileName || 'index.js'}
                             onChange={handleFileChange}
@@ -203,7 +210,14 @@ export default function EditorLayout({ projectId, isNewProject }) {
                                 </option>
                             ))}
                         </select>
-                    </div>
+                    </div> */}
+                    <AnimatePresence>
+                        {isFileExplorerOpen && (
+                            <FileExplorer
+                                toggleFileExplorer={toggleFileExplorer}
+                            />
+                        )}
+                    </AnimatePresence>
 
                     <EditorToolbar
                         language={language}
@@ -224,6 +238,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         isYjsConnected={isYjsConnected}
                         setIsYjsConnected={setIsYjsConnected}
                         isInvited={isInvitedSession}
+                        toggleFileExplorer={toggleFileExplorer}
                     />
                 </div>
                 <CodeEditor
