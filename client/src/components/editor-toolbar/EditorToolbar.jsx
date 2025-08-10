@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 
 import {
+    Files,
     Format,
     Invite,
     InviteAdminPanel,
@@ -38,10 +39,10 @@ import {
  * @returns {JSX.Element} The memoized editor toolbar with editor controls.
  */
 function EditorToolbar({
-    language,
+    // language,
     handleFormatCode,
     handleRunCode,
-    handleLanguageChange,
+    // handleLanguageChange,
     handleSaveAllFiles,
     fileCount,
     handleOpenSettings,
@@ -52,42 +53,53 @@ function EditorToolbar({
     handleEndRoom,
     yjsResources,
     setIsYjsConnected,
+    toggleFileExplorer,
 }) {
     const { executionMode } = useSelector((state) => state.execution);
 
-    const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+    const [isInvitePanelOpen, setIsInvitePanelOpen] = useState(false);
     const inviteButtonRef = useRef(null);
 
     function handleInviteClick() {
-        setIsAdminPanelOpen((prev) => !prev);
+        setIsInvitePanelOpen((prev) => !prev);
     }
 
     const closeAdminPanel = useCallback(() => {
-        setIsAdminPanelOpen(false);
+        setIsInvitePanelOpen(false);
     }, []);
 
     const handleEndSession = useCallback(() => {
         handleEndRoom();
         setIsYjsConnected(false);
-        setIsAdminPanelOpen(false);
+        setIsInvitePanelOpen(false);
     }, [handleEndRoom, setIsYjsConnected]);
 
     return (
         <div
-            className="flex w-full flex-grow justify-center gap-1 pb-4"
+            className="flex w-full flex-grow items-center justify-center gap-1 pb-4"
             role="toolbar"
             aria-label="Editor toolbar"
         >
-            <LanguageSelector
+            <div className="flex items-center justify-center gap-2">
+                <Tooltip content={'File Explorer'}>
+                    <button
+                        className="flex cursor-pointer items-center justify-center rounded-xl p-1 hover:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                        onClick={toggleFileExplorer}
+                    >
+                        <Files width={2} height={2} />
+                    </button>
+                </Tooltip>
+                {/* <LanguageSelector
                 selectedLanguage={language}
                 onLanguageChange={handleLanguageChange}
-            />
-            <ModeSelector />
+            /> */}
+                <ModeSelector />
+            </div>
             <div className="flex w-full items-center justify-center gap-1 sm:gap-8 md:justify-end md:gap-1.5">
                 <Tooltip content={'Format code'}>
                     <button
                         onClick={handleFormatCode}
-                        className="cursor-pointer rounded-full px-3 pt-2.25 pb-2 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                        className="cursor-pointer rounded-full px-3 pt-2.25 pb-2.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                         aria-label="Format code"
                     >
                         <Format width={1.6} height={1.6} />
@@ -124,7 +136,7 @@ function EditorToolbar({
                         }
                     >
                         {fileCount > 1 ? (
-                            <SaveAll width={1.3} height={1.3} />
+                            <SaveAll width={1.4} height={1.4} />
                         ) : (
                             <Save width={1.3} height={1.3} />
                         )}
@@ -161,9 +173,9 @@ function EditorToolbar({
                             </button>
                         </Tooltip>
                         <AnimatePresence>
-                            {isAdmin && isAdminPanelOpen && (
+                            {isAdmin && isInvitePanelOpen && (
                                 <InviteAdminPanel
-                                    isOpen={isAdminPanelOpen}
+                                    isOpen={isInvitePanelOpen}
                                     key={'InviteAdminPanel'}
                                     onClose={closeAdminPanel}
                                     awareness={yjsResources.awareness}
@@ -172,9 +184,9 @@ function EditorToolbar({
                                     anchorRef={inviteButtonRef}
                                 />
                             )}{' '}
-                            {!isAdmin && isAdminPanelOpen && (
+                            {!isAdmin && isInvitePanelOpen && (
                                 <InvitePanel
-                                    isOpen={isAdminPanelOpen}
+                                    isOpen={isInvitePanelOpen}
                                     key={'InvitePanel'}
                                     onClose={closeAdminPanel}
                                     awareness={yjsResources.awareness}
