@@ -3,6 +3,8 @@ import { useEffect, useRef, useCallback, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useSelector } from 'react-redux';
 
+import { Cross } from '../componentsIndex';
+
 /**
  * Generic Modal component for displaying content with focus trapping.
  * @param {Object} props - Component props.
@@ -35,6 +37,8 @@ function Modal({ isOpen, onClose, children }) {
 
         // Function to update focusable elements
         function updateFocusableElements() {
+            const activeBeforeUpdate = document.activeElement; // store current focus
+
             const focusableElements = modal.querySelectorAll(
                 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
             );
@@ -45,8 +49,13 @@ function Modal({ isOpen, onClose, children }) {
             firstFocusableRef.current = firstFocusable;
             lastFocusableRef.current = lastFocusable;
 
-            // Set initial focus to the first focusable element (e.g., input in SearchModalContent)
-            firstFocusable?.focus();
+            // If previously focused element is still in modal, restore focus
+            if (activeBeforeUpdate && modal.contains(activeBeforeUpdate)) {
+                activeBeforeUpdate?.focus();
+            } else {
+                // Only focus first element when nothing else was focused
+                firstFocusable?.focus();
+            }
         }
 
         // Initial setup of focusable elements
@@ -54,27 +63,28 @@ function Modal({ isOpen, onClose, children }) {
 
         function handleKeyDown(event) {
             if (event.key === 'Tab') {
-                const focusableElements = modal.querySelectorAll(
+                const activeElement = document.activeElement;
+                /* const focusableElements = modal.querySelectorAll(
                     'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
                 );
                 const firstFocusable = focusableElements[0];
                 const lastFocusable =
                     focusableElements[focusableElements.length - 1];
 
-                if (focusableElements.length === 0) return;
+                if (focusableElements.length === 0) return; */
 
                 if (
                     event.shiftKey &&
-                    document.activeElement === firstFocusable
+                    activeElement === firstFocusableRef.current
                 ) {
                     event.preventDefault();
-                    lastFocusable.focus();
+                    lastFocusableRef.current?.focus();
                 } else if (
                     !event.shiftKey &&
-                    document.activeElement === lastFocusable
+                    activeElement === lastFocusableRef.current
                 ) {
                     event.preventDefault();
-                    firstFocusable.focus();
+                    firstFocusableRef.current?.focus();
                 }
             } else if (event.key === 'Escape') {
                 handleClose();
@@ -90,9 +100,15 @@ function Modal({ isOpen, onClose, children }) {
 
         // Observe changes to the modal content to update focusable elements
         const observer = new MutationObserver(() => {
-            if (modalType === 'search') {
+            /* if (modalType === 'search') {
+                const activeBeforeUpdate = document.activeElement;
                 updateFocusableElements();
-            }
+
+                if (!modal.contains(activeBeforeUpdate)) {
+                    firstFocusableRef.current?.focus();
+                }
+            } */
+            updateFocusableElements();
         });
 
         observer.observe(modal, { childList: true, subtree: true });
@@ -108,7 +124,7 @@ function Modal({ isOpen, onClose, children }) {
                 triggerRef.current?.focus();
             }
         };
-    }, [isOpen, handleClose, children, modalType]);
+    }, [isOpen, handleClose, modalType]);
 
     if (!isOpen) return null;
 
@@ -119,7 +135,7 @@ function Modal({ isOpen, onClose, children }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ delay: 0.3 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs"
+            className="fixed inset-0 z-1100 flex items-center justify-center bg-black/60 backdrop-blur-xs"
             role="none"
             onClick={onClose}
         >
@@ -138,10 +154,10 @@ function Modal({ isOpen, onClose, children }) {
             >
                 <button
                     onClick={onClose}
-                    className="absolute top-2 right-2 cursor-pointer text-gray-500 hover:text-gray-900 focus:text-gray-900 focus:outline-1 focus:outline-offset-4 focus:outline-gray-600 dark:text-gray-400 dark:hover:text-gray-200 dark:focus:text-gray-200"
+                    className="absolute top-2 right-2 cursor-pointer rounded-full text-gray-500 hover:text-gray-900 focus:text-gray-900 focus:outline-1 focus:outline-offset-4 focus:outline-gray-600 dark:text-gray-400 dark:hover:text-gray-200 dark:focus:text-gray-200"
                     aria-label="Close modal"
                 >
-                    ✕
+                    <Cross />
                 </button>
                 {children}
             </motion.div>
