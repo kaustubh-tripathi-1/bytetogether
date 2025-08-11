@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useEffect, useRef, useCallback, memo } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useSelector } from 'react-redux';
 
@@ -19,13 +19,6 @@ function Modal({ isOpen, onClose, children }) {
     const firstFocusableRef = useRef(null);
     const lastFocusableRef = useRef(null);
     const triggerRef = useRef(null);
-
-    // Memoize for useEffect
-    const handleClose = useCallback(() => {
-        setTimeout(() => {
-            onClose();
-        }, 300);
-    }, [onClose]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -79,21 +72,21 @@ function Modal({ isOpen, onClose, children }) {
                     firstFocusableRef.current?.focus();
                 }
             } else if (event.key === 'Escape') {
-                handleClose();
+                onClose();
             }
         }
 
         modal.addEventListener('keydown', handleKeyDown);
 
         // Hide background content
-        const mainContent = document.querySelector('main') || document.body;
+        const mainContent = document.querySelector('main');
         mainContent.setAttribute('aria-hidden', 'true');
         mainContent.setAttribute('inert', '');
 
         // Observe changes to the modal content to update focusable elements
         const observer = new MutationObserver(() => {
             /* if (modalType === 'search') {
-                const activeBeforeUpdate = document.activeElement;
+                const activeBeforeUpdate = modal.activeElement;
                 updateFocusableElements();
 
                 if (!modal.contains(activeBeforeUpdate)) {
@@ -107,7 +100,6 @@ function Modal({ isOpen, onClose, children }) {
 
         return () => {
             modal.removeEventListener('keydown', handleKeyDown);
-            document.removeEventListener('mousedown', handleClose);
             mainContent.removeAttribute('aria-hidden');
             mainContent.removeAttribute('inert');
             observer.disconnect();
@@ -116,7 +108,7 @@ function Modal({ isOpen, onClose, children }) {
                 triggerRef.current?.focus();
             }
         };
-    }, [isOpen, handleClose, modalType]);
+    }, [isOpen, modalType, onClose]);
 
     if (!isOpen) return null;
 
@@ -157,7 +149,7 @@ function Modal({ isOpen, onClose, children }) {
                 {children}
             </motion.div>
         </motion.div>,
-        document.body
+        document.getElementById(`root`)
     );
 }
 
