@@ -64,14 +64,6 @@ function Modal({ isOpen, onClose, children }) {
         function handleKeyDown(event) {
             if (event.key === 'Tab') {
                 const activeElement = document.activeElement;
-                /* const focusableElements = modal.querySelectorAll(
-                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-                );
-                const firstFocusable = focusableElements[0];
-                const lastFocusable =
-                    focusableElements[focusableElements.length - 1];
-
-                if (focusableElements.length === 0) return; */
 
                 if (
                     event.shiftKey &&
@@ -146,19 +138,22 @@ function Modal({ isOpen, onClose, children }) {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
                 ref={modalRef}
-                className="relative max-h-[90dvh] max-w-[80dvh] min-w-1/2 overflow-y-auto rounded-lg bg-white p-6 shadow-lg dark:bg-[#222233]"
+                className="relative max-h-[90dvh] max-w-[80dvh] min-w-1/2 overflow-y-auto rounded-lg bg-white p-8 shadow-lg dark:bg-[#222233]"
                 role="dialog"
                 aria-modal="true"
                 aria-label="Modal dialog"
                 onClick={(e) => e.stopPropagation()}
             >
-                <button
+                <motion.button
                     onClick={onClose}
+                    whileHover={{ scale: 1.05 }}
+                    whileFocus={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     className="absolute top-2 right-2 cursor-pointer rounded-full text-gray-500 hover:text-gray-900 focus:text-gray-900 focus:outline-1 focus:outline-offset-4 focus:outline-gray-600 dark:text-gray-400 dark:hover:text-gray-200 dark:focus:text-gray-200"
                     aria-label="Close modal"
                 >
                     <Cross />
-                </button>
+                </motion.button>
                 {children}
             </motion.div>
         </motion.div>,
