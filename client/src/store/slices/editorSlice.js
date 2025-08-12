@@ -12,7 +12,7 @@ import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName';
  * @property {string} codeContent - Content of the currently selected file.
  * @property {Object} settings - Editor settings (e.g. font size, word wrap etc.).
  * @property {Object} selectedFile - Currently selected file from files state.
- * @property {Object} langauge - language of codeContent for monaco.
+ * @property {Object} language - language of codeContent for monaco.
  * @property {boolean} isLoading - Loading state for async operations.
  * @property {string|null} error - Error message for failed operations.
  */
