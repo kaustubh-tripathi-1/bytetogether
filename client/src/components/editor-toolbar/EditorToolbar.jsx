@@ -50,6 +50,7 @@ function EditorToolbar({
     yjsResources,
     setIsYjsConnected,
     toggleFileExplorer,
+    setFilesForWebMode,
 }) {
     const { executionMode } = useSelector((state) => state.execution);
 
@@ -86,7 +87,7 @@ function EditorToolbar({
                     </button>
                 </Tooltip>
 
-                <ModeSelector />
+                <ModeSelector setFilesForWebMode={setFilesForWebMode} />
             </div>
             <div className="flex w-full items-center justify-center gap-1 sm:gap-8 md:justify-end md:gap-1.5">
                 <Tooltip content={'Format code'}>
