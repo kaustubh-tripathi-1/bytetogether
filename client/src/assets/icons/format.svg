@@ -1,11 +1,1 @@
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
-<svg width="100px" height="100px" viewBox="0 0 1024.00 1024.00" class="icon" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="#000000">
-<g id="SVGRepo_bgCarrier" stroke-width="0"/>
-<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="20.48"/>
-<g id="SVGRepo_iconCarrier">
-<path d="M345.9 413.7l263.2 300.6 140-133.3-253.3-303.2zM837.4 329.8l-73.3-83.7-173.5 110L714 496z" fill="#0062ff"/>
-<path d="M340.9 448.6s-146.6 70-223.3 41.7l318.2 403.2s115-164.9 138.3-166.6L340.9 448.6z" fill="#E1F0FF"/>
-<path d="M555.1 751.1c8.6-10 17.6-20.4 25.2-28.6L342.9 439.3l-5.2 2.5c-1.4 0.7-144.7 68.3-217.4 41.4l-25-9.2 341 432.1 5.8-8.3c0.3-0.4 28.3-40.6 59.1-80.9 17.1-22.4 30.4-38.8 40.6-50.7 5.1-6.2 9.6-11.1 13.3-15.1z m-64.8 55.1c-23 30.2-44.8 60.5-54.8 74.7L137.1 502.8c72.5 10.9 176.8-33.7 201.7-45l223.4 266.5c-5.7 4-13.5 11.3-25.1 24.3-12.6 14-28.3 33.4-46.8 57.6z" fill="#6D9EE8"/>
-</g>
-</svg>
+<svg id="svg5" height="48" viewBox="0 0 48 48" width="48" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"><g id="layer1" stroke-dashoffset=".8" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="3.3" transform="translate(-458 -665)"><path id="path145011" d="m489.87553 676.89057 4.24264 4.24264-26.87005 26.87006-4.24264-4.24264z" fill="#8bc4ff" stroke-width="2"/><g fill="#2e58ff"><path id="path145013" d="m490.58294 676.18239a1.0001 1.0001 0 0 0 -1.41422 0l-26.87005 26.87006a1.0001 1.0001 0 0 0 0 1.41421l4.24264 4.24264a1.0001 1.0001 0 0 0 1.41421 0l26.87006-26.87006a1.0001 1.0001 0 0 0 0-1.41421zm-.70711 2.12132 2.82843 2.82843-25.45585 25.45584-2.82842-2.82843z"/><path id="rect53606" d="m498.00551 685.87638-.80078 3.19922-3.19922.80078 3.19922.80078.80078 3.19922.80078-3.19922 3.19922-.80078-3.19922-.80078z" stroke-width="2"/><path id="path53619" d="m497.00551 669.00325-1.00097 3.99902-3.99903 1.00098 3.99903 1.00098 1.00097 3.99902 1.00097-3.99902 3.99903-1.00098-3.99903-1.00098z" stroke-width="2"/><path id="path57151" d="m482.00551 669.00325-.80078 3.19922-3.19922.80078 3.19922.80078.80078 3.19922.80078-3.19922 3.19922-.80078-3.19922-.80078z" stroke-width="2"/></g></g></svg>
