@@ -11,6 +11,8 @@ import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName';
  * @typedef {Object} EditorState
  * @property {string} codeContent - Content of the currently selected file.
  * @property {Object} settings - Editor settings (e.g. font size, word wrap etc.).
+ * @property {Object} selectedFile - Currently selected file from files state.
+ * @property {Object} langauge - language of codeContent for monaco.
  * @property {boolean} isLoading - Loading state for async operations.
  * @property {string|null} error - Error message for failed operations.
  */
@@ -59,8 +61,14 @@ const editorSlice = createSlice({
          */
         setSelectedFile: (state, action) => {
             state.selectedFile = action.payload;
-            state.language = getLanguageFromFileName(action.payload.fileName);
-            state.codeContent = action.payload.codeContent;
+            if (action.payload) {
+                state.language = getLanguageFromFileName(
+                    action.payload.fileName
+                );
+                state.codeContent = action.payload.codeContent;
+            } else {
+                state.codeContent = '';
+            }
         },
         /**
          * Sets the the selected file content.
