@@ -99,7 +99,7 @@ function EditorToolbar({
                 <Tooltip content={'Format code'}>
                     <button
                         onClick={handleFormatCode}
-                        className="cursor-pointer rounded-full px-3 pt-2.75 pb-2.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                        className="cursor-pointer rounded-full px-3 pt-2.25 pb-2 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                         aria-label="Format code"
                     >
                         <Format width={1.2} height={1.2} />
