@@ -1,12 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { createPortal } from 'react-dom';
 
-import { addFile, deleteFile, updateFile } from '../../store/slices/filesSlice';
+import { updateFile } from '../../store/slices/filesSlice';
 import { setSelectedFile } from '../../store/slices/editorSlice';
-import { addNotification, setModalType } from '../../store/slices/uiSlice';
-import { AddFile, Cross, Delete, Modal, Rename } from '../componentsIndex';
+import { setModalType } from '../../store/slices/uiSlice';
+import {
+    AddFile,
+    Cross,
+    Delete,
+    DeleteFile,
+    Modal,
+    CreateFile,
+    Rename,
+    RenameFile,
+} from '../componentsIndex';
 
 /**
  * FileExplorer component for managing project files.
@@ -14,84 +23,23 @@ import { AddFile, Cross, Delete, Modal, Rename } from '../componentsIndex';
  * @param {Function} props.toggleFileExplorer - Function to toggle the file explorer.
  * @returns {JSX.Element} The file explorer UI.
  */
-export default function FileExplorer({ toggleFileExplorer }) {
+function FileExplorer({ toggleFileExplorer }) {
     const dispatch = useDispatch();
 
-    const files = useSelector((state) => state.files.files);
-    const selectedFile = useSelector((state) => state.editor.selectedFile);
+    const { user } = useSelector((state) => state.auth);
+    const { files } = useSelector((state) => state.files);
+    const { selectedFile } = useSelector((state) => state.editor);
 
     const fileExplorerRef = useRef(null);
     const firstFocusableRef = useRef(null);
     const lastFocusableRef = useRef(null);
     const triggerRef = useRef(null);
+    const fileToRenameRef = useRef(null);
+    const fileToDeleteRef = useRef(null);
 
-    const [isNewFileModalOpen, setIsNewFileModalOpen] = useState(false);
+    const [isCreateFileModalOpen, setIsCreateFileModalOpen] = useState(false);
     const [isRenameFileModalOpen, setIsRenameFileModalOpen] = useState(false);
     const [isDeleteFileModalOpen, setIsDeleteFileModalOpen] = useState(false);
-
-    async function _handleNewFile() {
-        const newFile = {
-            $id: crypto.randomUUID(),
-            fileName: 'newfile.js',
-            language: 'javascript',
-            content: '',
-        };
-        try {
-            dispatch(addFile(newFile));
-        } catch (error) {
-            console.error(error);
-
-            dispatch(
-                addNotification({
-                    message: `Failed to save with error: ${error}! Please try again...`,
-                    type: 'error',
-                })
-            );
-        }
-    }
-
-    async function _handleDeleteFile(fileId) {
-        try {
-            dispatch(deleteFile(fileId));
-            dispatch(
-                addNotification({
-                    message: 'File deleted successfully',
-                    type: 'success',
-                })
-            );
-        } catch (error) {
-            console.error(
-                `Failed to delete file: ${error}! Please try again...`
-            );
-
-            dispatch(
-                addNotification({
-                    message: `Failed to delete file: ${error}! Please try again...`,
-                    type: 'error',
-                })
-            );
-        }
-    }
-
-    async function _handleRenameFile(fileId, newName) {
-        const file = files.find((f) => f.$id === fileId);
-        const updatedFile = { ...file, fileName: newName };
-
-        try {
-            dispatch(updatedFile(updatedFile));
-        } catch (error) {
-            console.error(
-                `Failed to update file: ${error}! Please try again...`
-            );
-
-            dispatch(
-                addNotification({
-                    message: `Failed to update file: ${error}! Please try again...`,
-                    type: 'error',
-                })
-            );
-        }
-    }
 
     useEffect(() => {
         if (!fileExplorerRef.current) return;
@@ -177,18 +125,18 @@ export default function FileExplorer({ toggleFileExplorer }) {
         };
     }, [toggleFileExplorer]);
 
-    const openNewFileModal = useCallback(
+    const openCreateFileModal = useCallback(
         (event) => {
             event.stopPropagation();
             dispatch(setModalType('create-new-file'));
-            setIsNewFileModalOpen(true);
+            setIsCreateFileModalOpen(true);
         },
         [dispatch]
     );
 
-    const closeNewFileModal = useCallback(() => {
+    const closeCreateFileModal = useCallback(() => {
         dispatch(setModalType(null));
-        setIsNewFileModalOpen(false);
+        setIsCreateFileModalOpen(false);
     }, [dispatch]);
 
     const openRenameFileModal = useCallback(() => {
@@ -239,7 +187,7 @@ export default function FileExplorer({ toggleFileExplorer }) {
                     <p className="text-sm">EXPLORER</p>
                     <div className="flex gap-1">
                         <button
-                            onClick={openNewFileModal}
+                            onClick={openCreateFileModal}
                             className="flex cursor-pointer items-center justify-center rounded-xl px-1.5 py-1 text-gray-400 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                             aria-label="Create new file"
                         >
@@ -259,7 +207,7 @@ export default function FileExplorer({ toggleFileExplorer }) {
                         <li
                             key={file.$id}
                             className={`group flex w-full cursor-pointer items-center justify-between rounded px-2 py-1 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-1 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44] ${
-                                selectedFile.fileName === file.fileName
+                                selectedFile?.fileName === file.fileName
                                     ? 'bg-gray-200 dark:bg-[#141429]'
                                     : ''
                             }`}
@@ -285,7 +233,7 @@ export default function FileExplorer({ toggleFileExplorer }) {
                         >
                             <span
                                 className={
-                                    selectedFile.fileName === file.fileName
+                                    selectedFile?.fileName === file.fileName
                                         ? 'font-bold'
                                         : ''
                                 }
@@ -293,77 +241,101 @@ export default function FileExplorer({ toggleFileExplorer }) {
                                 {file.fileName}
                             </span>
                             {/* <span className="hidden gap-2 group-hover:flex group-focus:flex"> */}
-                            <span className="flex gap-2">
-                                <button
-                                    onClick={(event) => {
-                                        event.stopPropagation();
-                                        openRenameFileModal();
-                                        // handleRenameFile(file.$id);
-                                    }}
-                                    onKeyDown={(event) => {
-                                        event.stopPropagation();
-                                        event.stopImmediatePropagation();
-                                        if (
-                                            event.key === 'Enter' ||
-                                            event.key === ' '
-                                        ) {
+                            {user?.$id === file?.ownerId && (
+                                <span className="flex gap-2">
+                                    <button
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            fileToRenameRef.current = file;
                                             openRenameFileModal();
-                                            // handleRenameFile(file.$id);
-                                        }
-                                    }}
-                                    className="cursor-pointer rounded-md p-1 hover:bg-gray-100 focus:bg-gray-100 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#3e3e52] dark:focus:bg-[#3e3e52]"
-                                    aria-label={`Rename ${file.fileName}`}
-                                >
-                                    <Rename width={1.2} height={1.2} />
-                                </button>
-                                <button
-                                    onClick={(event) => {
-                                        event.stopPropagation();
-                                        openDeleteFileModal();
-                                        // handleDeleteFile(file.$id);
-                                    }}
-                                    onKeyDown={(event) => {
-                                        event.stopPropagation();
-                                        event.stopImmediatePropagation();
-                                        if (
-                                            event.key === 'Enter' ||
-                                            event.key === ' '
-                                        ) {
+                                        }}
+                                        onKeyDown={(event) => {
+                                            event.stopPropagation();
+
+                                            if (
+                                                event.key === 'Enter' ||
+                                                event.key === ' '
+                                            ) {
+                                                fileToRenameRef.current = file;
+                                                openRenameFileModal();
+                                            }
+                                        }}
+                                        className="cursor-pointer rounded-md p-1 hover:bg-gray-100 focus:bg-gray-100 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#3e3e52] dark:focus:bg-[#3e3e52]"
+                                        aria-label={`Rename ${file.fileName}`}
+                                    >
+                                        <Rename width={1.2} height={1.2} />
+                                    </button>
+                                    <button
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            fileToDeleteRef.current = file;
                                             openDeleteFileModal();
-                                            // handleDeleteFile(file.$id);
-                                        }
-                                    }}
-                                    className="cursor-pointer rounded-md p-1 hover:bg-gray-100 focus:bg-gray-100 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#3e3e52] dark:focus:bg-[#3e3e52]"
-                                    aria-label={`Delete ${file.fileName}`}
-                                >
-                                    <Delete width={1.2} height={1.2} />
-                                </button>
-                            </span>
+                                        }}
+                                        onKeyDown={(event) => {
+                                            event.stopPropagation();
+
+                                            if (
+                                                event.key === 'Enter' ||
+                                                event.key === ' '
+                                            ) {
+                                                fileToDeleteRef.current = file;
+                                                openDeleteFileModal();
+                                            }
+                                        }}
+                                        className="cursor-pointer rounded-md p-1 hover:bg-gray-100 focus:bg-gray-100 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#3e3e52] dark:focus:bg-[#3e3e52]"
+                                        aria-label={`Delete ${file.fileName}`}
+                                    >
+                                        <Delete width={1.2} height={1.2} />
+                                    </button>
+                                </span>
+                            )}
                         </li>
                     ))}
                 </ul>
                 <AnimatePresence>
-                    {isNewFileModalOpen && (
+                    {isCreateFileModalOpen && (
                         <Modal
-                            isOpen={isNewFileModalOpen}
-                            onClose={closeNewFileModal}
-                        />
+                            key="create-new-file"
+                            isOpen={isCreateFileModalOpen}
+                            onClose={closeCreateFileModal}
+                        >
+                            <CreateFile
+                                onConfirm={closeCreateFileModal}
+                                onClose={closeCreateFileModal}
+                            />
+                        </Modal>
                     )}
                     {isRenameFileModalOpen && (
                         <Modal
+                            key="rename-file"
                             isOpen={isRenameFileModalOpen}
                             onClose={closeRenameFileModal}
-                        />
+                        >
+                            <RenameFile
+                                onConfirm={closeRenameFileModal}
+                                onClose={closeRenameFileModal}
+                                file={fileToRenameRef.current}
+                            />
+                        </Modal>
                     )}
                     {isDeleteFileModalOpen && (
                         <Modal
+                            key="delete-file"
                             isOpen={isDeleteFileModalOpen}
                             onClose={closeDeleteFileModal}
-                        />
+                        >
+                            <DeleteFile
+                                onConfirm={closeDeleteFileModal}
+                                onClose={closeDeleteFileModal}
+                                file={fileToDeleteRef.current}
+                            />
+                        </Modal>
                     )}
                 </AnimatePresence>
             </motion.div>
         </motion.div>,
-        document.body
+        document.getElementById(`root`)
     );
 }
+
+export default memo(FileExplorer);
