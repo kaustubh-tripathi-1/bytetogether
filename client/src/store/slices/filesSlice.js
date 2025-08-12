@@ -17,29 +17,24 @@ import appwriteConfig from '../../conf/appwriteConfig';
  */
 export const saveAllFilesForNewProject = createAsyncThunk(
     'files/saveAllFilesForNewProject',
-    async ({ projectName, files }, { rejectWithValue, getState }) => {
+    async ({ projectId, files }, { rejectWithValue, getState }) => {
         try {
             const { user } = getState().auth;
-
-            const project = await databaseService.createDocument(
-                appwriteConfig.appwriteProjectsCollectionID,
-                {
-                    name: projectName,
-                    ownerId: user?.$id,
-                }
-            );
 
             const savePromises = files.map((file) =>
                 databaseService.createDocument(
                     appwriteConfig.appwriteFilesCollectionID,
+                    file.$id,
                     {
-                        projectId: project.$id,
+                        projectId,
                         fileName: file.fileName,
                         language: file.language,
                         codeContent: file.codeContent,
+                        ownerId: user?.$id,
                     }
                 )
             );
+
             const results = await Promise.all(savePromises);
             return results;
         } catch (error) {
@@ -63,6 +58,7 @@ export const updateAllFilesForExistingProject = createAsyncThunk(
                     appwriteConfig.appwriteFilesCollectionID,
                     file.$id,
                     {
+                        fileName: file.fileName,
                         codeContent: file.codeContent,
                         language: file.language,
                     }
