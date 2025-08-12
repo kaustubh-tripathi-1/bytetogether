@@ -34,7 +34,6 @@ import { getJudge0LanguageId } from '../../utils/getJudge0LanguageId';
  * running code, saving files, managing settings UI, handling collaboration (Yjs) and file and language changes.
  *
  * @param {Object} options
- * @param {boolean} options.isNewProject Whether the project is newly created.
  * @param {string} options.projectId Unique ID of the project.
  * @param {React.RefObject} options.editorRef Ref to the Monaco editor instance.
  * @param {Array} options.files List of all files in the current project.
