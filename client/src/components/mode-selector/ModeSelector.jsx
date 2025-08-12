@@ -10,13 +10,14 @@ import { addNotification } from '../../store/slices/uiSlice';
  * ModeSelector component for selecting execution mode between Judge0 and Web(HTML, CSS and JS)Preview.
  * @returns {JSX.Element} The mode selection dropdown.
  */
-export default function ModeSelector() {
+export default function ModeSelector({ setFilesForWebMode }) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
     const dispatch = useDispatch();
     const { executionMode } = useSelector((state) => state.execution);
     const { areFilesSaved } = useSelector((state) => state.files);
+    const { selectedFile } = useSelector((state) => state.editor);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -99,7 +100,8 @@ export default function ModeSelector() {
                             onClick={() => {
                                 if (
                                     !areFilesSaved &&
-                                    executionMode !== 'judge0'
+                                    executionMode !== 'judge0' &&
+                                    selectedFile
                                 ) {
                                     dispatch(
                                         addNotification({
@@ -119,7 +121,8 @@ export default function ModeSelector() {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     if (
                                         !areFilesSaved &&
-                                        executionMode !== 'judge0'
+                                        executionMode !== 'judge0' &&
+                                        selectedFile
                                     ) {
                                         dispatch(
                                             addNotification({
@@ -147,7 +150,8 @@ export default function ModeSelector() {
                             onClick={() => {
                                 if (
                                     !areFilesSaved &&
-                                    executionMode !== 'preview'
+                                    executionMode !== 'preview' &&
+                                    selectedFile
                                 ) {
                                     dispatch(
                                         addNotification({
@@ -157,7 +161,7 @@ export default function ModeSelector() {
                                     );
                                     return;
                                 }
-
+                                setFilesForWebMode();
                                 dispatch(setExecutionMode('preview'));
                                 dispatch(setIsPreviewVisible(true));
                                 setIsOpen(false);
@@ -167,7 +171,8 @@ export default function ModeSelector() {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     if (
                                         !areFilesSaved &&
-                                        executionMode !== 'preview'
+                                        executionMode !== 'preview' &&
+                                        selectedFile
                                     ) {
                                         dispatch(
                                             addNotification({
@@ -178,6 +183,7 @@ export default function ModeSelector() {
                                         return;
                                     }
 
+                                    setFilesForWebMode();
                                     dispatch(setExecutionMode('preview'));
                                     dispatch(setIsPreviewVisible(true));
                                     setIsOpen(false);
