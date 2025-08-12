@@ -99,10 +99,10 @@ function EditorToolbar({
                 <Tooltip content={'Format code'}>
                     <button
                         onClick={handleFormatCode}
-                        className="cursor-pointer rounded-full px-3 pt-2.25 pb-2.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                        className="cursor-pointer rounded-full px-3 pt-2.75 pb-2.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                         aria-label="Format code"
                     >
-                        <Format width={1.6} height={1.6} />
+                        <Format width={1.2} height={1.2} />
                     </button>
                 </Tooltip>
                 {executionMode === 'judge0' && (
@@ -112,7 +112,7 @@ function EditorToolbar({
                             className="cursor-pointer rounded-full px-3 pt-2 pb-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-green-400 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                             aria-label="Run code"
                         >
-                            <Run />
+                            <Run width={1.2} height={1.2} />
                         </button>
                     </Tooltip>
                 )}
@@ -122,7 +122,7 @@ function EditorToolbar({
                         className="cursor-pointer rounded-full px-3 pt-2.5 pb-2 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                         aria-label="Reset code to language default"
                     >
-                        <Reset width={1.3} height={1.3} />
+                        <Reset width={1} height={1} />
                     </button>
                 </Tooltip>
                 <Tooltip
@@ -130,15 +130,15 @@ function EditorToolbar({
                 >
                     <button
                         onClick={handleSaveAllFiles}
-                        className="cursor-pointer rounded-full px-3 pt-2 pb-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                        className="cursor-pointer rounded-full pt-2 pr-3.5 pb-1.5 pl-3 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                         aria-label={
                             fileCount > 1 ? 'Save all files' : 'Save file'
                         }
                     >
                         {fileCount > 1 ? (
-                            <SaveAll width={1.4} height={1.4} />
+                            <SaveAll width={1.2} height={1.2} />
                         ) : (
-                            <Save width={1.3} height={1.3} />
+                            <Save width={1.1} height={1.1} />
                         )}
                     </button>
                 </Tooltip>
@@ -148,7 +148,7 @@ function EditorToolbar({
                         className="cursor-pointer rounded-full px-3 pt-2 pb-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                         aria-label="Open settings"
                     >
-                        <Settings width={1.7} height={1.7} />
+                        <Settings width={1.3} height={1.3} />
                     </button>
                 </Tooltip>
                 <Tooltip content={'Keyboard shortcuts'}>
@@ -157,7 +157,7 @@ function EditorToolbar({
                         className="cursor-pointer rounded-full px-3 pt-2.25 pb-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                         aria-label="Open Keyboard shortcuts"
                     >
-                        <Keyboard width={1.7} height={1.7} />
+                        <Keyboard width={1.3} height={1.3} />
                     </button>
                 </Tooltip>
                 {executionMode === 'judge0' && (
@@ -166,10 +166,10 @@ function EditorToolbar({
                             <button
                                 ref={inviteButtonRef}
                                 onClick={handleInviteClick}
-                                className="cursor-pointer rounded-full px-2.5 py-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                                className="cursor-pointer rounded-full px-2.5 pt-2 pb-1.5 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
                                 aria-label="Invite collaborators"
                             >
-                                <Invite width={1.8} height={1.8} />
+                                <Invite width={1.4} height={1.4} />
                             </button>
                         </Tooltip>
                         <AnimatePresence>
