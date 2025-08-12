@@ -55,7 +55,6 @@ import { getJudge0LanguageId } from '../../utils/getJudge0LanguageId';
  *
  * @returns {Object} Memoized Editor action handlers
  * @returns {Function} handleFileChange - Changes the selected file.
- * @returns {Function} handleLanguageChange - Changes the selected language in Monaco.
  * @returns {Function} handleFormatCode - Formats the code using Monaco's formatter.
  * @returns {Function} handleRunCode - Simulates running code using current content and input.
  * @returns {Function} handleSaveAllFiles - Saves all files to Appwrite (new or existing project).
@@ -151,18 +150,45 @@ export function useEditorActions({
      * Runs code in the editor
      */
     const handleRunCode = useCallback(async () => {
-        if (!selectedFile?.$id) throw new Error('No file selected');
-        const content = isYjsConnected
-            ? yjsResources.yText?.toString()
-            : codeContent;
-        if (!content) throw new Error('No code to execute');
+        try {
+            if (!selectedFile?.$id) {
+                throw new Error('No file selected! Select a file first');
+            }
 
-        const languageId = getJudge0LanguageId(language);
-        executeCodeTanstack.mutate({
-            language: languageId,
-            sourceCode: content,
-            stdin: input,
-        });
+            if (language === 'html' || language === 'css') {
+                throw new Error('Invalid langauge for compilation');
+            }
+
+            const content = isYjsConnected
+                ? yjsResources.yText?.toString()
+                : codeContent;
+
+            if (!content) {
+                throw new Error('No code to execute! Write something...');
+            }
+
+            const languageId = getJudge0LanguageId(language);
+
+            executeCodeTanstack.mutate({
+                language: languageId,
+                sourceCode: content,
+                stdin: input,
+            });
+        } catch (error) {
+            const message = error.message;
+            const type =
+                message === 'No file selected! Select a file first' ||
+                message === 'No code to execute! Write something...'
+                    ? 'warn'
+                    : 'error';
+
+            dispatch(
+                addNotification({
+                    message,
+                    type,
+                })
+            );
+        }
 
         /* try {
             if (!selectedFile?.$id) throw new Error('No file selected');
@@ -175,11 +201,6 @@ export function useEditorActions({
             dispatch(clearJudge0States());
 
             const languageId = getJudge0LanguageId(language);
-            executeCodeTanstack({
-                language: languageId,
-                sourceCode: content,
-                stdin: input,
-            });
 
             const { stdout, stderr, status, time, memory } =
                 await executeCodeFetch({
@@ -217,6 +238,7 @@ export function useEditorActions({
             dispatch(setIsRunning(false));
         } */
     }, [
+        dispatch,
         codeContent,
         input,
         isYjsConnected,
@@ -263,6 +285,10 @@ export function useEditorActions({
      */
     const handleResetCode = useCallback(() => {
         try {
+            if (!selectedFile) {
+                throw new Error(`No file selected! Select a file first`);
+            }
+
             const { yText } = getOrCreateYDoc(
                 selectedFile.$id,
                 username,
@@ -275,10 +301,16 @@ export function useEditorActions({
             }
             dispatch(setCodeContent(defaultCode));
         } catch (error) {
+            const message = `Failed to reset: ${error.message}!`;
+            const type =
+                message === `No file selected! Select a file first`
+                    ? 'warn'
+                    : 'error';
+
             dispatch(
                 addNotification({
-                    message: `Failed to reset with error ${error}! Please try again...`,
-                    type: 'error',
+                    message,
+                    type,
                 })
             );
         }
@@ -374,6 +406,15 @@ export function useEditorActions({
             );
             return;
         } */
+        if (!selectedFile) {
+            dispatch(
+                addNotification({
+                    message: `No selected file! Select a file first...`,
+                    type: 'warn',
+                })
+            );
+            return;
+        }
 
         // Just copy the url and show noti if already connected
         try {
