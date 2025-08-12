@@ -12,7 +12,7 @@ import appwriteConfig from '../../conf/appwriteConfig';
  * Async thunk to save all files for a new project in Appwrite.
  * @param {Object} payload - The action payload.
  * @param {string} payload.projectName - The project name.
- * @param {Array<Object>} payload.files - Array of file objects { name, language, content }.
+ * @param {Array<Object>} payload.files - Array of file objects { name, language, codeContent }.
  * @returns {Promise<Array<Object>>} Array of created documents.
  */
 export const saveAllFilesForNewProject = createAsyncThunk(
@@ -36,7 +36,7 @@ export const saveAllFilesForNewProject = createAsyncThunk(
                         projectId: project.$id,
                         fileName: file.fileName,
                         language: file.language,
-                        content: file.content,
+                        codeContent: file.codeContent,
                     }
                 )
             );
@@ -51,7 +51,7 @@ export const saveAllFilesForNewProject = createAsyncThunk(
 /**
  * Async thunk to update all files for an existing project in Appwrite.
  * @param {Object} payload - The action payload.
- * @param {Array<Object>} payload.files - Array of file objects { $id, content, language }.
+ * @param {Array<Object>} payload.files - Array of file objects { $id, codeContent, language }.
  * @returns {Promise<Array<Object>>} Array of updated documents.
  */
 export const updateAllFilesForExistingProject = createAsyncThunk(
@@ -63,7 +63,7 @@ export const updateAllFilesForExistingProject = createAsyncThunk(
                     appwriteConfig.appwriteFilesCollectionID,
                     file.$id,
                     {
-                        content: file.content,
+                        codeContent: file.codeContent,
                         language: file.language,
                     }
                 )
@@ -102,23 +102,25 @@ export const getFilesByProject = createAsyncThunk(
  * @param {string} payload.projectId - The project ID.
  * @param {string} payload.fileName - The file name.
  * @param {string} payload.language - The programming language.
- * @param {string} payload.content - The file content.
+ * @param {string} payload.codeContent - The file codeContent.
  * @returns {Promise<Object>} The created document.
  */
 export const createFileDB = createAsyncThunk(
     'files/createFileDB',
     async (
-        { projectId, fileName, language, content },
-        { rejectWithValue, dispatch }
+        { projectId, fileName, language, codeContent, documentId },
+        { rejectWithValue, dispatch, getState }
     ) => {
-        const documentId = ID.unique();
+        const { user } = getState().auth;
+
         try {
             const data = {
                 $id: documentId,
                 projectId,
                 fileName,
                 language,
-                content,
+                codeContent,
+                ownerId: user?.$id || 'guest',
             };
 
             dispatch(addFile(data)); // Optimistic Update
@@ -141,25 +143,25 @@ export const createFileDB = createAsyncThunk(
  * Async thunk to update an existing file in Appwrite.
  * @param {Object} payload - The action payload.
  * @param {string} payload.fileId - The file ID.
- * @param {string} payload.content - The updated content.
+ * @param {string} payload.codeContent - The updated codeContent.
  * @param {string} payload.language - The updated language.
  * @returns {Promise<Object>} The updated document.
  */
 export const updateFileDB = createAsyncThunk(
     'files/updateFileDB',
     async (
-        { fileId, content, language, fileName },
+        { fileId, codeContent, language, fileName },
         { rejectWithValue, dispatch, getState }
     ) => {
         const { files } = getState().files;
         const oldFile = files.find((file) => file.$id === fileId);
 
         try {
-            const newfile = { ...oldFile, content, language, fileName };
+            const newfile = { ...oldFile, codeContent, language, fileName };
 
             dispatch(updateFile(newfile)); // Optimistic Update
 
-            const data = { content, language, fileName };
+            const data = { codeContent, language, fileName };
             const updatedFile = await databaseService.updateDocument(
                 appwriteConfig.appwriteFilesCollectionID,
                 fileId,
@@ -336,9 +338,8 @@ const filesSlice = createSlice({
                 state.isLoading = true;
                 state.error = null;
             })
-            .addCase(createFileDB.fulfilled, (state, action) => {
+            .addCase(createFileDB.fulfilled, (state) => {
                 state.isLoading = false;
-                state.files.push(action.payload);
             })
             .addCase(createFileDB.rejected, (state, action) => {
                 state.isLoading = false;
@@ -349,12 +350,8 @@ const filesSlice = createSlice({
                 state.isLoading = true;
                 state.error = null;
             })
-            .addCase(updateFileDB.fulfilled, (state, action) => {
+            .addCase(updateFileDB.fulfilled, (state) => {
                 state.isLoading = false;
-                const index = state.files.findIndex(
-                    (f) => f.$id === action.payload.$id
-                );
-                if (index !== -1) state.files[index] = action.payload;
             })
             .addCase(updateFileDB.rejected, (state, action) => {
                 state.isLoading = false;
