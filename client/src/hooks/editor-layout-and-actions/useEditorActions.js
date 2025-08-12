@@ -129,9 +129,9 @@ export function useEditorActions({
             }
             if (yjsResources.yText && isYjsConnected) {
                 yjsResources.yText.delete(0, yjsResources.yText.length);
-                yjsResources.yText.insert(0, file.content || '');
+                yjsResources.yText.insert(0, file.codeContent || '');
             }
-            dispatch(setCodeContent(file.content || ''));
+            dispatch(setCodeContent(file.ccodeCntent || ''));
         },
         [dispatch, files, isYjsConnected, selectedFile, yjsResources.yText]
     );

@@ -53,10 +53,10 @@ export function useFileActions({
                     $id: file.$id,
                     name: file.fileName,
                     language: getLanguageFromFileName(file.fileName),
-                    content:
+                    codeContent:
                         file.$id === selectedFile?.$id && isYjsConnected
                             ? yText.toString()
-                            : file.content || '', // Save yText content for selected file
+                            : file.codeContent || '', // Save yText content for selected file
                 };
             });
 
