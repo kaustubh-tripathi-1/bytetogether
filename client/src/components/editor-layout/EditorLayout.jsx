@@ -36,6 +36,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
     const { username } = profile || {};
     const { input, executionMode } = useSelector((state) => state.execution);
     const { isPreviewVisible } = useSelector((state) => state.preview);
+    const { activeProject } = useSelector((state) => state.projects);
 
     // Layout and UI related States
     const [editorWidth, setEditorWidth] = useState(66.67); // 2/3 of screen
@@ -73,15 +74,17 @@ export default function EditorLayout({ projectId, isNewProject }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { handleSaveAllFiles, toggleFileExplorer } = useFileActions({
-        files,
-        username,
-        isAdmin,
-        selectedFile,
-        isYjsConnected,
-        isNewProject,
-        setIsFileExplorerOpen,
-    });
+    const { handleSaveAllFiles, toggleFileExplorer, setFilesForWebMode } =
+        useFileActions({
+            files,
+            profile,
+            isAdmin,
+            selectedFile,
+            isYjsConnected,
+            isNewProject,
+            activeProject,
+            setIsFileExplorerOpen,
+        });
 
     useRealTimeSync({
         selectedFile,
@@ -132,7 +135,6 @@ export default function EditorLayout({ projectId, isNewProject }) {
         handleInvite,
         handleEndRoom,
     } = useEditorActions({
-        isNewProject,
         projectId,
         editorRef,
         files,
@@ -204,6 +206,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         setIsYjsConnected={setIsYjsConnected}
                         isInvited={isInvitedSession}
                         toggleFileExplorer={toggleFileExplorer}
+                        setFilesForWebMode={setFilesForWebMode}
                     />
                 </div>
                 <CodeEditor
