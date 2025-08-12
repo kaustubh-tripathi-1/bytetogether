@@ -36,7 +36,7 @@ export default function CreateFile({ onClose, onConfirm }) {
         const documentId = ID.unique();
 
         const newFile = {
-            projectId: activeProject?.$id || 'defaultPorject',
+            projectId: activeProject?.$id || 'defaultProject',
             fileName: data.fileName,
             language,
             codeContent,
