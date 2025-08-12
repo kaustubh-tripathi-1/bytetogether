@@ -22,10 +22,8 @@ import {
 /**
  * Toolbar component for editor controls.
  * @param {Object} props Props for the component.
- * @param {React.ComponentState<string>} props.language Current language for code in the editor.
  * @param {Function} props.handleFormatCode Callback to format code in the editor.
  * @param {Function} props.handleRunCode Callback to run the code.
- * @param {Function} props.handleLanguageChange Callback to change language for the editor.
  * @param {Function} props.handleSaveAllFiles Callback to save all files to DB.
  * @param {number} props.fileCount Number of files in state.
  * @param {Function} props.handleOpenSettings Callback to open settings modal.
@@ -39,10 +37,8 @@ import {
  * @returns {JSX.Element} The memoized editor toolbar with editor controls.
  */
 function EditorToolbar({
-    // language,
     handleFormatCode,
     handleRunCode,
-    // handleLanguageChange,
     handleSaveAllFiles,
     fileCount,
     handleOpenSettings,
@@ -89,10 +85,7 @@ function EditorToolbar({
                         <Files width={2} height={2} />
                     </button>
                 </Tooltip>
-                {/* <LanguageSelector
-                selectedLanguage={language}
-                onLanguageChange={handleLanguageChange}
-            /> */}
+
                 <ModeSelector />
             </div>
             <div className="flex w-full items-center justify-center gap-1 sm:gap-8 md:justify-end md:gap-1.5">

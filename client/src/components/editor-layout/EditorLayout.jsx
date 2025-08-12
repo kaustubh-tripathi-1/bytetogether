@@ -116,7 +116,6 @@ export default function EditorLayout({ projectId, isNewProject }) {
         });
 
     const {
-        handleLanguageChange,
         handleFormatCode,
         handleRunCode,
         handleOpenSettings,
@@ -190,7 +189,6 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         language={language}
                         handleRunCode={handleRunCode}
                         handleFormatCode={handleFormatCode}
-                        handleLanguageChange={handleLanguageChange}
                         handleSaveAllFiles={handleSaveAllFiles}
                         fileCount={files.length}
                         handleOpenSettings={handleOpenSettings}
