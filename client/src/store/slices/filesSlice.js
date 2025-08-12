@@ -210,11 +210,13 @@ export const deleteFileDB = createAsyncThunk(
  * Initial state for the files slice.
  * @typedef {Object} FilesState
  * @property {Array} files - List of files in the project.
+ * @property {boolean} areFilesSaved - state of files saved/unsaved in a project.
  * @property {boolean} isLoading - Loading state for file operations.
  * @property {string|null} error - Error message for failed operations.
  */
 const initialState = {
     files: [],
+    areFilesSaved: false,
     isLoading: false,
     error: null,
 };
@@ -270,6 +272,14 @@ const filesSlice = createSlice({
             );
         },
         /**
+         * Sets the saved state.
+         * @param {FilesState} state - Current state.
+         * @param {Object} action - Action with payload containing boolean.
+         */
+        setAreFilesSaved: (state, action) => {
+            state.areFilesSaved = action.payload;
+        },
+        /**
          * Sets the loading state.
          * @param {FilesState} state - Current state.
          * @param {Object} action - Action with payload containing boolean.
@@ -296,6 +306,7 @@ const filesSlice = createSlice({
             .addCase(saveAllFilesForNewProject.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.files = action.payload;
+                state.areFilesSaved = true;
             })
             .addCase(saveAllFilesForNewProject.rejected, (state, action) => {
                 state.isLoading = false;
@@ -311,6 +322,7 @@ const filesSlice = createSlice({
                 (state, action) => {
                     state.isLoading = false;
                     state.files = action.payload;
+                    state.areFilesSaved = true;
                 }
             )
             .addCase(
@@ -377,6 +389,7 @@ export const {
     addFile,
     updateFile,
     deleteFile,
+    setAreFilesSaved,
     setIsLoading,
     setError,
 } = filesSlice.actions;
