@@ -29,6 +29,7 @@ function FileExplorer({ toggleFileExplorer }) {
     const { user } = useSelector((state) => state.auth);
     const { files } = useSelector((state) => state.files);
     const { selectedFile } = useSelector((state) => state.editor);
+    const { executionMode } = useSelector((state) => state.execution);
 
     const fileExplorerRef = useRef(null);
     const firstFocusableRef = useRef(null);
@@ -186,13 +187,15 @@ function FileExplorer({ toggleFileExplorer }) {
                 <div className="flex items-center justify-between gap-2 border-b border-gray-700 p-2">
                     <p className="text-sm">EXPLORER</p>
                     <div className="flex gap-1">
-                        <button
-                            onClick={openCreateFileModal}
-                            className="flex cursor-pointer items-center justify-center rounded-xl px-1.5 py-1 text-gray-400 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
-                            aria-label="Create new file"
-                        >
-                            <AddFile width={1.2} height={1.2} />
-                        </button>
+                        {executionMode === 'judge0' && (
+                            <button
+                                onClick={openCreateFileModal}
+                                className="flex cursor-pointer items-center justify-center rounded-xl px-1.5 py-1 text-gray-400 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
+                                aria-label="Create new file"
+                            >
+                                <AddFile width={1.2} height={1.2} />
+                            </button>
+                        )}
                         <button
                             onClick={toggleFileExplorer}
                             className="flex cursor-pointer items-center justify-center rounded-xl p-1 text-gray-400 hover:bg-gray-300 focus:bg-gray-300 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#2b2b44] dark:focus:bg-[#2b2b44]"
@@ -241,54 +244,57 @@ function FileExplorer({ toggleFileExplorer }) {
                                 {file.fileName}
                             </span>
                             {/* <span className="hidden gap-2 group-hover:flex group-focus:flex"> */}
-                            {user?.$id === file?.ownerId && (
-                                <span className="flex gap-2">
-                                    <button
-                                        onClick={(event) => {
-                                            event.stopPropagation();
-                                            fileToRenameRef.current = file;
-                                            openRenameFileModal();
-                                        }}
-                                        onKeyDown={(event) => {
-                                            event.stopPropagation();
-
-                                            if (
-                                                event.key === 'Enter' ||
-                                                event.key === ' '
-                                            ) {
+                            {user?.$id === file?.ownerId &&
+                                executionMode === 'judge0' && (
+                                    <span className="flex gap-2">
+                                        <button
+                                            onClick={(event) => {
+                                                event.stopPropagation();
                                                 fileToRenameRef.current = file;
                                                 openRenameFileModal();
-                                            }
-                                        }}
-                                        className="cursor-pointer rounded-md p-1 hover:bg-gray-100 focus:bg-gray-100 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#3e3e52] dark:focus:bg-[#3e3e52]"
-                                        aria-label={`Rename ${file.fileName}`}
-                                    >
-                                        <Rename width={1.2} height={1.2} />
-                                    </button>
-                                    <button
-                                        onClick={(event) => {
-                                            event.stopPropagation();
-                                            fileToDeleteRef.current = file;
-                                            openDeleteFileModal();
-                                        }}
-                                        onKeyDown={(event) => {
-                                            event.stopPropagation();
+                                            }}
+                                            onKeyDown={(event) => {
+                                                event.stopPropagation();
 
-                                            if (
-                                                event.key === 'Enter' ||
-                                                event.key === ' '
-                                            ) {
+                                                if (
+                                                    event.key === 'Enter' ||
+                                                    event.key === ' '
+                                                ) {
+                                                    fileToRenameRef.current =
+                                                        file;
+                                                    openRenameFileModal();
+                                                }
+                                            }}
+                                            className="cursor-pointer rounded-md p-1 hover:bg-gray-100 focus:bg-gray-100 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#3e3e52] dark:focus:bg-[#3e3e52]"
+                                            aria-label={`Rename ${file.fileName}`}
+                                        >
+                                            <Rename width={1.2} height={1.2} />
+                                        </button>
+                                        <button
+                                            onClick={(event) => {
+                                                event.stopPropagation();
                                                 fileToDeleteRef.current = file;
                                                 openDeleteFileModal();
-                                            }
-                                        }}
-                                        className="cursor-pointer rounded-md p-1 hover:bg-gray-100 focus:bg-gray-100 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#3e3e52] dark:focus:bg-[#3e3e52]"
-                                        aria-label={`Delete ${file.fileName}`}
-                                    >
-                                        <Delete width={1.2} height={1.2} />
-                                    </button>
-                                </span>
-                            )}
+                                            }}
+                                            onKeyDown={(event) => {
+                                                event.stopPropagation();
+
+                                                if (
+                                                    event.key === 'Enter' ||
+                                                    event.key === ' '
+                                                ) {
+                                                    fileToDeleteRef.current =
+                                                        file;
+                                                    openDeleteFileModal();
+                                                }
+                                            }}
+                                            className="cursor-pointer rounded-md p-1 hover:bg-gray-100 focus:bg-gray-100 focus:outline-1 focus:outline-offset-2 focus:outline-gray-500 dark:hover:bg-[#3e3e52] dark:focus:bg-[#3e3e52]"
+                                            aria-label={`Delete ${file.fileName}`}
+                                        >
+                                            <Delete width={1.2} height={1.2} />
+                                        </button>
+                                    </span>
+                                )}
                         </li>
                     ))}
                 </ul>
