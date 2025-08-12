@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router';
 
-import { getFilesByProject } from '../../store/slices/filesSlice.js';
 import {
     CodeEditor,
     EditorToolbar,
@@ -29,7 +28,6 @@ import { useFileActions } from '../../hooks/file-actions/useFileActions.js';
  * @returns {JSX.Element} The editor layout with CodeEditor, InputPanel and OutputPanel.
  */
 export default function EditorLayout({ projectId, isNewProject }) {
-    const dispatch = useDispatch();
     const { files } = useSelector((state) => state.files);
     const { codeContent, selectedFile, language, settings } = useSelector(
         (state) => state.editor
@@ -158,13 +156,6 @@ export default function EditorLayout({ projectId, isNewProject }) {
     //TODO remove this when deploying, only for dev cuz of strict mode
     const isMountedRef = useRef(false);
 
-    //TODO Fetch project files - Use Tanstack query for fetching this
-    useEffect(() => {
-        if (projectId && !isNewProject) {
-            dispatch(getFilesByProject(projectId));
-        }
-    }, [projectId, isNewProject, dispatch]);
-
     // Disconnect ALL WS connections and clear Y.Docs on component unmount
     //TODO Move this to useRealTimeSync before deploying
     useEffect(() => {
@@ -280,19 +271,22 @@ export default function EditorLayout({ projectId, isNewProject }) {
                     <section className="max-h-full min-h-40 md:h-[var(--input-height)]">
                         <InputPanel />
                     </section>
+
+                    {/* Vertical Resizer */}
                     <div
                         className="hidden h-1 cursor-ns-resize bg-gray-300 hover:bg-blue-600 active:bg-blue-600 md:block dark:bg-gray-500"
                         onMouseDown={handleVerticalMouseDown}
                         role="separator"
                         aria-label="Resize Output and Input Panels"
                     />
+
                     <section className="max-h-full min-h-42 flex-1 md:h-[calc(100%-var(--input-height))]">
                         <OutputPanel />
                     </section>
                 </section>
             )}
 
-            {/* The Transparent Overlay to stop iframe from capturing resize events */}
+            {/* Transparent Overlay to stop iframe from capturing resize events */}
             {isResizing && (
                 <div
                     className={`bg absolute inset-0 z-50 ${
