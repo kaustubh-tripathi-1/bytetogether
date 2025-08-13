@@ -19,6 +19,22 @@ export const createProject = createAsyncThunk(
     }
 );
 
+export const deleteProject = createAsyncThunk(
+    'projects/deleteProject',
+    async ({ projectId }, { rejectWithValue }) => {
+        try {
+            await databaseService.deleteDocument(
+                appwriteConfig.appwriteProjectsCollectionID,
+                projectId
+            );
+
+            return projectId;
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
 export const fetchUserProjects = createAsyncThunk(
     'projects/fetchUserProjects',
     async (_, { rejectWithValue, getState }) => {
@@ -75,6 +91,7 @@ const projectsSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            // Create Project
             .addCase(createProject.pending, (state) => {
                 state.isLoading = true;
                 state.error = null;
@@ -88,6 +105,23 @@ const projectsSlice = createSlice({
                 state.isLoading = false;
                 state.error = action.payload;
             })
+            // Delete Project
+            .addCase(deleteProject.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(deleteProject.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.projects = state.projects.filter(
+                    (project) => project.$id !== action.payload
+                );
+                state.activeProject = null;
+            })
+            .addCase(deleteProject.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            })
+            // Fetch User Projects
             .addCase(fetchUserProjects.pending, (state) => {
                 state.isLoading = true;
                 state.error = null;
