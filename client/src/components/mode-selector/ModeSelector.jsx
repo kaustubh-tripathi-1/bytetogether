@@ -161,6 +161,8 @@ export default function ModeSelector({ setFilesForWebMode }) {
                                     );
                                     return;
                                 }
+
+                                //TODO remove this from here and set these files before rendering UI after project creation
                                 setFilesForWebMode();
                                 dispatch(setExecutionMode('preview'));
                                 dispatch(setIsPreviewVisible(true));
@@ -183,6 +185,7 @@ export default function ModeSelector({ setFilesForWebMode }) {
                                         return;
                                     }
 
+                                    //TODO remove this from here and set these files before rendering UI after project creation
                                     setFilesForWebMode();
                                     dispatch(setExecutionMode('preview'));
                                     dispatch(setIsPreviewVisible(true));
