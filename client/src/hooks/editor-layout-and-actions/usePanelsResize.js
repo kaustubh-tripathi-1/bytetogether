@@ -169,12 +169,6 @@ export function usePanelsResize({
             }
         }
 
-        function handleMouseLeave() {
-            isDraggingHorizontal.current = false;
-            isDraggingVertical.current = false;
-            setIsResizing(false);
-        }
-
         // Listeners
         containerRef.current?.addEventListener(
             'mousemove',
@@ -192,7 +186,6 @@ export function usePanelsResize({
             'mouseup',
             handleVerticalMouseUp
         );
-        containerRef.current?.addEventListener('mouseleave', handleMouseLeave);
 
         const containerRefCopy = containerRef.current;
 
@@ -213,10 +206,6 @@ export function usePanelsResize({
             containerRefCopy?.removeEventListener(
                 'mouseup',
                 handleVerticalMouseUp
-            );
-            containerRefCopy?.removeEventListener(
-                'mouseleave',
-                handleMouseLeave
             );
         };
     }, [

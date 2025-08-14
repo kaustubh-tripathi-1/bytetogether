@@ -8,7 +8,7 @@ body,
     min-height: 100vh;
     height: 100%;
     width: 100%;
-    color-scheme: light, dark;
+    color-scheme: dark light;
 }
 
 /* Disable text selection while resizing panels */
@@ -29,5 +29,15 @@ body,
     @media (min-width: 768px) {
         --editor-width: 66.67%;
         --input-height: 50%;
+    }
+}
+
+@theme {
+    --animate-spin-fast: spinFast 300ms linear infinite;
+
+    @keyframes spinFast {
+        to {
+            transform: rotate(360deg);
+        }
     }
 }

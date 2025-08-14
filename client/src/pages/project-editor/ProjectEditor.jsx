@@ -14,16 +14,16 @@ import {
     setFiles,
     setIsLoading as setFilesLoading,
 } from '../../store/slices/filesSlice';
-import {
-    setActiveProject,
-    setCollaborators,
-} from '../../store/slices/editorSlice';
+import { setActiveProject } from '../../store/slices/projectSlice';
 
+/**
+ * Parent component(page) linked with route to render EditorLayout for existing projects with data fetching.
+ */
 export default function ProjectEditor() {
     const { projectId } = useParams();
     const dispatch = useDispatch();
 
-    // Fetch project details (name, ownerId, collaborators)
+    // Fetch project details (name, ownerId)
     const {
         data: project,
         isLoading: isProjectLoading,
@@ -62,10 +62,8 @@ export default function ProjectEditor() {
                     $id: project.$id,
                     name: project.name,
                     ownerId: project.ownerId,
-                    collaborators: project.collaborators,
                 })
             );
-            dispatch(setCollaborators(project.collaborators));
         }
     }, [dispatch, project]);
 

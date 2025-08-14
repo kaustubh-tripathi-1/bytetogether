@@ -4,17 +4,20 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { setExecutionMode } from '../../store/slices/executionSlice';
 import { setIsPreviewVisible } from '../../store/slices/previewSlice';
+import { addNotification } from '../../store/slices/uiSlice';
 
 /**
  * ModeSelector component for selecting execution mode between Judge0 and Web(HTML, CSS and JS)Preview.
  * @returns {JSX.Element} The mode selection dropdown.
  */
-export default function ModeSelector() {
+export default function ModeSelector({ setFilesForWebMode }) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
     const dispatch = useDispatch();
     const { executionMode } = useSelector((state) => state.execution);
+    const { areFilesSaved } = useSelector((state) => state.files);
+    const { selectedFile } = useSelector((state) => state.editor);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -95,12 +98,41 @@ export default function ModeSelector() {
                         <li
                             key={'judge0'}
                             onClick={() => {
+                                if (
+                                    !areFilesSaved &&
+                                    executionMode !== 'judge0' &&
+                                    selectedFile
+                                ) {
+                                    dispatch(
+                                        addNotification({
+                                            message: `Save your file(s) first...`,
+                                            type: 'warn',
+                                        })
+                                    );
+                                    return;
+                                }
+
                                 dispatch(setExecutionMode('judge0'));
                                 dispatch(setIsPreviewVisible(false));
                                 setIsOpen(false);
                             }}
                             onKeyDown={(e) => {
+                                e.stopPropagation();
                                 if (e.key === 'Enter' || e.key === ' ') {
+                                    if (
+                                        !areFilesSaved &&
+                                        executionMode !== 'judge0' &&
+                                        selectedFile
+                                    ) {
+                                        dispatch(
+                                            addNotification({
+                                                message: `Save your file(s) first...`,
+                                                type: 'warn',
+                                            })
+                                        );
+                                        return;
+                                    }
+
                                     dispatch(setExecutionMode('judge0'));
                                     dispatch(setIsPreviewVisible(false));
                                     setIsOpen(false);
@@ -116,12 +148,45 @@ export default function ModeSelector() {
                         <li
                             key={'preview'}
                             onClick={() => {
+                                if (
+                                    !areFilesSaved &&
+                                    executionMode !== 'preview' &&
+                                    selectedFile
+                                ) {
+                                    dispatch(
+                                        addNotification({
+                                            message: `Save your file(s) first...`,
+                                            type: 'warn',
+                                        })
+                                    );
+                                    return;
+                                }
+
+                                //TODO remove this from here and set these files before rendering UI after project creation
+                                setFilesForWebMode();
                                 dispatch(setExecutionMode('preview'));
                                 dispatch(setIsPreviewVisible(true));
                                 setIsOpen(false);
                             }}
                             onKeyDown={(e) => {
+                                e.stopPropagation();
                                 if (e.key === 'Enter' || e.key === ' ') {
+                                    if (
+                                        !areFilesSaved &&
+                                        executionMode !== 'preview' &&
+                                        selectedFile
+                                    ) {
+                                        dispatch(
+                                            addNotification({
+                                                message: `Save your file(s) first...`,
+                                                type: 'warn',
+                                            })
+                                        );
+                                        return;
+                                    }
+
+                                    //TODO remove this from here and set these files before rendering UI after project creation
+                                    setFilesForWebMode();
                                     dispatch(setExecutionMode('preview'));
                                     dispatch(setIsPreviewVisible(true));
                                     setIsOpen(false);

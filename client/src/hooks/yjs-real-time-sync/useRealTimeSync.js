@@ -114,9 +114,9 @@ export function useRealTimeSync({
             if (
                 isAdmin &&
                 yText.length === 0 &&
-                selectedFile?.content.length > 0
+                selectedFile?.codeContent.length > 0
             ) {
-                yText.insert(0, selectedFile?.content);
+                yText.insert(0, selectedFile?.codeContent);
             }
 
             // Dispatch the content from yText to Redux.

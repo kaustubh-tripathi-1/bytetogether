@@ -15,6 +15,7 @@ import { Spinner } from '../componentsIndex';
 import { addNotification } from '../../store/slices/uiSlice';
 import { useDebounce } from '../../hooks/useDebounce';
 import { setCss, setHtml, setJs } from '../../store/slices/previewSlice';
+import { setAreFilesSaved } from '../../store/slices/filesSlice';
 
 import nightOwlTheme from './themes/night-owl.json';
 import vsLight from './themes/custom-light.json';
@@ -26,7 +27,7 @@ import './CodeEditor.css';
  * @param {React.RefObject} editorRef The react ref for monaco editor.
  * @param {import('yjs').Text} props.yText - The Y.Text instance for the current file.
  * @param {import('y-websocket').Awareness} props.awareness - The Awareness instance for the current provider.
- * @param {boolean} props.isInvited - Whether the session is invited for collaboration.
+ * @param {boolean} props.isYjsConnected - Whether yjs is connected or not.
  * @returns {JSX.Element} The Monaco Editor.
  */
 function CodeEditor({ ref: editorRef, yjsResources, isYjsConnected }) {
@@ -36,6 +37,7 @@ function CodeEditor({ ref: editorRef, yjsResources, isYjsConnected }) {
     );
     const { theme } = useSelector((state) => state.ui);
     const { executionMode } = useSelector((state) => state.execution);
+    const { areFilesSaved } = useSelector((state) => state.files);
     const { yDoc, yText, awareness } = yjsResources;
 
     const bindingRef = useRef(null); // To store the MonacoBinding instance for cleanup
@@ -59,6 +61,9 @@ function CodeEditor({ ref: editorRef, yjsResources, isYjsConnected }) {
 
             dispatch(setCodeContent(value));
             dispatch(setSelectedFileContent(value));
+            if (areFilesSaved) {
+                dispatch(setAreFilesSaved(false));
+            }
 
             if (executionMode === 'preview') {
                 switch (language) {
@@ -77,7 +82,7 @@ function CodeEditor({ ref: editorRef, yjsResources, isYjsConnected }) {
                 }
             }
         },
-        [dispatch, executionMode, language, yText]
+        [areFilesSaved, dispatch, executionMode, language, yText]
     );
 
     const debouncedHandleContentChange = useDebounce(handleContentChange, 400);

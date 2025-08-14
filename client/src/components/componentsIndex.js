@@ -7,7 +7,7 @@ export { default as ProtectedRoute } from './ProtectedRoute.jsx';
 export { default as Layout } from './layout/Layout.jsx';
 export { default as NotFound } from '../pages/not-found/NotFound.jsx';
 
-// SVG Components
+// SVG/UI Components
 export { default as CloseEye } from './svg/CloseEye.jsx';
 export { default as OpenEye } from './svg/OpenEye.jsx';
 export { default as Spinner } from './svg/Spinner.jsx';
@@ -21,6 +21,13 @@ export { default as Keyboard } from './svg/Keyboard.jsx';
 export { default as Reset } from './svg/Reset.jsx';
 export { default as Invite } from './svg/Invite.jsx';
 export { default as Clear } from './svg/Clear.jsx';
+export { default as Rename } from './svg/Rename.jsx';
+export { default as Delete } from './svg/Delete.jsx';
+export { default as BounceLoader } from './loaders/BounceLoader.jsx';
+export { default as Hamburger } from './svg/Hamburger.jsx';
+export { default as Cross } from './svg/Cross.jsx';
+export { default as Files } from './svg/Files.jsx';
+export { default as AddFile } from './svg/AddFile.jsx';
 
 // Auth Components
 export { default as AuthLayout } from '../components/auth-layout/AuthLayout.jsx';
@@ -46,7 +53,17 @@ export { default as InviteAdminPanel } from './invite-panels/InviteAdminPanel.js
 export { default as InvitePanel } from './invite-panels/InvitePanel.jsx';
 export { default as ModeSelector } from './mode-selector/ModeSelector.jsx';
 
-//UI Components
+// UI Components
 export { default as Modal } from './modal/Modal.jsx';
 export { default as Notifications } from './notifications/Notifications.jsx';
 export { default as Tooltip } from './tooltip/Tooltip.jsx';
+
+// Modal Content Components
+export { default as SettingsContent } from './modal-contents/settings/SettingsContent.jsx';
+export { default as KeyboardShortcuts } from './modal-contents/keyboard-shortcuts/KeyboardShortcuts.jsx';
+export { default as CreateFile } from './modal-contents/new-file/CreateFile.jsx';
+export { default as RenameFile } from './modal-contents/rename-file/RenameFile.jsx';
+export { default as DeleteFile } from './modal-contents/delete-file/DeleteFile.jsx';
+
+// File Explorer
+export { default as FileExplorer } from './file-explorer/FileExplorer.jsx';

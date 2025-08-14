@@ -3,7 +3,7 @@
  * @module filesSlice
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { Query } from 'appwrite';
+import { ID, Query } from 'appwrite';
 
 import { databaseService } from '../../appwrite-services/database';
 import appwriteConfig from '../../conf/appwriteConfig';
@@ -12,35 +12,29 @@ import appwriteConfig from '../../conf/appwriteConfig';
  * Async thunk to save all files for a new project in Appwrite.
  * @param {Object} payload - The action payload.
  * @param {string} payload.projectName - The project name.
- * @param {Array<Object>} payload.files - Array of file objects { name, language, content }.
+ * @param {Array<Object>} payload.files - Array of file objects { name, language, codeContent }.
  * @returns {Promise<Array<Object>>} Array of created documents.
  */
 export const saveAllFilesForNewProject = createAsyncThunk(
     'files/saveAllFilesForNewProject',
-    async ({ projectName, files }, { rejectWithValue, getState }) => {
+    async ({ projectId, files }, { rejectWithValue, getState }) => {
         try {
             const { user } = getState().auth;
-
-            const project = await databaseService.createDocument(
-                appwriteConfig.appwriteProjectsCollectionID,
-                {
-                    name: projectName,
-                    ownerId: user?.$id,
-                    collaborators: [],
-                }
-            );
 
             const savePromises = files.map((file) =>
                 databaseService.createDocument(
                     appwriteConfig.appwriteFilesCollectionID,
+                    file.$id,
                     {
-                        projectId: project.$id,
+                        projectId,
                         fileName: file.fileName,
                         language: file.language,
-                        content: file.content,
+                        codeContent: file.codeContent,
+                        ownerId: user?.$id,
                     }
                 )
             );
+
             const results = await Promise.all(savePromises);
             return results;
         } catch (error) {
@@ -52,7 +46,7 @@ export const saveAllFilesForNewProject = createAsyncThunk(
 /**
  * Async thunk to update all files for an existing project in Appwrite.
  * @param {Object} payload - The action payload.
- * @param {Array<Object>} payload.files - Array of file objects { $id, content, language }.
+ * @param {Array<Object>} payload.files - Array of file objects { $id, codeContent, language }.
  * @returns {Promise<Array<Object>>} Array of updated documents.
  */
 export const updateAllFilesForExistingProject = createAsyncThunk(
@@ -64,7 +58,8 @@ export const updateAllFilesForExistingProject = createAsyncThunk(
                     appwriteConfig.appwriteFilesCollectionID,
                     file.$id,
                     {
-                        content: file.content,
+                        fileName: file.fileName,
+                        codeContent: file.codeContent,
                         language: file.language,
                     }
                 )
@@ -103,19 +98,38 @@ export const getFilesByProject = createAsyncThunk(
  * @param {string} payload.projectId - The project ID.
  * @param {string} payload.fileName - The file name.
  * @param {string} payload.language - The programming language.
- * @param {string} payload.content - The file content.
+ * @param {string} payload.codeContent - The file codeContent.
  * @returns {Promise<Object>} The created document.
  */
-export const createFile = createAsyncThunk(
-    'files/createFile',
-    async ({ projectId, fileName, language, content }, { rejectWithValue }) => {
+export const createFileDB = createAsyncThunk(
+    'files/createFileDB',
+    async (
+        { projectId, fileName, language, codeContent, documentId },
+        { rejectWithValue, dispatch, getState }
+    ) => {
+        const { user } = getState().auth;
+
         try {
-            const data = { projectId, fileName, language, content };
-            return await databaseService.createDocument(
+            const data = {
+                $id: documentId,
+                projectId,
+                fileName,
+                language,
+                codeContent,
+                ownerId: user?.$id || 'guest',
+            };
+
+            dispatch(addFile(data)); // Optimistic Update
+
+            const newFile = await databaseService.createDocument(
                 appwriteConfig.appwriteFilesCollectionID,
+                documentId,
                 data
             );
+
+            return newFile;
         } catch (error) {
+            dispatch(deleteFile(documentId)); // Rollback on failure
             return rejectWithValue(error.message);
         }
     }
@@ -125,21 +139,64 @@ export const createFile = createAsyncThunk(
  * Async thunk to update an existing file in Appwrite.
  * @param {Object} payload - The action payload.
  * @param {string} payload.fileId - The file ID.
- * @param {string} payload.content - The updated content.
+ * @param {string} payload.codeContent - The updated codeContent.
  * @param {string} payload.language - The updated language.
  * @returns {Promise<Object>} The updated document.
  */
-export const updateFile = createAsyncThunk(
-    'files/updateFile',
-    async ({ fileId, content, language }, { rejectWithValue }) => {
+export const updateFileDB = createAsyncThunk(
+    'files/updateFileDB',
+    async (
+        { fileId, codeContent, language, fileName },
+        { rejectWithValue, dispatch, getState }
+    ) => {
+        const { files } = getState().files;
+        const oldFile = files.find((file) => file.$id === fileId);
+
         try {
-            const data = { content, language };
-            return await databaseService.updateDocument(
+            const newfile = { ...oldFile, codeContent, language, fileName };
+
+            dispatch(updateFile(newfile)); // Optimistic Update
+
+            const data = { codeContent, language, fileName };
+            const updatedFile = await databaseService.updateDocument(
                 appwriteConfig.appwriteFilesCollectionID,
                 fileId,
                 data
             );
+
+            return updatedFile;
         } catch (error) {
+            if (oldFile) {
+                dispatch(updateFile(oldFile)); // Rollback on failure
+            }
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+/**
+ * Async thunk to delete a file in Appwrite.
+ * @param {Object} payload - The action payload.
+ * @param {string} payload.fileId - The file ID.
+ * @returns {void}
+ */
+export const deleteFileDB = createAsyncThunk(
+    'files/deleteFileDB',
+    async ({ fileId }, { rejectWithValue, dispatch, getState }) => {
+        const { files } = getState().files;
+        const fileToDelete = files.find((file) => file.$id === fileId);
+
+        try {
+            dispatch(deleteFile(fileId)); // Optimistic update
+
+            await databaseService.deleteDocument(
+                appwriteConfig.appwriteFilesCollectionID,
+                fileId
+            );
+        } catch (error) {
+            if (fileToDelete) {
+                dispatch(addFile(fileToDelete)); // Rollback on failure
+            }
             return rejectWithValue(error.message);
         }
     }
@@ -149,11 +206,13 @@ export const updateFile = createAsyncThunk(
  * Initial state for the files slice.
  * @typedef {Object} FilesState
  * @property {Array} files - List of files in the project.
+ * @property {boolean} areFilesSaved - state of files saved/unsaved in a project.
  * @property {boolean} isLoading - Loading state for file operations.
  * @property {string|null} error - Error message for failed operations.
  */
 const initialState = {
     files: [],
+    areFilesSaved: false,
     isLoading: false,
     error: null,
 };
@@ -170,7 +229,7 @@ const filesSlice = createSlice({
          * @param {FilesState} state - Current state.
          * @param {Object} action - Action with payload containing array of files.
          */
-        setFiles: function (state, action) {
+        setFiles: (state, action) => {
             state.files = action.payload;
         },
         /**
@@ -178,25 +237,50 @@ const filesSlice = createSlice({
          * @param {FilesState} state - Current state.
          * @param {Object} action - Action with payload containing the file.
          */
-        addFile: function (state, action) {
-            state.files.push(action.payload);
+        addFile: (state, action) => {
+            if (!state.files.includes(action.payload.$id)) {
+                state.files.push(action.payload);
+            }
+        },
+        /**
+         * Updates a file in the list of files for the project.
+         * @param {FilesState} state - Current state.
+         * @param {Object} action - Action with payload containing the file.
+         */
+        updateFile: (state, action) => {
+            const { $id } = action.payload;
+            const index = state.files.findIndex((file) => file.$id === $id);
+
+            if (index !== -1) {
+                state.files[index] = {
+                    ...action.payload,
+                };
+            }
         },
         /**
          * Deletes a file from the list of files for the project.
          * @param {FilesState} state - Current state.
          * @param {Object} action - Action with payload containing the file ID.
          */
-        deleteFile: function (state, action) {
-            state.files = state.files.filter(function (file) {
-                return file.$id !== action.payload;
-            });
+        deleteFile: (state, action) => {
+            state.files = state.files.filter(
+                (file) => file.$id !== action.payload
+            );
+        },
+        /**
+         * Sets the saved state.
+         * @param {FilesState} state - Current state.
+         * @param {Object} action - Action with payload containing boolean.
+         */
+        setAreFilesSaved: (state, action) => {
+            state.areFilesSaved = action.payload;
         },
         /**
          * Sets the loading state.
          * @param {FilesState} state - Current state.
          * @param {Object} action - Action with payload containing boolean.
          */
-        setIsLoading: function (state, action) {
+        setIsLoading: (state, action) => {
             state.isLoading = action.payload;
         },
         /**
@@ -204,96 +288,106 @@ const filesSlice = createSlice({
          * @param {FilesState} state - Current state.
          * @param {Object} action - Action with payload containing error string.
          */
-        setError: function (state, action) {
+        setError: (state, action) => {
             state.error = action.payload;
         },
-        extraReducers: (builder) => {
-            builder
-                // Save files to DB for a new Project
-                .addCase(saveAllFilesForNewProject.pending, (state) => {
-                    state.loading = true;
-                    state.error = null;
-                })
-                .addCase(
-                    saveAllFilesForNewProject.fulfilled,
-                    (state, action) => {
-                        state.loading = false;
-                        state.files = action.payload;
-                    }
-                )
-                .addCase(
-                    saveAllFilesForNewProject.rejected,
-                    (state, action) => {
-                        state.loading = false;
-                        state.error = action.payload;
-                    }
-                )
-                // Update files in DB for an existing Project
-                .addCase(updateAllFilesForExistingProject.pending, (state) => {
-                    state.loading = true;
-                    state.error = null;
-                })
-                .addCase(
-                    updateAllFilesForExistingProject.fulfilled,
-                    (state, action) => {
-                        state.loading = false;
-                        state.files = action.payload;
-                    }
-                )
-                .addCase(
-                    updateAllFilesForExistingProject.rejected,
-                    (state, action) => {
-                        state.loading = false;
-                        state.error = action.payload;
-                    }
-                )
-                // Get all files by Project ID
-                .addCase(getFilesByProject.pending, (state) => {
-                    state.loading = true;
-                    state.error = null;
-                })
-                .addCase(getFilesByProject.fulfilled, (state, action) => {
-                    state.loading = false;
+    },
+    extraReducers: (builder) => {
+        builder
+            // Save files to DB for a new Project
+            .addCase(saveAllFilesForNewProject.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(saveAllFilesForNewProject.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.files = action.payload;
+                state.areFilesSaved = true;
+            })
+            .addCase(saveAllFilesForNewProject.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            })
+            // Update files in DB for an existing Project
+            .addCase(updateAllFilesForExistingProject.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(
+                updateAllFilesForExistingProject.fulfilled,
+                (state, action) => {
+                    state.isLoading = false;
                     state.files = action.payload;
-                })
-                .addCase(getFilesByProject.rejected, (state, action) => {
-                    state.loading = false;
+                    state.areFilesSaved = true;
+                }
+            )
+            .addCase(
+                updateAllFilesForExistingProject.rejected,
+                (state, action) => {
+                    state.isLoading = false;
                     state.error = action.payload;
-                })
-                // Create File
-                .addCase(createFile.pending, (state) => {
-                    state.loading = true;
-                    state.error = null;
-                })
-                .addCase(createFile.fulfilled, (state, action) => {
-                    state.loading = false;
-                    state.files.push(action.payload);
-                })
-                .addCase(createFile.rejected, (state, action) => {
-                    state.loading = false;
-                    state.error = action.payload;
-                })
-                // Update File
-                .addCase(updateFile.pending, (state) => {
-                    state.loading = true;
-                    state.error = null;
-                })
-                .addCase(updateFile.fulfilled, (state, action) => {
-                    state.loading = false;
-                    const index = state.files.findIndex(
-                        (f) => f.$id === action.payload.$id
-                    );
-                    if (index !== -1) state.files[index] = action.payload;
-                })
-                .addCase(updateFile.rejected, (state, action) => {
-                    state.loading = false;
-                    state.error = action.payload;
-                });
-        },
+                }
+            )
+            // Get all files by Project ID
+            .addCase(getFilesByProject.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(getFilesByProject.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.files = action.payload;
+            })
+            .addCase(getFilesByProject.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            })
+            // Create File
+            .addCase(createFileDB.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(createFileDB.fulfilled, (state) => {
+                state.isLoading = false;
+            })
+            .addCase(createFileDB.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            })
+            // Update File
+            .addCase(updateFileDB.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(updateFileDB.fulfilled, (state) => {
+                state.isLoading = false;
+            })
+            .addCase(updateFileDB.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            })
+            // Delete File
+            .addCase(deleteFileDB.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(deleteFileDB.fulfilled, (state) => {
+                state.isLoading = false;
+            })
+            .addCase(deleteFileDB.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            });
     },
 });
 
-export const { setFiles, addFile, deleteFile, setIsLoading, setError } =
-    filesSlice.actions;
+export const {
+    setFiles,
+    addFile,
+    updateFile,
+    deleteFile,
+    setAreFilesSaved,
+    setIsLoading,
+    setError,
+} = filesSlice.actions;
 
 export default filesSlice.reducer;

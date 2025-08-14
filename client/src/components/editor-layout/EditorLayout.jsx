@@ -1,24 +1,24 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router';
-import DOMPurify from 'dompurify';
 
-import { getFilesByProject } from '../../store/slices/filesSlice.js';
 import {
     CodeEditor,
     EditorToolbar,
+    FileExplorer,
     InputPanel,
+    KeyboardShortcuts,
     Modal,
     OutputPanel,
     PreviewPanel,
+    SettingsContent,
 } from '../componentsIndex.js';
-import { modalConfig } from '../../conf/modalConfig.jsx';
 import { disconnectAllYjs } from '../../lib/yjs.js';
 import { useRealTimeSync } from '../../hooks/yjs-real-time-sync/useRealTimeSync.js';
-import { useInitialFileStup } from '../../hooks/editor-layout-and-actions/useInitialFileSetup.js';
 import { usePanelsResize } from '../../hooks/editor-layout-and-actions/usePanelsResize.js';
 import { useEditorActions } from '../../hooks/editor-layout-and-actions/useEditorActions.js';
+import { useFileActions } from '../../hooks/file-actions/useFileActions.js';
 
 /**
  * Layout component for the editor interface.
@@ -28,7 +28,6 @@ import { useEditorActions } from '../../hooks/editor-layout-and-actions/useEdito
  * @returns {JSX.Element} The editor layout with CodeEditor, InputPanel and OutputPanel.
  */
 export default function EditorLayout({ projectId, isNewProject }) {
-    const dispatch = useDispatch();
     const { files } = useSelector((state) => state.files);
     const { codeContent, selectedFile, language, settings } = useSelector(
         (state) => state.editor
@@ -37,6 +36,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
     const { username } = profile || {};
     const { input, executionMode } = useSelector((state) => state.execution);
     const { isPreviewVisible } = useSelector((state) => state.preview);
+    const { activeProject } = useSelector((state) => state.projects);
 
     // Layout and UI related States
     const [editorWidth, setEditorWidth] = useState(66.67); // 2/3 of screen
@@ -45,6 +45,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
     const [isResizing, setIsResizing] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+    const [isFileExplorerOpen, setIsFileExplorerOpen] = useState(false);
     const editorRef = useRef(null);
     const containerRef = useRef(null);
     const previewContainerRef = useRef(null);
@@ -73,7 +74,17 @@ export default function EditorLayout({ projectId, isNewProject }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    useInitialFileStup({ files, selectedFile });
+    const { handleSaveAllFiles, toggleFileExplorer, setFilesForWebMode } =
+        useFileActions({
+            files,
+            profile,
+            isAdmin,
+            selectedFile,
+            isYjsConnected,
+            isNewProject,
+            activeProject,
+            setIsFileExplorerOpen,
+        });
 
     useRealTimeSync({
         selectedFile,
@@ -108,11 +119,8 @@ export default function EditorLayout({ projectId, isNewProject }) {
         });
 
     const {
-        handleFileChange,
-        handleLanguageChange,
         handleFormatCode,
         handleRunCode,
-        handleSaveAllFiles,
         handleOpenSettings,
         handleOpenKeyboardShortcuts,
         handleCloseSettings,
@@ -127,7 +135,6 @@ export default function EditorLayout({ projectId, isNewProject }) {
         handleInvite,
         handleEndRoom,
     } = useEditorActions({
-        isNewProject,
         projectId,
         editorRef,
         files,
@@ -149,13 +156,6 @@ export default function EditorLayout({ projectId, isNewProject }) {
 
     //TODO remove this when deploying, only for dev cuz of strict mode
     const isMountedRef = useRef(false);
-
-    //TODO Fetch project files - Use Tanstack query for fetching this
-    useEffect(() => {
-        if (projectId && !isNewProject) {
-            dispatch(getFilesByProject(projectId));
-        }
-    }, [projectId, isNewProject, dispatch]);
 
     // Disconnect ALL WS connections and clear Y.Docs on component unmount
     //TODO Move this to useRealTimeSync before deploying
@@ -179,37 +179,18 @@ export default function EditorLayout({ projectId, isNewProject }) {
             <section className="w-full p-4 md:w-[var(--editor-width)] md:min-w-112">
                 {/* File Selector */}
                 <div className="flex flex-col justify-between gap-4 md:flex-row">
-                    <div className="hidden">
-                        <select
-                            value={selectedFile?.fileName || 'index.js'}
-                            onChange={handleFileChange}
-                            className="w-full min-w-25 rounded border border-gray-300 bg-gray-100 p-1.5 text-gray-800 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
-                            aria-label="Select file to edit"
-                        >
-                            <option
-                                value=""
-                                disabled
-                                className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-                            >
-                                Select a file
-                            </option>
-                            {files.map((file) => (
-                                <option
-                                    key={file.$id}
-                                    value={file.$id}
-                                    className=""
-                                >
-                                    {file.fileName}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    <AnimatePresence>
+                        {isFileExplorerOpen && (
+                            <FileExplorer
+                                toggleFileExplorer={toggleFileExplorer}
+                            />
+                        )}
+                    </AnimatePresence>
 
                     <EditorToolbar
                         language={language}
                         handleRunCode={handleRunCode}
                         handleFormatCode={handleFormatCode}
-                        handleLanguageChange={handleLanguageChange}
                         handleSaveAllFiles={handleSaveAllFiles}
                         fileCount={files.length}
                         handleOpenSettings={handleOpenSettings}
@@ -224,6 +205,8 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         isYjsConnected={isYjsConnected}
                         setIsYjsConnected={setIsYjsConnected}
                         isInvited={isInvitedSession}
+                        toggleFileExplorer={toggleFileExplorer}
+                        setFilesForWebMode={setFilesForWebMode}
                     />
                 </div>
                 <CodeEditor
@@ -241,19 +224,19 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         isOpen={isSettingsOpen}
                         onClose={handleCloseSettings}
                     >
-                        {modalConfig.settings.content({
-                            fontSize: settings.fontSize,
-                            onFontSizeIncrement: handleFontSizeIncrement,
-                            onFontSizeDecrement: handleFontSizeDecrement,
-                            wordWrap: settings.wordWrap,
-                            onWordWrapChange: handleWordWrapChange,
-                            minimapEnabled: settings.minimap,
-                            onMinimapChange: handleMinimapChange,
-                            stickyScrollEnabled: settings.stickyScroll,
-                            onStickyScrollChange: handleStickyScrollChange,
-                            tabSize: settings.tabSize,
-                            onTabSizeChange: handleTabSizeChange,
-                        })}
+                        <SettingsContent
+                            fontSize={settings.fontSize}
+                            onFontSizeIncrement={handleFontSizeIncrement}
+                            onFontSizeDecrement={handleFontSizeDecrement}
+                            wordWrap={settings.wordWrap}
+                            onWordWrapChange={handleWordWrapChange}
+                            minimapEnabled={settings.minimap}
+                            onMinimapChange={handleMinimapChange}
+                            stickyScrollEnabled={settings.stickyScroll}
+                            onStickyScrollChange={handleStickyScrollChange}
+                            tabSize={settings.tabSize}
+                            onTabSizeChange={handleTabSizeChange}
+                        />
                     </Modal>
                 )}
                 {isShortcutsOpen && (
@@ -262,7 +245,7 @@ export default function EditorLayout({ projectId, isNewProject }) {
                         isOpen={isShortcutsOpen}
                         onClose={handleCloseKeyboardShortcuts}
                     >
-                        {modalConfig.shortcuts.content}
+                        <KeyboardShortcuts />
                     </Modal>
                 )}
             </AnimatePresence>
@@ -289,31 +272,27 @@ export default function EditorLayout({ projectId, isNewProject }) {
                     <section className="max-h-full min-h-40 md:h-[var(--input-height)]">
                         <InputPanel />
                     </section>
+
+                    {/* Vertical Resizer */}
                     <div
                         className="hidden h-1 cursor-ns-resize bg-gray-300 hover:bg-blue-600 active:bg-blue-600 md:block dark:bg-gray-500"
                         onMouseDown={handleVerticalMouseDown}
                         role="separator"
                         aria-label="Resize Output and Input Panels"
                     />
+
                     <section className="max-h-full min-h-42 flex-1 md:h-[calc(100%-var(--input-height))]">
                         <OutputPanel />
                     </section>
                 </section>
             )}
 
-            {/* The Transparent Overlay to stop iframe from capturing resize events */}
+            {/* Transparent Overlay to stop iframe from capturing resize events */}
             {isResizing && (
                 <div
                     className={`bg absolute inset-0 z-50 ${
                         isDraggingHorizontal.current ? 'cursor-ew-resize' : ''
-                    } ${isDraggingVertical.current ? 'cursor-ns-resize' : ''}`}
-                    style={{
-                        cursor: isDraggingHorizontal.current
-                            ? 'ew-resize'
-                            : isDraggingVertical.current
-                              ? 'ns-resize'
-                              : 'default',
-                    }} // Explicitly set cursor type
+                    } ${isDraggingVertical.current ? 'cursor-ns-resize' : ''}`} // Explicitly set cursor type
                 />
             )}
         </section>

@@ -197,7 +197,7 @@ class DatabaseService {
      * @throws {DatabaseError} If validation fails.
      * @throws {AppwriteException} If the Appwrite API call fails.
      */
-    async createDocument(collectionId, data) {
+    async createDocument(collectionId, documentId = ID.unique(), data) {
         this.#validateString(collectionId, 'Collection ID');
 
         if (!data || typeof data !== 'object') {
@@ -211,7 +211,7 @@ class DatabaseService {
         return this.#databases.createDocument(
             appwriteConfig.appwriteDatabaseID,
             collectionId,
-            ID.unique(),
+            documentId,
             data
         );
     }

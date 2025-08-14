@@ -2,7 +2,7 @@ import { RouterProvider } from 'react-router';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { fetchCurrentUser } from './store/slices/authSlice';
+import { fetchCurrentUser, setAuthStatus } from './store/slices/authSlice';
 import { router } from './router/router.jsx';
 import { Notifications } from './components/componentsIndex.js';
 import { setPreferences, setProfile } from './store/slices/userSlice.js';
@@ -32,6 +32,7 @@ export default function App() {
             })
             .catch((error) => {
                 console.error('Background auth validation failed:', error);
+                dispatch(setAuthStatus(false));
             });
     }, [dispatch]);
 

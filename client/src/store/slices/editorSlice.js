@@ -4,26 +4,26 @@
  */
 import { createSlice } from '@reduxjs/toolkit';
 
+import { getLanguageFromFileName } from '../../utils/getLanguageFromFileName';
+
 /**
  * Initial state for the editor slice.
  * @typedef {Object} EditorState
- * @property {Object|null} activeProject - The currently active project (ID and metadata).
- * @property {Array} collaborators - List of collaborators (for real-time sync).
  * @property {string} codeContent - Content of the currently selected file.
  * @property {Object} settings - Editor settings (e.g. font size, word wrap etc.).
+ * @property {Object} selectedFile - Currently selected file from files state.
+ * @property {Object} language - language of codeContent for monaco.
  * @property {boolean} isLoading - Loading state for async operations.
  * @property {string|null} error - Error message for failed operations.
  */
 const initialState = {
-    activeProject: null,
-    collaborators: [],
     codeContent: '',
     settings: {
         fontSize: 14,
         wordWrap: 'on',
         tabSize: 4,
         minimap: true,
-        stickyScroll: false,
+        stickyScroll: true,
     },
     selectedFile: null,
     language: 'javascript',
@@ -38,22 +38,6 @@ const editorSlice = createSlice({
     name: 'editor',
     initialState,
     reducers: {
-        /**
-         * Sets the active project.
-         * @param {EditorState} state - Current state.
-         * @param {Object} action - Action with payload containing project data.
-         */
-        setActiveProject(state, action) {
-            state.activeProject = action.payload;
-        },
-        /**
-         * Sets the list of collaborators.
-         * @param {EditorState} state - Current state.
-         * @param {Object} action - Action with payload containing array of collaborators.
-         */
-        setCollaborators(state, action) {
-            state.collaborators = action.payload;
-        },
         /**
          * Sets the code content of the selected file.
          * @param {EditorState} state - Current state.
@@ -77,14 +61,24 @@ const editorSlice = createSlice({
          */
         setSelectedFile: (state, action) => {
             state.selectedFile = action.payload;
+            if (action.payload) {
+                state.language = getLanguageFromFileName(
+                    action.payload.fileName
+                );
+                state.codeContent = action.payload.codeContent;
+            } else {
+                state.codeContent = '';
+            }
         },
         /**
-         * Sets the the selected file.
+         * Sets the the selected file content.
          * @param {EditorState} state - Current state.
          * @param {Object} action - Action with payload containing selected file name.
          */
         setSelectedFileContent: (state, action) => {
-            state.selectedFile.content = action.payload;
+            if (state.selectedFile) {
+                state.selectedFile.codeContent = action.payload;
+            }
         },
         /**
          * Sets the programming language
@@ -114,8 +108,6 @@ const editorSlice = createSlice({
 });
 
 export const {
-    setActiveProject,
-    setCollaborators,
     setCodeContent,
     setLanguage,
     setSelectedFile,
