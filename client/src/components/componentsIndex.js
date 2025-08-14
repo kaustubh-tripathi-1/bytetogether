@@ -61,7 +61,9 @@ export { default as Tooltip } from './tooltip/Tooltip.jsx';
 // Modal Content Components
 export { default as SettingsContent } from './modal-contents/settings/SettingsContent.jsx';
 export { default as KeyboardShortcuts } from './modal-contents/keyboard-shortcuts/KeyboardShortcuts.jsx';
-export { default as CreateFile } from './modal-contents/new-file/CreateFile.jsx';
+// export { default as CreateProject } from './modal-contents/new-file/CreateFile.jsx';
+// export { default as DeleteProject } from './modal-contents/new-file/CreateFile.jsx';
+export { default as CreateFile } from './modal-contents/create-file/CreateFile.jsx';
 export { default as RenameFile } from './modal-contents/rename-file/RenameFile.jsx';
 export { default as DeleteFile } from './modal-contents/delete-file/DeleteFile.jsx';
 
