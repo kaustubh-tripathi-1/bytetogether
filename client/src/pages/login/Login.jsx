@@ -12,6 +12,7 @@ import {
     OpenEye,
     Spinner,
 } from '../../components/componentsIndex';
+import { setPreferences, setProfile } from '../../store/slices/userSlice';
 
 /**
  * Renders the login page with a form for user authentication.
@@ -38,7 +39,12 @@ export default function Login() {
 
     async function loginOnSubmit(data) {
         try {
-            await dispatch(loginUser(data)).unwrap();
+            const { user } = await dispatch(loginUser(data)).unwrap();
+
+            if (user) {
+                dispatch(setProfile(user));
+                dispatch(setPreferences(user?.prefs));
+            }
 
             // Redirect to the last path (if stored) or projects page
             const lastPath = sessionStorage.getItem('lastPath') || '/';
